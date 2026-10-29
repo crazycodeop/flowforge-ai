@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+from app.ai.factory import get_ai_provider
+from app.ai.validation import validate_classification_output, validate_structured_output
 from app.nodes.base import NodeType
 from app.workflows.context import ExecutionContext
 
@@ -123,23 +125,58 @@ class OutputExecutor(BaseNodeExecutor):
         return {"result": assembled}
 
 
-# Fallback executors for Milestone 3 (AI and Approval nodes will be completed in M5 & M7)
-class AIClassifyFallbackExecutor(BaseNodeExecutor):
+class AIClassifyExecutor(BaseNodeExecutor):
     def execute(self, context: ExecutionContext) -> dict[str, Any]:
+        prompt_template = context.node_config.get("prompt_template", "")
+        rendered_prompt = context.render_template(prompt_template)
         categories = context.node_config.get("categories", ["general"])
-        # Deterministic default classification
+        model_override = context.node_config.get("model")
+        temperature = float(context.node_config.get("temperature", 0.0))
+
+        provider = get_ai_provider()
+        response = provider.classify(
+            prompt=rendered_prompt,
+            categories=categories,
+            model=model_override,
+            temperature=temperature,
+        )
+
+        validated = validate_classification_output(
+            response.structured_data or response.content, categories
+        )
+
         return {
-            "category": categories[0],
-            "confidence": 0.95,
-            "reasoning": "Deterministic classification fallback",
+            "category": validated["category"],
+            "confidence": validated["confidence"],
+            "reasoning": validated["reasoning"],
+            "usage": response.usage.model_dump(),
         }
 
 
-class StructuredExtractFallbackExecutor(BaseNodeExecutor):
+class StructuredExtractExecutor(BaseNodeExecutor):
     def execute(self, context: ExecutionContext) -> dict[str, Any]:
+        prompt_template = context.node_config.get("prompt_template", "")
+        rendered_prompt = context.render_template(prompt_template)
+        schema_definition = context.node_config.get("schema_definition", {})
+        model_override = context.node_config.get("model")
+        temperature = float(context.node_config.get("temperature", 0.0))
+
+        provider = get_ai_provider()
+        response = provider.extract(
+            prompt=rendered_prompt,
+            schema=schema_definition,
+            model=model_override,
+            temperature=temperature,
+        )
+
+        validated = validate_structured_output(
+            response.structured_data or response.content, schema_definition
+        )
+
         return {
-            "extracted": context.run_input,
-            "validation": "schema_conforming",
+            "extracted": validated,
+            "validation": "valid",
+            "usage": response.usage.model_dump(),
         }
 
 
@@ -168,8 +205,8 @@ EXECUTOR_MAP: dict[NodeType, type[BaseNodeExecutor]] = {
     NodeType.TRANSFORM: TransformExecutor,
     NodeType.CONDITION: ConditionExecutor,
     NodeType.OUTPUT: OutputExecutor,
-    NodeType.AI_CLASSIFY: AIClassifyFallbackExecutor,
-    NodeType.STRUCTURED_EXTRACT: StructuredExtractFallbackExecutor,
+    NodeType.AI_CLASSIFY: AIClassifyExecutor,
+    NodeType.STRUCTURED_EXTRACT: StructuredExtractExecutor,
     NodeType.RETRIEVAL: RetrievalFallbackExecutor,
     NodeType.HUMAN_APPROVAL: HumanApprovalFallbackExecutor,
 }

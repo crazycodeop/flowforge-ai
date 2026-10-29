@@ -81,6 +81,21 @@ def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
     step_runs_list = db.scalars(step_runs_stmt).all()
     step_runs: dict[str, StepRun] = {s.node_id: s for s in step_runs_list}
 
+    # Ensure all definition nodes have corresponding StepRun records initialized
+    if len(step_runs) < len(nodes):
+        for node in nodes:
+            if node["id"] not in step_runs:
+                new_step = StepRun(
+                    workflow_run_id=run.id,
+                    node_id=node["id"],
+                    node_type=node["type"],
+                    status=StepStatus.PENDING.value,
+                    input_data={},
+                )
+                db.add(new_step)
+                step_runs[node["id"]] = new_step
+        db.commit()
+
     # Main execution loop
     max_iterations = len(nodes) * 3 + 10
     iteration = 0
@@ -148,13 +163,52 @@ def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
             try:
                 executor = get_node_executor(node["type"])
                 output = executor.execute(ctx)
+                now_completed = datetime.now(UTC)
 
                 validate_step_transition(StepStatus.RUNNING, StepStatus.SUCCEEDED)
                 step.status = StepStatus.SUCCEEDED.value
                 step.output_data = output
-                step.completed_at = datetime.now(UTC)
+                step.completed_at = now_completed
                 step.worker_lease_id = None
                 step.lease_expires_at = None
+
+                # Calculate execution latency
+                if step.started_at:
+                    step.latency_ms = round(
+                        (now_completed - step.started_at).total_seconds() * 1000.0, 2
+                    )
+
+                # Process AI token consumption and cost metrics if present
+                usage_info = output.get("usage") if isinstance(output, dict) else None
+                if isinstance(usage_info, dict):
+                    step.prompt_tokens = usage_info.get("prompt_tokens")
+                    step.completion_tokens = usage_info.get("completion_tokens")
+                    step.total_tokens = usage_info.get("total_tokens")
+                    step.cost_usd = usage_info.get("cost_usd")
+                    if usage_info.get("latency_ms"):
+                        step.latency_ms = usage_info.get("latency_ms")
+
+                    # Accumulate onto overall workflow run
+                    run.total_tokens = (run.total_tokens or 0) + (step.total_tokens or 0)
+                    run.total_cost_usd = round(
+                        (run.total_cost_usd or 0.0) + (step.cost_usd or 0.0), 6
+                    )
+
+                    emit_event(
+                        db,
+                        run.id,
+                        "AI_INFERENCE_COMPLETED",
+                        step_run_id=step.id,
+                        payload={
+                            "node_id": node_id,
+                            "prompt_tokens": step.prompt_tokens,
+                            "completion_tokens": step.completion_tokens,
+                            "total_tokens": step.total_tokens,
+                            "cost_usd": step.cost_usd,
+                            "latency_ms": step.latency_ms,
+                        },
+                    )
+
                 emit_event(
                     db,
                     run.id,

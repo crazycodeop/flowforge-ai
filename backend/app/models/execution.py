@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -35,6 +35,10 @@ class WorkflowRun(Base):
     # Idempotency safeguards
     idempotency_key: Mapped[str | None] = mapped_column(String(128), index=True, nullable=True)
     idempotency_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # Usage and metrics aggregation
+    total_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_cost_usd: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
 
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -94,6 +98,14 @@ class StepRun(Base):
     input_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     output_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     error_details: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+
+    # Usage and metrics tracking
+    prompt_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    completion_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    total_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
+    latency_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
+
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

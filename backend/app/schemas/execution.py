@@ -23,6 +23,11 @@ class StepRunResponse(BaseModel):
     input_data: dict[str, Any] | None
     output_data: dict[str, Any] | None
     error_details: dict[str, Any] | None
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    total_tokens: int | None = None
+    cost_usd: float | None = None
+    latency_ms: float | None = None
     started_at: datetime | None
     completed_at: datetime | None
     created_at: datetime
@@ -49,6 +54,8 @@ class WorkflowRunResponse(BaseModel):
     input_payload: dict[str, Any]
     output_payload: dict[str, Any] | None
     error_message: str | None
+    total_tokens: int = 0
+    total_cost_usd: float = 0.0
     started_at: datetime | None
     completed_at: datetime | None
     created_at: datetime

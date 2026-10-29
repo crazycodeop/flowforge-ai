@@ -60,6 +60,16 @@ class PermanentValidationError(WorkflowEngineError):
         )
 
 
+class ModelOutputInvalidError(WorkflowEngineError):
+    def __init__(self, message: str, retryable: bool = True):
+        super().__init__(
+            message=message,
+            category=ErrorCategory.MODEL_OUTPUT_INVALID,
+            retryable=retryable,
+            user_message="AI model produced output that failed schema validation.",
+        )
+
+
 def classify_exception(exc: Exception) -> tuple[ErrorCategory, bool, str]:
     """Inspects an exception and returns its category, retry eligibility, and sanitized user message."""
     if isinstance(exc, WorkflowEngineError):

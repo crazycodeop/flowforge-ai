@@ -28,6 +28,12 @@ class ExecutionContext(BaseModel):
         if not parts:
             return None
 
+        # Allow explicit namespace prefixes 'upstream_outputs' and 'run_input'
+        if parts[0] == "upstream_outputs" and len(parts) > 1:
+            parts = parts[1:]
+        elif parts[0] == "run_input" and len(parts) > 1:
+            parts = parts[1:]
+
         first_key = parts[0]
         # 1. Check in upstream_outputs
         if first_key in self.upstream_outputs:

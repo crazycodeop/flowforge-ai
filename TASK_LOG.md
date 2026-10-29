@@ -6,13 +6,78 @@
 - [x] **Milestone 2: Workflow Schemas, Registry & Graph Validation**
 - [x] **UI/UX Transformation: Modern Developer-Tool Design System & Visual Workflow Builder**
 - [x] **Milestone 3: Deterministic Execution Engine & State Machine**
-- [ ] **Milestone 4: Reliability, Recovery, Retries & Idempotency**
-- [ ] **Milestone 5: AI Runtime, Provider Abstraction & Structured Validation**
+- [x] **Milestone 4: Reliability, Recovery, Retries & Idempotency**
+- [x] **Milestone 5: AI Runtime, Provider Abstraction & Structured Validation**
 - [ ] **Milestone 6: Knowledge Retrieval & Flagship Support Workflow**
 - [ ] **Milestone 7: Human Approval, Authentication & Application Security**
 - [ ] **Milestone 8: Visual Workflow Builder Frontend Polish (Connected to Runtime)**
 - [ ] **Milestone 9: Execution Inspector, Audit Timeline & Evaluation Benchmark**
 - [ ] **Milestone 10: Release Polish, Verification & Final Presentation**
+
+---
+
+### Milestone 5: AI Runtime, Provider Abstraction & Structured Validation
+- **Date**: 2026-10-29
+- **Status**: Completed
+- **Features Implemented**:
+  - Modular AI provider architecture in `app/ai/`:
+    - `BaseAIProvider` abstract interface in `app/ai/base.py` defining `complete`, `classify`, and `extract` operations with typed `LLMMessage`, `LLMUsage`, and `LLMResponse` envelopes.
+    - Cost calculator in `app/ai/cost.py` with model-specific pricing per million tokens (OpenAI GPT-4o / GPT-4o-mini, Groq Llama 3.3 70B / 3.1 8B, Mixtral, Anthropic Claude, and zero-cost mock).
+    - High-fidelity, deterministic `MockAIProvider` in `app/ai/mock.py` for zero-credential testing, offline development, and CI (keyword heuristic classification, JSON Schema-compliant instance generation, realistic token/latency simulation, and configurable error injection).
+    - Universal `OpenAICompatibleProvider` in `app/ai/providers.py` supporting OpenAI, Groq, Ollama, and local OpenAI-compatible endpoints with HTTP error categorization (`RateLimitExceededError`, `TransientNetworkError`, `PermanentValidationError`).
+    - Configurable provider factory in `app/ai/factory.py` (`get_ai_provider`).
+  - Output schema validation and markdown stripping in `app/ai/validation.py`:
+    - `parse_and_clean_json` safely stripping markdown code blocks (` ```json ... ``` `) and validating JSON formatting.
+    - `validate_classification_output` enforcing case-insensitive category matching, rejecting hallucinated categories with `ModelOutputInvalidError`, and clamping confidence scores.
+    - `validate_structured_output` running strict JSON Schema validation using `jsonschema`.
+  - Implemented real AI executors in `app/nodes/executors.py`:
+    - `AIClassifyExecutor` rendering context templates, calling AI provider `classify`, validating categories, and returning structured classification results.
+    - `StructuredExtractExecutor` rendering context templates, calling AI provider `extract`, validating against JSON Schema, and returning validated fields.
+  - Usage, latency, and cost tracking across executions:
+    - Added `prompt_tokens`, `completion_tokens`, `total_tokens`, `cost_usd`, and `latency_ms` to `StepRun`.
+    - Added `total_tokens` and `total_cost_usd` aggregations to `WorkflowRun`.
+    - Created and applied Alembic migration `2d9bbe02c3b4` (`add_ai_usage_and_cost_metrics`).
+    - Updated execution engine in `app/workflows/executor.py` to record step latency, populate AI usage metrics, accumulate workflow totals, and emit `AI_INFERENCE_COMPLETED` audit events.
+    - Updated `resolve_path` in `ExecutionContext` to handle explicit namespace prefixes (`upstream_outputs.` and `run_input.`).
+- **Tests & Verification**:
+  - `pytest backend/tests`: **41 passed** in 1.82s (10 new unit and integration tests covering pricing, JSON parsing, classification validation, structured schema validation, mock provider heuristics, error injection, factory configuration, OpenAI adapter mocking, end-to-end multi-node AI pipeline execution in PostgreSQL, and rate-limit backoff retry recovery).
+  - `ruff check backend && ruff format --check backend`: 0 lint errors, 50 files formatted.
+  - `npm --prefix frontend test`: 2 passed in 2.58s.
+  - `npm --prefix frontend run build`: Successful production Vite build in 3.76s.
+- **Next Action**:
+  - Milestone 6: Implement Knowledge Retrieval Node (pgvector / knowledge collections), document store models, and the Flagship Customer Support Triage & Response Drafting Workflow with policy compliance checks.
+
+---
+
+### Milestone 4: Reliability, Recovery, Retries & Idempotency
+- **Date**: 2026-10-29
+- **Status**: Completed
+- **Features Implemented**:
+  - Implemented domain error classification in `app/workflows/errors.py`:
+    - Categorizes exceptions into `TRANSIENT_NETWORK`, `RATE_LIMIT`, `MODEL_OUTPUT_INVALID`, `PERMANENT_VALIDATION`, `PERMISSION_DENIED`, `BUSINESS_RULE_VIOLATION`, `SYSTEM_ERROR`.
+    - Sanitizes internal exceptions into user-safe messages (`user_message`) to avoid exposing internal stack traces.
+  - Implemented exponential backoff with full jitter formula in `calculate_backoff_delay`.
+  - Added bounded retry loop in `app/workflows/executor.py`:
+    - Differentiates recoverable transient errors from permanent validation failures.
+    - Transitions recoverable step runs to `RETRY_WAIT` and records `STEP_RETRY_SCHEDULED` events with backoff delay.
+    - Enforces `max_retries` per node configuration before failing permanently.
+  - Implemented worker execution leases and heartbeats:
+    - Added `worker_lease_id`, `lease_expires_at`, and `heartbeat_at` columns to `step_runs`.
+    - Executing steps hold an exclusive lease tied to `node.timeout_seconds`.
+  - Implemented run creation idempotency protection:
+    - Added `idempotency_key` and canonical SHA-256 `idempotency_hash` to `workflow_runs` with unique constraint `(workflow_id, idempotency_key)`.
+    - Duplicate run requests with matching headers return the existing run; mismatched payloads return HTTP 409 Conflict.
+  - Implemented orphaned step recovery routine in `app/workflows/recovery.py` (`recover_stale_runs`):
+    - Identifies running steps whose worker leases have expired without completion.
+    - Reschedules eligible steps (`RETRY_WAIT`) and preserves already-succeeded upstream step outputs without redundant re-execution.
+    - Exposed `POST /api/v1/runs/recover` endpoint for automated or manual recovery reconciliation.
+  - Applied Alembic migration `12933d4a3599` adding lease and idempotency columns.
+- **Tests & Verification**:
+  - `pytest backend/tests`: **31 passed** in 1.50s (testing transient retries, permanent validation error containment, idempotency replays/conflicts, stale lease recovery, state machines, and DAG scheduling).
+  - `ruff check backend && ruff format --check backend`: 0 lint errors, 41 files formatted.
+  - `npm --prefix frontend test`: 2 passed in 2.97s.
+- **Next Action**:
+  - Milestone 5: Implement AI Runtime, Provider Abstraction (Mock, Groq/OpenAI, Ollama), Pydantic structured output validation, token/cost estimation, and AI Classification/Extraction nodes.
 
 ---
 
