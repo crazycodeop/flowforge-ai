@@ -3,7 +3,7 @@
 ## Milestone Tracker
 - [x] **Milestone 0: Repository Discovery, Environment Audit, Context Setup & Implementation Plan**
 - [x] **Milestone 1: Foundation (Backend Skeleton, Frontend Skeleton, DB, Alembic, Redis, Celery, Tests & CI)**
-- [ ] **Milestone 2: Workflow Schemas, Registry & Graph Validation**
+- [x] **Milestone 2: Workflow Schemas, Registry & Graph Validation**
 - [ ] **Milestone 3: Deterministic Execution Engine & State Machine**
 - [ ] **Milestone 4: Reliability, Recovery, Retries & Idempotency**
 - [ ] **Milestone 5: AI Runtime, Provider Abstraction & Structured Validation**
@@ -12,6 +12,34 @@
 - [ ] **Milestone 8: React Frontend Visual Workflow Builder**
 - [ ] **Milestone 9: Execution Inspector, Audit Timeline & Evaluation Benchmark**
 - [ ] **Milestone 10: Release Polish, Verification & Final Presentation**
+
+---
+
+### Milestone 2: Workflow Schemas and Validation
+- **Date**: 2026-10-29
+- **Status**: Completed
+- **Features Implemented**:
+  - Implemented node definitions and configuration models for all initial node types (`trigger`, `input_data`, `ai_classify`, `structured_extract`, `retrieval`, `condition`, `transform`, `human_approval`, `output`) in `app/nodes/base.py`.
+  - Implemented central `NODE_REGISTRY` in `app/nodes/registry.py` providing schema validation and metadata catalog.
+  - Implemented versioned workflow Pydantic schemas in `app/schemas/workflow.py` (`NodeDefinition`, `EdgeDefinition`, `RetryPolicy`, `WorkflowDefinition`, `ValidationResult`).
+  - Implemented robust DAG validation engine in `app/workflows/validation.py`:
+    - Duplicate node ID detection
+    - Missing start / trigger node detection
+    - Self-loop detection
+    - Topological cycle detection using Kahn's algorithm
+    - Unreachable / orphan node detection from start nodes
+    - Edge reference integrity verification
+    - Platform limit enforcement (max nodes, max graph depth)
+    - Node-specific configuration schema validation
+  - Implemented database models `Workflow` and `WorkflowVersion` in `app/models/workflow.py` with deterministic SHA-256 checksum generation for tamper-evident snapshots.
+  - Applied Alembic migration `858411219fc0` creating `workflows` and `workflow_versions` tables with unique constraint `(workflow_id, version_number)`.
+  - Implemented REST API endpoints in `app/api/v1/workflows.py` for listing node types, CRUD operations on drafts, validating drafts, publishing immutable versions, and version inspection.
+- **Tests & Verification**:
+  - `pytest backend/tests`: 17 passed in 0.39s (10 new unit tests for graph validation edge cases and comprehensive workflow lifecycle API tests).
+  - `ruff check backend && ruff format --check backend`: 0 lint errors, 26 files formatted.
+  - `npm --prefix frontend test`: 3 passed in 1.02s.
+- **Next Action**:
+  - Milestone 3: Implement Deterministic Execution Engine, state machine transitions, step-run persistence, and Celery dispatch.
 
 ---
 

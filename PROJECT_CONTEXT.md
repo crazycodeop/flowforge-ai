@@ -11,11 +11,13 @@
 
 ## 2. Implemented Components
 - **Backend Core**: `backend/app/core/config.py` (Pydantic v2 settings), `backend/app/core/database.py` (SQLAlchemy 2.x engine and SessionLocal), `backend/app/core/logging.py`
-- **Database Models & Migrations**: `backend/app/models/system.py` (`SystemAudit` model), Alembic setup with revision `166bf013a400` applied to PostgreSQL.
+- **Database Models & Migrations**: `backend/app/models/system.py` (`SystemAudit`), `backend/app/models/workflow.py` (`Workflow`, `WorkflowVersion`), Alembic revisions `166bf013a400` and `858411219fc0` applied to PostgreSQL.
+- **Workflow & Node Registry**: `backend/app/nodes/base.py`, `backend/app/nodes/registry.py` (registry for 9 core node types), `backend/app/schemas/workflow.py` (Pydantic models for workflows, nodes, edges, retry policies, validation).
+- **Graph Validation Engine**: `backend/app/workflows/validation.py` (DAG cycle detection via Kahn's algorithm, orphan node detection, limit enforcement, node schema validation).
 - **Workers**: `backend/app/workers/celery_app.py` (Celery configured with Redis broker/backend), `backend/app/workers/tasks.py` (`ping_task`)
-- **API v1**: `backend/app/api/v1/health.py` (`/api/v1/health` and `/api/v1/ready` probes), `backend/app/main.py`
+- **API v1**: `backend/app/api/v1/health.py` (`/health`, `/ready`), `backend/app/api/v1/workflows.py` (`/workflows/nodes`, CRUD, `/validate`, `/publish`, version history), `backend/app/main.py`
 - **Frontend**: React 18 / Vite with developer-tool styling (`frontend/src/index.css`), API client (`frontend/src/api/client.js`), and diagnostic dashboard (`frontend/src/App.jsx`).
-- **CI / Testing**: `.github/workflows/ci.yml`, `pytest` suite in `backend/tests/` (5 tests), `vitest` suite in `frontend/src/App.test.jsx` (3 tests).
+- **CI / Testing**: `.github/workflows/ci.yml`, `pytest` suite in `backend/tests/` (17 tests), `vitest` suite in `frontend/src/App.test.jsx` (3 tests).
 
 ## 2. Target Directory Layout
 ```text
