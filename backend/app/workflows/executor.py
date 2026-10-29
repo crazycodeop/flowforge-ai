@@ -1,5 +1,6 @@
 import logging
-from datetime import UTC, datetime
+import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select
@@ -9,6 +10,7 @@ from app.models.execution import ExecutionEvent, StepRun, WorkflowRun
 from app.models.workflow import WorkflowVersion
 from app.nodes.executors import get_node_executor
 from app.workflows.context import ExecutionContext
+from app.workflows.errors import calculate_backoff_delay, classify_exception
 from app.workflows.scheduler import (
     check_execution_completion,
     find_ready_nodes,
@@ -44,7 +46,8 @@ def emit_event(
 def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
     """Authoritative execution loop driving a workflow run to completion.
 
-    Persists all step state transitions, outputs, attempts, and audit events to PostgreSQL.
+    Enforces worker execution leases, bounded retries with exponential backoff,
+    error classification, and durable persistence in PostgreSQL.
     """
     run = db.get(WorkflowRun, run_id)
     if not run:
@@ -78,8 +81,8 @@ def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
     step_runs_list = db.scalars(step_runs_stmt).all()
     step_runs: dict[str, StepRun] = {s.node_id: s for s in step_runs_list}
 
-    # Main execution loop: evaluate ready nodes until no ready nodes remain
-    max_iterations = len(nodes) * 2 + 5
+    # Main execution loop
+    max_iterations = len(nodes) * 3 + 10
     iteration = 0
 
     while iteration < max_iterations:
@@ -98,11 +101,29 @@ def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
             curr_step_status = StepStatus(step.status)
             validate_step_transition(curr_step_status, StepStatus.RUNNING)
 
+            # Assign worker lease
+            worker_lease_id = str(uuid.uuid4())
+            lease_duration = node.get("timeout_seconds", 60)
+            now = datetime.now(UTC)
+
             step.status = StepStatus.RUNNING.value
             step.attempt_count += 1
-            step.started_at = datetime.now(UTC)
+            step.worker_lease_id = worker_lease_id
+            step.lease_expires_at = now + timedelta(seconds=lease_duration)
+            step.heartbeat_at = now
+            if not step.started_at:
+                step.started_at = now
+
             emit_event(
-                db, run.id, "STEP_STARTED", step_run_id=step.id, payload={"node_id": node_id}
+                db,
+                run.id,
+                "STEP_STARTED",
+                step_run_id=step.id,
+                payload={
+                    "node_id": node_id,
+                    "attempt": step.attempt_count,
+                    "lease_duration_s": lease_duration,
+                },
             )
             db.commit()
 
@@ -132,6 +153,8 @@ def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
                 step.status = StepStatus.SUCCEEDED.value
                 step.output_data = output
                 step.completed_at = datetime.now(UTC)
+                step.worker_lease_id = None
+                step.lease_expires_at = None
                 emit_event(
                     db,
                     run.id,
@@ -163,29 +186,86 @@ def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
                 db.commit()
 
             except Exception as e:
-                logger.exception("Step '%s' failed during execution: %s", node_id, str(e))
+                category, is_retryable, user_msg = classify_exception(e)
+                retry_policy = node.get("retry_policy", {})
+                max_retries = retry_policy.get("max_retries", 3)
+                backoff_base = retry_policy.get("backoff_base_seconds", 1.0)
+                backoff_factor = retry_policy.get("backoff_factor", 2.0)
+                max_backoff = retry_policy.get("max_backoff_seconds", 60.0)
+
+                # Check if retryable and under attempt limit
+                if is_retryable and step.attempt_count <= max_retries:
+                    delay = calculate_backoff_delay(
+                        step.attempt_count, backoff_base, backoff_factor, max_backoff
+                    )
+                    logger.warning(
+                        "Step '%s' failed with retryable %s. Scheduling attempt %d in %.2fs",
+                        node_id,
+                        category,
+                        step.attempt_count + 1,
+                        delay,
+                    )
+                    validate_step_transition(StepStatus.RUNNING, StepStatus.RETRY_WAIT)
+                    step.status = StepStatus.RETRY_WAIT.value
+                    step.worker_lease_id = None
+                    step.lease_expires_at = datetime.now(UTC) + timedelta(seconds=delay)
+                    step.error_details = {
+                        "category": category.value,
+                        "attempt": step.attempt_count,
+                        "retry_delay_seconds": delay,
+                        "message": str(e),
+                    }
+                    emit_event(
+                        db,
+                        run.id,
+                        "STEP_RETRY_SCHEDULED",
+                        step_run_id=step.id,
+                        payload={
+                            "node_id": node_id,
+                            "category": category.value,
+                            "attempt": step.attempt_count,
+                            "delay_seconds": delay,
+                        },
+                    )
+                    db.commit()
+                    # Step scheduled for future retry; exit current execution cycle
+                    break
+
+                # Permanent failure or retries exhausted
+                logger.error("Step '%s' permanently failed: %s", node_id, str(e))
                 validate_step_transition(StepStatus.RUNNING, StepStatus.FAILED)
                 step.status = StepStatus.FAILED.value
-                step.error_details = {"error": str(e), "node_id": node_id}
                 step.completed_at = datetime.now(UTC)
+                step.worker_lease_id = None
+                step.lease_expires_at = None
+                step.error_details = {
+                    "category": category.value,
+                    "error": str(e),
+                    "user_message": user_msg,
+                    "attempts": step.attempt_count,
+                }
                 emit_event(
                     db,
                     run.id,
                     "STEP_FAILED",
                     step_run_id=step.id,
-                    payload={"node_id": node_id, "error": str(e)},
+                    payload={"node_id": node_id, "category": category.value, "error": str(e)},
                 )
 
                 # Fail-fast the workflow run
                 validate_run_transition(RunStatus.RUNNING, RunStatus.FAILED)
                 run.status = RunStatus.FAILED.value
-                run.error_message = f"Node '{node['name']}' ({node_id}) failed: {str(e)}"
+                run.error_message = f"Node '{node['name']}' ({node_id}) failed: {user_msg}"
                 run.completed_at = datetime.now(UTC)
                 emit_event(
                     db,
                     run.id,
                     "RUN_FAILED",
-                    payload={"failed_node_id": node_id, "error": str(e)},
+                    payload={
+                        "failed_node_id": node_id,
+                        "category": category.value,
+                        "error": str(e),
+                    },
                 )
                 db.commit()
                 return run

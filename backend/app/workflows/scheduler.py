@@ -1,4 +1,5 @@
 from collections import defaultdict, deque
+from datetime import UTC, datetime
 from typing import Any
 
 from app.workflows.state_machine import StepStatus
@@ -29,7 +30,13 @@ def find_ready_nodes(definition: dict[str, Any], step_runs: dict[str, Any]) -> l
     for node in nodes:
         node_id = node["id"]
         step = step_runs.get(node_id)
-        if not step or step.status != StepStatus.PENDING.value:
+        if not step:
+            continue
+
+        if step.status == StepStatus.RETRY_WAIT.value:
+            if step.lease_expires_at and datetime.now(UTC) < step.lease_expires_at:
+                continue
+        elif step.status != StepStatus.PENDING.value:
             continue
 
         in_edges = incoming_edges.get(node_id, [])

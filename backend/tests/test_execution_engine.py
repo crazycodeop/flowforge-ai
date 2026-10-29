@@ -241,14 +241,15 @@ def test_failure_containment(client: TestClient, db_session: Session):
     ):
         run = execute_workflow_run(run_id, db_session)
         assert run.status == RunStatus.FAILED.value
-        assert "Data mapping crashed" in run.error_message
+        assert "failed" in run.error_message.lower()
 
     # Verify steps: start succeeded, bad-transform failed, terminal remained PENDING
     steps = client.get(f"/api/v1/runs/{run_id}/steps").json()
-    status_map = {s["node_id"]: s["status"] for s in steps}
-    assert status_map["start"] == StepStatus.SUCCEEDED.value
-    assert status_map["bad-transform"] == StepStatus.FAILED.value
-    assert status_map["terminal"] == StepStatus.PENDING.value
+    status_map = {s["node_id"]: s for s in steps}
+    assert status_map["start"]["status"] == StepStatus.SUCCEEDED.value
+    assert status_map["bad-transform"]["status"] == StepStatus.FAILED.value
+    assert "Data mapping crashed" in status_map["bad-transform"]["error_details"]["error"]
+    assert status_map["terminal"]["status"] == StepStatus.PENDING.value
 
 
 def test_run_cancellation(client: TestClient, db_session: Session):

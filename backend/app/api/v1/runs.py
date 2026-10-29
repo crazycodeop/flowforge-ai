@@ -1,6 +1,9 @@
+import hashlib
+import json
 from datetime import UTC, datetime
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
@@ -20,6 +23,18 @@ from app.workflows.state_machine import RunStatus, StepStatus, validate_run_tran
 router = APIRouter(tags=["Executions"])
 
 
+def compute_idempotency_hash(
+    workflow_id: str, version_id: str, input_payload: dict[str, Any]
+) -> str:
+    """Computes a deterministic hash of run parameters to detect mismatched replays."""
+    serialized = json.dumps(
+        {"w": workflow_id, "v": version_id, "p": input_payload},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
 @router.post(
     "/workflows/{workflow_id}/runs",
     response_model=WorkflowRunResponse,
@@ -29,12 +44,10 @@ router = APIRouter(tags=["Executions"])
 def trigger_workflow_run(
     workflow_id: str,
     payload: RunCreateRequest,
+    idempotency_key: str | None = Header(None, alias="Idempotency-Key"),
     db: Session = Depends(get_db),
 ) -> WorkflowRunResponse:
-    """Initializes a workflow execution, creates durable StepRun records for all nodes,
-
-    enqueues the Celery worker task, and responds immediately with HTTP 202.
-    """
+    """Initializes a workflow execution with idempotency protection and bounded dispatch."""
     workflow = db.get(Workflow, workflow_id)
     if not workflow:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workflow not found")
@@ -66,6 +79,25 @@ def trigger_workflow_run(
                 detail="Workflow has no published versions. Publish a version before triggering a run.",
             )
 
+    # Idempotency check
+    current_hash = compute_idempotency_hash(workflow.id, version.id, payload.input_payload)
+    if idempotency_key:
+        stmt = select(WorkflowRun).where(
+            WorkflowRun.workflow_id == workflow_id,
+            WorkflowRun.idempotency_key == idempotency_key,
+        )
+        existing_run = db.scalar(stmt)
+        if existing_run:
+            if existing_run.idempotency_hash == current_hash:
+                # Idempotent replay: return existing run
+                return WorkflowRunResponse.model_validate(existing_run)
+            else:
+                # Conflict: same key reused with different payload/version
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Idempotency key reuse with mismatched input payload or target version",
+                )
+
     definition = version.definition
     nodes = definition.get("nodes", [])
 
@@ -75,6 +107,8 @@ def trigger_workflow_run(
         workflow_version_id=version.id,
         status=RunStatus.QUEUED.value,
         input_payload=payload.input_payload,
+        idempotency_key=idempotency_key,
+        idempotency_hash=current_hash,
     )
     db.add(run)
     db.flush()  # Obtain run.id
@@ -98,6 +132,7 @@ def trigger_workflow_run(
             "workflow_id": workflow_id,
             "version_number": version.version_number,
             "node_count": len(nodes),
+            "idempotency_key": idempotency_key,
         },
     )
     emit_event(db, run.id, "RUN_QUEUED")
@@ -196,3 +231,15 @@ def cancel_workflow_run(run_id: str, db: Session = Depends(get_db)) -> WorkflowR
     db.refresh(run)
 
     return WorkflowRunResponse.model_validate(run)
+
+
+@router.post("/runs/recover", summary="Trigger recovery of stale/orphaned executions")
+def recover_stale_executions(
+    grace_seconds: int = Query(10, ge=1, le=3600),
+    auto_resume: bool = Query(True),
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Identifies and recovers orphaned step executions whose worker leases have expired."""
+    from app.workflows.recovery import recover_stale_runs
+
+    return recover_stale_runs(db, stale_grace_seconds=grace_seconds, auto_resume=auto_resume)
