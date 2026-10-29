@@ -1,0 +1,89 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: flowforge_test
+          POSTGRES_USER: flowforge
+          POSTGRES_PASSWORD: flowforge_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install backend dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e "./backend[dev]"
+
+      - name: Run Ruff Lint and Format Checks
+        run: |
+          ruff check backend
+          ruff format --check backend
+
+      - name: Run Alembic Migrations
+        env:
+          DATABASE_URL: postgresql+psycopg2://flowforge:flowforge_password@localhost:5432/flowforge_test
+        run: |
+          cd backend && alembic upgrade head
+
+      - name: Run Pytest Test Suite
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg2://flowforge:flowforge_password@localhost:5432/flowforge_test
+          REDIS_URL: redis://localhost:6379/0
+          CELERY_BROKER_URL: redis://localhost:6379/1
+          CELERY_RESULT_BACKEND: redis://localhost:6379/2
+        run: |
+          pytest backend/tests -v
+
+  frontend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm --prefix frontend ci
+
+      - name: Run Frontend Tests
+        run: npm --prefix frontend test
+
+      - name: Build Frontend Bundle
+        run: npm --prefix frontend run build
