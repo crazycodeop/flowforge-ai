@@ -11,13 +11,19 @@
 
 ## 2. Implemented Components
 - **Backend Core**: `backend/app/core/config.py` (Pydantic v2 settings), `backend/app/core/database.py` (SQLAlchemy 2.x engine and SessionLocal), `backend/app/core/logging.py`
-- **Database Models & Migrations**: `backend/app/models/system.py` (`SystemAudit`), `backend/app/models/workflow.py` (`Workflow`, `WorkflowVersion`), Alembic revisions `166bf013a400` and `858411219fc0` applied to PostgreSQL.
+- **Database Models & Migrations**: `backend/app/models/system.py` (`SystemAudit`), `backend/app/models/workflow.py` (`Workflow`, `WorkflowVersion`), `backend/app/models/execution.py` (`WorkflowRun`, `StepRun`, `ExecutionEvent`), Alembic revisions `166bf013a400`, `858411219fc0`, `18ed4ea11d51` applied to PostgreSQL.
 - **Workflow & Node Registry**: `backend/app/nodes/base.py`, `backend/app/nodes/registry.py` (registry for 9 core node types), `backend/app/schemas/workflow.py` (Pydantic models for workflows, nodes, edges, retry policies, validation).
 - **Graph Validation Engine**: `backend/app/workflows/validation.py` (DAG cycle detection via Kahn's algorithm, orphan node detection, limit enforcement, node schema validation).
-- **Workers**: `backend/app/workers/celery_app.py` (Celery configured with Redis broker/backend), `backend/app/workers/tasks.py` (`ping_task`)
-- **API v1**: `backend/app/api/v1/health.py` (`/health`, `/ready`), `backend/app/api/v1/workflows.py` (`/workflows/nodes`, CRUD, `/validate`, `/publish`, version history), `backend/app/main.py`
-- **Frontend**: React 18 / Vite with developer-tool styling (`frontend/src/index.css`), API client (`frontend/src/api/client.js`), and diagnostic dashboard (`frontend/src/App.jsx`).
-- **CI / Testing**: `.github/workflows/ci.yml`, `pytest` suite in `backend/tests/` (17 tests), `vitest` suite in `frontend/src/App.test.jsx` (3 tests).
+- **Execution Engine**:
+  - `backend/app/workflows/state_machine.py`: Explicit state machines for `WorkflowRun` and `StepRun` with validated transitions.
+  - `backend/app/workflows/context.py`: `ExecutionContext` with dot-path variable resolution and template interpolation.
+  - `backend/app/nodes/executors.py`: Deterministic node executors (`TriggerExecutor`, `InputDataExecutor`, `TransformExecutor`, `ConditionExecutor`, `OutputExecutor`).
+  - `backend/app/workflows/scheduler.py`: Ready node resolver and unselected branch skip cascading.
+  - `backend/app/workflows/executor.py`: Authoritative execution orchestrator with step output persistence and append-only audit event logging.
+- **Workers**: `backend/app/workers/celery_app.py` (Celery configured with Redis broker/backend), `backend/app/workers/tasks.py` (`ping_task`, `execute_workflow_task`).
+- **API v1**: `backend/app/api/v1/health.py` (`/health`, `/ready`), `backend/app/api/v1/workflows.py` (node catalog, CRUD, `/validate`, `/publish`, version history), `backend/app/api/v1/runs.py` (trigger runs, inspect runs, step details, chronological audit events, cancellation), `backend/app/main.py`.
+- **Frontend**: Modern developer-tool UI (Shell, Overview Dashboard, Workflow Library, React Flow Canvas Builder, System Diagnostics).
+- **CI / Testing**: `.github/workflows/ci.yml`, `pytest` suite in `backend/tests/` (26 tests), `vitest` suite in `frontend/src/App.test.jsx` (2 tests).
 
 ## 2. Target Directory Layout
 ```text

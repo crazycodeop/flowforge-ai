@@ -5,7 +5,7 @@
 - [x] **Milestone 1: Foundation (Backend Skeleton, Frontend Skeleton, DB, Alembic, Redis, Celery, Tests & CI)**
 - [x] **Milestone 2: Workflow Schemas, Registry & Graph Validation**
 - [x] **UI/UX Transformation: Modern Developer-Tool Design System & Visual Workflow Builder**
-- [ ] **Milestone 3: Deterministic Execution Engine & State Machine**
+- [x] **Milestone 3: Deterministic Execution Engine & State Machine**
 - [ ] **Milestone 4: Reliability, Recovery, Retries & Idempotency**
 - [ ] **Milestone 5: AI Runtime, Provider Abstraction & Structured Validation**
 - [ ] **Milestone 6: Knowledge Retrieval & Flagship Support Workflow**
@@ -13,6 +13,34 @@
 - [ ] **Milestone 8: Visual Workflow Builder Frontend Polish (Connected to Runtime)**
 - [ ] **Milestone 9: Execution Inspector, Audit Timeline & Evaluation Benchmark**
 - [ ] **Milestone 10: Release Polish, Verification & Final Presentation**
+
+---
+
+### Milestone 3: Deterministic Execution Engine & State Machine
+- **Date**: 2026-10-29
+- **Status**: Completed
+- **Features Implemented**:
+  - Implemented explicit state machine in `app/workflows/state_machine.py` defining valid transitions for `WorkflowRun` (`PENDING`, `QUEUED`, `RUNNING`, `PAUSED`, `SUCCEEDED`, `FAILED`, `CANCELLED`) and `StepRun` (`PENDING`, `QUEUED`, `RUNNING`, `RETRY_WAIT`, `SUCCEEDED`, `FAILED`, `PAUSED`, `CANCELLED`, `SKIPPED`) with transition validation functions.
+  - Implemented database models in `app/models/execution.py` (`WorkflowRun`, `StepRun`, `ExecutionEvent`) with unique constraint on `(workflow_run_id, node_id)` and cascaded deletions.
+  - Applied Alembic migration `18ed4ea11d51` creating `workflow_runs`, `step_runs`, and `execution_events` tables in PostgreSQL.
+  - Implemented ExecutionContext in `app/workflows/context.py` with dot-delimited path resolution (`resolve_path`) and template variable interpolation (`render_template`).
+  - Implemented deterministic node executors in `app/nodes/executors.py` for `trigger`, `input_data`, `condition` (rule evaluator for `equals`, `not_equals`, `contains`, `greater_than`, `less_than`, `is_empty`, `is_not_empty`), `transform` (field mapping), and `output`.
+  - Implemented dependency scheduler in `app/workflows/scheduler.py` identifying ready nodes in the DAG and cascading skips to unselected conditional branch paths.
+  - Implemented engine orchestrator loop in `app/workflows/executor.py` managing step state transitions, output persistence, error recording, and append-only audit event logging.
+  - Implemented Celery background task `execute_workflow_task` in `app/workers/tasks.py`.
+  - Implemented execution REST endpoints in `app/api/v1/runs.py`:
+    - `POST /api/v1/workflows/{id}/runs`: Trigger execution (returns HTTP 202 Accepted)
+    - `GET /api/v1/workflows/{id}/runs`: List runs for a workflow
+    - `GET /api/v1/runs/{id}`: Inspect run status and outputs
+    - `GET /api/v1/runs/{id}/steps`: List step runs with status, outputs, attempts
+    - `GET /api/v1/runs/{id}/events`: Retrieve chronological audit timeline
+    - `POST /api/v1/runs/{id}/cancel`: Request run cancellation
+- **Tests & Verification**:
+  - `pytest backend/tests`: **26 passed** in 0.82s (testing state machine transitions, linear execution, branching skip cascade, failure containment, run cancellation, and Celery task apply).
+  - `ruff check backend && ruff format --check backend`: 0 lint errors, 37 files formatted.
+  - `npm --prefix frontend test`: 2 passed in 2.77s.
+- **Next Action**:
+  - Milestone 4: Implement bounded retries, exponential backoff with jitter, idempotency keys, execution leases, and stale-step worker recovery.
 
 ---
 
