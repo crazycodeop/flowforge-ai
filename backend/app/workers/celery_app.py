@@ -21,3 +21,16 @@ celery_app.conf.update(
     task_time_limit=settings.MAX_EXECUTION_TIMEOUT_SECONDS,
     worker_concurrency=settings.WORKER_CONCURRENCY,
 )
+
+# Upstash and TLS-enabled Redis configurations (optimized for free-tier quotas)
+if settings.CELERY_BROKER_URL.startswith("rediss://"):
+    import ssl
+
+    celery_app.conf.update(
+        broker_use_ssl={"ssl_cert_reqs": ssl.CERT_NONE},
+        redis_backend_use_ssl={"ssl_cert_reqs": ssl.CERT_NONE},
+        broker_transport_options={"visibility_timeout": 3600},
+        broker_connection_retry_on_startup=True,
+        result_expires=3600,
+        worker_prefetch_multiplier=1,
+    )

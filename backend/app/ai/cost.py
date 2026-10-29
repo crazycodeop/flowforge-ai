@@ -20,6 +20,9 @@ MODEL_PRICING: Final[dict[str, tuple[float, float]]] = {
     "llama3-8b-8192": (0.05, 0.08),
     "mixtral-8x7b-32768": (0.24, 0.24),
     "gemma2-9b-it": (0.20, 0.20),
+    "qwen/qwen3.8-27b": (0.20, 0.20),
+    "openai/gpt-oss-120b": (0.50, 0.50),
+    "openai/gpt-oss-20b": (0.15, 0.15),
     # Anthropic models (reference)
     "claude-3-5-sonnet": (3.00, 15.00),
     "claude-3-haiku": (0.25, 1.25),

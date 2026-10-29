@@ -28,7 +28,9 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL", "TEST_DATABASE_URL", mode="before")
     @classmethod
     def assemble_db_connection(cls, v: str | None) -> str | None:
-        if v and v.startswith("postgresql://"):
+        if v and v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql+psycopg2://", 1)
+        if v and v.startswith("postgresql://") and not v.startswith("postgresql+"):
             return v.replace("postgresql://", "postgresql+psycopg2://", 1)
         return v
 
