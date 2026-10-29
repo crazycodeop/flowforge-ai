@@ -27,9 +27,18 @@ export default function Executions() {
     try {
       setLoading(true);
       const data = await api.listRuns();
-      setRuns(data || []);
+      const runList = data || [];
+      setRuns(runList);
+      if (runList.length > 0) {
+        setSelectedRun((prev) => {
+          if (!prev) {
+            handleSelectRun(runList[0]);
+            return runList[0];
+          }
+          return prev;
+        });
+      }
     } catch {
-      // Default to empty array on failure
       setRuns([]);
     } finally {
       setLoading(false);

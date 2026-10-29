@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Workflow,
@@ -109,28 +109,20 @@ export default function Shell({ children }) {
           </div>
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
             return (
-              <Link
+              <NavLink
                 key={item.path}
                 to={item.path}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  padding: "8px 10px",
-                  borderRadius: "6px",
-                  fontSize: "13px",
-                  fontWeight: isActive ? 500 : 400,
-                  color: isActive ? "var(--sidebar-text-active)" : "var(--sidebar-text)",
-                  background: isActive ? "var(--sidebar-active)" : "transparent",
-                  textDecoration: "none",
-                  transition: "all 0.1s ease",
-                }}
+                end={item.path === "/"}
+                className={({ isActive }) => `sidebar-nav-link ${isActive ? "active" : ""}`}
               >
-                <Icon size={16} color={isActive ? "#818cf8" : "#64748b"} />
-                <span>{item.label}</span>
-              </Link>
+                {({ isActive }) => (
+                  <>
+                    <Icon size={16} color={isActive ? "#818cf8" : "#64748b"} />
+                    <span>{item.label}</span>
+                  </>
+                )}
+              </NavLink>
             );
           })}
         </nav>

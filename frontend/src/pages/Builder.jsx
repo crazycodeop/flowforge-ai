@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ReactFlow,
   Background,
@@ -31,6 +31,7 @@ const nodeTypes = {
 
 export default function Builder() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [workflow, setWorkflow] = useState(null);
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -268,10 +269,8 @@ export default function Builder() {
       const run = await api.triggerRun(id, { input_payload: payload });
       setRecentRunId(run.id);
       setIsRunModalOpen(false);
-      setStatusMessage({
-        type: "success",
-        text: `Run started: ${run.id.slice(0, 8)}... (Status: ${run.status})`,
-      });
+      // Immediately navigate to Executions page so the user can inspect live progress
+      navigate("/executions");
     } catch (err) {
       setStatusMessage({ type: "error", text: `Run failed to trigger: ${err.message}` });
     } finally {
@@ -373,9 +372,13 @@ export default function Builder() {
             <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#cbd5e1" />
             <Controls style={{ boxShadow: "var(--shadow-sm)", borderRadius: "6px" }} />
             <MiniMap
-              nodeColor="#e2e8f0"
-              maskColor="rgba(241, 245, 249, 0.7)"
-              style={{ borderRadius: "6px", border: "1px solid var(--border-light)" }}
+              nodeColor="#6366f1"
+              maskColor="rgba(15, 23, 42, 0.6)"
+              style={{
+                borderRadius: "8px",
+                border: "1px solid #1e293b",
+                backgroundColor: "#0b0f19",
+              }}
             />
           </ReactFlow>
         </div>

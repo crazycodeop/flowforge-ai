@@ -168,6 +168,45 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+/* Sidebar navigation links (prevents visited links from retaining background) */
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--sidebar-text);
+  background: transparent;
+  background-color: transparent !important;
+  text-decoration: none;
+  transition: all 0.1s ease;
+  outline: none;
+}
+
+.sidebar-nav-link:visited {
+  color: var(--sidebar-text);
+  background: transparent;
+  background-color: transparent !important;
+}
+
+.sidebar-nav-link:hover {
+  color: var(--sidebar-text-active);
+  background-color: var(--sidebar-hover) !important;
+}
+
+.sidebar-nav-link.active,
+.sidebar-nav-link.active:visited {
+  color: var(--sidebar-text-active);
+  background-color: var(--sidebar-active) !important;
+  font-weight: 500;
+}
+
+.sidebar-nav-link:focus-visible {
+  outline: 2px solid var(--accent-ai);
+  outline-offset: -1px;
+}
+
 /* Form inputs */
 .input {
   width: 100%;
