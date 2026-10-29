@@ -15,6 +15,9 @@ class EvaluationDataset(Base):
     __tablename__ = "evaluation_datasets"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    organization_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     name: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     test_cases: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list, nullable=False)

@@ -2,248 +2,433 @@
 
 > **"Design, execute, monitor, and evaluate reliable AI-powered workflows."**
 
-FlowForge AI is an enterprise-grade visual workflow orchestration platform that executes, monitors, and benchmarks AI workflows with durable state persistence, bounded retries, human-in-the-loop review gates, semantic knowledge retrieval, and rigorous evaluation suites.
+FlowForge AI is an enterprise-grade visual workflow orchestration platform that designs, executes, monitors, and benchmarks AI workflows with durable state persistence, distributed worker concurrency, multi-tenant organization isolation, human-in-the-loop review gates, semantic knowledge retrieval, and automated evaluation suites.
 
 ---
 
-## 🌟 Key Features & Architectural Capabilities
-
-### 1. Durable Execution State & Graph Engine
-- **PostgreSQL Source of Truth**: Every workflow definition, version, run, step attempt, output payload, and audit event is durably stored in PostgreSQL with full relational integrity.
-- **Immutable Workflow Versioning**: Published workflow definitions receive tamper-evident SHA-256 checksums and cannot be mutated. Run records link directly to immutable version snapshots.
-- **Deterministic DAG Scheduling**: Dependency-driven topological execution engine (Kahn's algorithm) with cycle detection, orphan node identification, and conditional branch skip cascading.
-
-### 2. Distributed Reliability & Failure Recovery
-- **Celery & Redis Asynchronous Execution**: Non-blocking API ingestion returning HTTP 202 Accepted, delegating resilient task processing to distributed workers.
-- **Worker Leases & Heartbeats**: Exclusive leases prevent duplicate worker execution; expired leases are automatically re-queued without re-executing successful steps.
-- **Exponential Backoff with Full Jitter**: Intelligently retries transient network and rate-limit errors while immediately failing permanent validation errors.
-- **Idempotency Keys**: Run requests support `Idempotency-Key` headers to guarantee exactly-once execution.
-
-### 3. Modular AI Runtime & Structured Validation
-- **Zero API Key Requirement**: Ships with a high-fidelity deterministic `MockAIProvider` with keyword heuristics, realistic latency/token simulation, and JSON schema mock generation. Runs completely offline in CI and local dev.
-- **Universal Provider Adapter**: Seamlessly integrates with OpenAI (`gpt-4o`, `gpt-4o-mini`), Groq (`llama-3.3-70b-versatile`), and local Ollama instances.
-- **Strict Pydantic & JSON Schema Validation**: Untrusted model outputs are sanitized (stripping markdown backticks) and validated against JSON Schemas before passing to downstream nodes.
-- **Token & Cost Tracking**: Accurately tracks prompt tokens, completion tokens, latency (ms), and computes USD expenditure per step and per workflow run.
-
-### 4. Semantic Knowledge Retrieval
-- **In-Memory & pgvector-Compatible Scoring**: Normalized term frequency overlap and phrase proximity scoring with configurable relevance thresholds and `top_k` limiting.
-- **Flagship Support Knowledge Base**: Includes pre-seeded customer support policies (billing, refunds, SLAs, and technical security compliance).
-
-### 5. Human-in-the-Loop Governance & RBAC
-- **Safe Execution Pausing**: Workflows pause cleanly at `human_approval` gates without burning worker threads or polling spin-loops.
-- **Approval Inbox**: Pending approvals display execution context, diffs, and requested values.
-- **Resumption & Cancellation**: Authorized users can approve (resuming execution to completion) or reject (halting downstream branches).
-- **JWT & Role-Based Access Control**: PBKDF2-SHA256 password hashing, PyJWT bearer token authentication, and role enforcement (`admin`, `reviewer`, `operator`).
-
-### 6. AI Evaluation Framework
-- **Versioned Benchmark Datasets**: Standardized evaluation datasets with automated assertions on categories, statuses, and expected fields.
-- **Quality Benchmarks**: Computes overall accuracy scores, average latencies, and aggregated token costs across workflow versions.
-
-### 7. Modern Visual Builder & Execution Inspector
-- **Visual Canvas**: Built with React Flow (`@xyflow/react`), dark charcoal developer-tool aesthetic, custom node cards, and animated bezier edges.
-- **Authoritative Validation Drawer**: Pre-flight graph validation highlighting cycle errors, missing triggers, or unconfigured nodes.
-- **Real-Time Execution Inspector**: Step-by-step timeline, status badges, token usage breakdowns, and chronological audit event trail.
+## 🌟 Table of Contents
+1. [Product Overview & Business Value](#-product-overview--business-value)
+2. [High-Level System Architecture](#-high-level-system-architecture)
+3. [Execution Lifecycle Sequence](#-execution-lifecycle-sequence)
+4. [DAG Orchestration Engine Internals](#-dag-orchestration-engine-internals)
+5. [AI Subsystem & Deterministic Guardrails](#-ai-subsystem--deterministic-guardrails)
+6. [Multi-Tenant SaaS Architecture & Security](#-multi-tenant-saas-architecture--security)
+7. [Database Schema & Tenancy Model](#-database-schema--tenancy-model)
+8. [REST API v1 Specification Catalog](#-rest-api-v1-specification-catalog)
+9. [Enterprise Guided Blueprints & Use Cases](#-enterprise-guided-blueprints--use-cases)
+10. [Staff Engineer System Design Interview Q&A](#-staff-engineer-system-design-interview-qa)
+11. [Quick Start & Local Execution](#-quick-start--local-execution)
+12. [Testing & Verification](#-testing--verification)
 
 ---
 
-## 🏗️ System Architecture
+## 💡 Product Overview & Business Value
+
+### What is FlowForge AI?
+FlowForge AI bridges the gap between non-deterministic Large Language Models (LLMs) and mission-critical software engineering. While simple chatbots and naive RAG scripts struggle with hallucinated outputs, network timeouts, and uncontrolled financial liability, FlowForge wraps AI inference in deterministic software guardrails:
+- **Durable Execution**: DAG state persists in PostgreSQL; if a server crashes, workers recover in-flight step leases without data loss.
+- **Topological DAG Scheduling**: Parallel step execution, cycle detection, and conditional branching.
+- **Human Governance**: High-risk steps (e.g. issuing a refund > $50) pause cleanly and await authorized reviewer approval in an inbox queue.
+- **Continuous Benchmarking**: Automated evaluation suites track classification accuracy, latency percentiles, and token costs across releases.
+
+---
+
+## 🏛️ High-Level System Architecture
+
+FlowForge AI is architected with strict separation of concerns across presentation, API gateway, message broker, distributed execution worker pool, and persistent relational storage.
 
 ```mermaid
 flowchart TD
-    User["Developer / Operator"] -->|HTTP / JSON| Frontend["React + React Flow UI\n(Vite, Tailwind, Lucide)"]
-    Frontend -->|REST API v1| API["FastAPI Application"]
-    
-    subgraph Storage ["Durable Persistence Layer"]
-        PG[("PostgreSQL 16\n• Workflows & Versions (SHA-256)\n• Runs & Step Attempts\n• Audit Event Log\n• Approvals & Evaluations")]
+    subgraph Client ["Client Presentation Tier"]
+        UI["React 18 SPA (Vite + React Flow + Lucide)"]
+        AuthUI["JWT Session & Tenant Context Engine"]
     end
 
-    subgraph Coordination ["Task Broker & Queue"]
-        Redis[("Redis 7\n• Celery Task Queue\n• Distributed Locks")]
+    subgraph Gateway ["Application Gateway & API Tier"]
+        FastAPI["FastAPI ASGI Server (Python 3.12)"]
+        AuthMiddleware["JWT Authentication & RBAC Middleware"]
+        TenancyMiddleware["Tenant Context & Org Isolation Engine"]
+        EngineRoutes["Workflow & Execution Routes"]
     end
 
-    API -->|Validate & Persist| PG
-    API -->|Dispatch Run| Redis
-    
-    subgraph Execution ["Distributed Worker Engine"]
-        Worker["Celery Worker"] -->|Fetch Lease| PG
-        Worker -->|Execute DAG| Engine["Workflow Execution Engine\n(State Machine & Scheduler)"]
-        
-        Engine -->|Deterministic Logic| DetNodes["Trigger / Transform / Condition / Output"]
-        Engine -->|AI Inference| AIRuntime["AI Runtime\n(Mock / OpenAI / Groq / Ollama)"]
-        Engine -->|Knowledge Search| DocStore["Retrieval Engine\n(Document Collections)"]
-        Engine -->|Pause Execution| ApprovalGate["Human Approval Gate\n(State: PAUSED)"]
-        
-        Engine -->|Record Step Outputs & Events| PG
+    subgraph Messaging ["Message Broker & Dispatch Tier"]
+        RedisBroker["Upstash Redis 7.0 (TLS Broker & Backend)"]
+        CeleryWorker["Celery 5.4 Distributed Execution Workers"]
     end
-    
-    ApprovalGate -.->|Review Decision| API
+
+    subgraph CoreEngine ["DAG Orchestration Engine"]
+        Scheduler["Topological DAG Scheduler (Kahn's Algorithm)"]
+        StateManager["Validated State Machine (Explicit Transitions)"]
+        LeaseManager["Distributed Worker Lease & Heartbeat Manager"]
+        RecoveryWorker["Zombie & Stale Execution Lease Recovery"]
+    end
+
+    subgraph AIService ["AI Subsystem & Model Routing"]
+        AdapterFactory["BaseAIProvider Adapter Factory"]
+        GroqAdapter["Groq LPU Engine (Qwen 2.5 32B / Llama 3)"]
+        SchemaValidator["Pydantic & JSONSchema Strict Validator"]
+        VectorStore["Knowledge Base Semantic Ingestion & Retrieval"]
+    end
+
+    subgraph DataTier ["Data Persistence Tier (Single Source of Truth)"]
+        Postgres["Supabase PostgreSQL 17 (Connection Pooler)"]
+    end
+
+    UI -->|"HTTPS REST + JWT + X-Organization-ID"| FastAPI
+    FastAPI --> AuthMiddleware
+    AuthMiddleware --> TenancyMiddleware
+    TenancyMiddleware --> EngineRoutes
+
+    EngineRoutes -->|"Sync Read/Write"| Postgres
+    EngineRoutes -->|"Async Task Dispatch (<40ms)"| RedisBroker
+    RedisBroker -->|"Pull Task"| CeleryWorker
+
+    CeleryWorker --> Scheduler
+    Scheduler --> LeaseManager
+    Scheduler --> StateManager
+    Scheduler --> AdapterFactory
+
+    AdapterFactory --> GroqAdapter
+    GroqAdapter --> SchemaValidator
+    Scheduler --> VectorStore
+
+    LeaseManager -->|"Heartbeat & State Updates"| Postgres
+    StateManager -->|"Audit Events & Run States"| Postgres
+    RecoveryWorker -->|"Reclaim Expired Leases"| Postgres
 ```
 
 ---
 
-## 🚀 Quickstart Guide
+## 🔄 Execution Lifecycle Sequence
 
-### Option 1: Local Development Setup (Recommended)
+The sequence below illustrates an end-to-end workflow execution run from initial API ingestion, through Redis queue dispatch, topological worker step execution, AI completion with schema validation, and human approval pausing.
 
-#### Prerequisites
-- **Python 3.12+**
-- **Node.js 18+ & npm**
-- **PostgreSQL 16** running on `localhost:5432` (or `5433`)
-- **Redis 7** running on `localhost:6379`
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Client / API Consumer
+    participant API as FastAPI Gateway
+    participant DB as PostgreSQL 17
+    participant Queue as Redis Broker (TLS)
+    participant Worker as Celery Worker Pool
+    participant AI as Groq LPU Provider
 
-#### 1. Backend Setup
+    Client->>API: POST /api/v1/workflows/{id}/runs (input_payload)
+    Note over API: Authenticate JWT & resolve Tenant Org
+    API->>DB: Check idempotency key & create WorkflowRun (PENDING)
+    API->>Queue: Enqueue execute_workflow_task.delay(run_id)
+    API-->>Client: 202 Accepted (run_id returned in <40ms)
+
+    Queue->>Worker: Consume background task
+    Worker->>DB: Transition run to RUNNING & acquire worker lease
+    loop DAG Topological Traversal
+        Worker->>Worker: Identify ready nodes (dependencies satisfied)
+        Worker->>DB: Acquire StepRun lease (worker_lease_id, lease_expires_at)
+        alt Step is AI Classifier / Extractor
+            Worker->>AI: Invoke completion with temperature=0 & schema
+            AI-->>Worker: Raw completion text
+            Worker->>Worker: Validate output against Pydantic schema
+            Worker->>DB: Log AI_INFERENCE_COMPLETED event (tokens, USD cost)
+        else Step requires Human Approval
+            Worker->>DB: Transition step to PAUSED & create ApprovalRequest
+            Worker->>DB: Transition run to PAUSED
+            Note over Worker,Client: Execution halts until reviewer approves
+        end
+        Worker->>DB: Transition StepRun to SUCCEEDED & release lease
+    end
+    Worker->>DB: Transition WorkflowRun to SUCCEEDED & emit RUN_COMPLETED
+    Client->>API: Poll GET /api/v1/runs/{id}
+    API-->>Client: 200 OK (final output_payload & audit trace)
+```
+
+---
+
+## ⚙️ DAG Orchestration Engine Internals
+
+FlowForge's execution engine operates as an explicit, validated finite state machine. Every state transition is recorded as an immutable audit event in PostgreSQL.
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING: Created via API
+    PENDING --> QUEUED: Enqueued into Redis
+    QUEUED --> RUNNING: Worker acquires lease
+    
+    RUNNING --> PAUSED: Approval Gate Triggered
+    PAUSED --> RUNNING: Reviewer Approves
+    PAUSED --> CANCELLED: Reviewer Rejects
+
+    RUNNING --> RETRY_WAIT: Transient Error (429 / Timeout)
+    RETRY_WAIT --> RUNNING: Backoff delay elapses & lease reclaimed
+
+    RUNNING --> SUCCEEDED: All DAG nodes complete
+    RUNNING --> FAILED: Retries exhausted or fatal schema failure
+    RUNNING --> CANCELLED: User explicit cancellation
+
+    SUCCEEDED --> [*]
+    FAILED --> [*]
+    CANCELLED --> [*]
+```
+
+### Key Concurrency & Reliability Safeguards:
+1. **Topological Scheduler**: Uses Kahn's algorithm with pre-validation to detect cyclic dependencies before graph execution begins.
+2. **Distributed Worker Leases & Heartbeats**: Each step acquisition writes a `worker_lease_id` and `lease_expires_at` timestamp. Prevents duplicate concurrent workers from executing the same node.
+3. **Zombie Worker Recovery**: If a worker node crashes or runs out of memory, expired leases are automatically identified and re-enqueued for retry.
+4. **Bounded Exponential Backoff with Jitter**:
+   $$\text{delay} = \min\left(\text{max\_backoff}, \text{base} \times \text{factor}^{\text{attempt}} + \text{jitter}\right)$$
+   Prevents thundering herds from overwhelming free-tier AI API rate limits (HTTP 429).
+5. **Immutable Workflow Versions**: Publishing produces an immutable version snapshot with a cryptographic SHA-256 checksum. In-flight runs execute strictly against their snapshot version, preventing mid-run contract drift.
+
+---
+
+## 🧠 AI Subsystem & Deterministic Guardrails
+
+LLMs are inherently non-deterministic. FlowForge AI wraps LLM inference in software engineering guardrails:
+
+- **Universal Provider Abstraction**: Implementations of `BaseAIProvider` isolate provider-specific SDK quirks. FlowForge supports **Groq LPUs** (`qwen/qwen3.8-27b`), **OpenAI** (`gpt-4o`), and local **Ollama** instances.
+- **Deterministic Mock Fallback**: For CI test runners and local development without cloud spend, `MockAIProvider` generates deterministic JSON completions matching prompt schema.
+- **Structured Schema Enforcement**: Outputs must parse into valid JSON and strictly satisfy Pydantic models. Malformed markdown code fences are automatically stripped and repaired.
+- **Semantic Vector Grounding**: Relevant policies and documentation snippets are retrieved from tenant knowledge collections via cosine similarity and injected into prompt context.
+- **Token & Cost Telemetry**: Computes prompt tokens, completion tokens, latency, and real-time USD expenditure per step down to 6 decimal places.
+
+---
+
+## 🔐 Multi-Tenant SaaS Architecture & Security
+
+FlowForge AI enforces tenant isolation across API, compute, and storage tiers:
+- **Tenant Context Resolution**: Every incoming HTTP request resolves the active tenant organization using the `X-Organization-ID` header combined with the user's JWT bearer token.
+- **Server-Side Authorization**: API routes verify that the authenticated user holds valid membership within the requested organization before querying database records.
+- **Role-Based Access Control (RBAC)**:
+  - `Owner`: Full governance, billing, member management, and workspace deletion.
+  - `Admin`: Team invitations, AI provider credentials, and approval decisions.
+  - `Builder`: Workflow design, testing, publishing, and execution runs.
+  - `Viewer`: Read-only observability for traces, metrics, and audit history.
+
+---
+
+## 🗄️ Database Schema & Tenancy Model
+
+All state is persisted in PostgreSQL (with connection pooling via Supabase).
+
+```mermaid
+erDiagram
+    ORGANIZATIONS ||--o{ ORGANIZATION_MEMBERS : contains
+    ORGANIZATIONS ||--o{ WORKFLOWS : owns
+    ORGANIZATIONS ||--o{ WORKFLOW_RUNS : owns
+    ORGANIZATIONS ||--o{ APPROVAL_REQUESTS : owns
+    ORGANIZATIONS ||--o{ KNOWLEDGE_COLLECTIONS : owns
+    USERS ||--o{ ORGANIZATION_MEMBERS : participates
+    USERS ||--o{ WORKFLOWS : creates
+    USERS ||--o{ APPROVAL_REQUESTS : reviews
+
+    WORKFLOWS ||--o{ WORKFLOW_VERSIONS : versioned_as
+    WORKFLOWS ||--o{ WORKFLOW_RUNS : executes
+    WORKFLOW_VERSIONS ||--o{ WORKFLOW_RUNS : snapshot_used
+    WORKFLOW_RUNS ||--o{ STEP_RUNS : consists_of
+    WORKFLOW_RUNS ||--o{ EXECUTION_EVENTS : generates
+    WORKFLOW_RUNS ||--o{ APPROVAL_REQUESTS : pauses_for
+
+    ORGANIZATIONS {
+        string id PK
+        string name
+        string slug UK
+        datetime created_at
+    }
+
+    ORGANIZATION_MEMBERS {
+        string id PK
+        string organization_id FK
+        string user_id FK
+        string role "owner, admin, builder, viewer"
+        datetime created_at
+    }
+
+    WORKFLOW_RUNS {
+        string id PK
+        string organization_id FK
+        string workflow_id FK
+        string workflow_version_id FK
+        string status "PENDING, RUNNING, PAUSED, SUCCEEDED, FAILED"
+        jsonb input_payload
+        jsonb output_payload
+        int total_tokens
+        float total_cost_usd
+        string idempotency_key
+    }
+
+    STEP_RUNS {
+        string id PK
+        string workflow_run_id FK
+        string node_id
+        string status "PENDING, RUNNING, RETRY_WAIT, PAUSED, SUCCEEDED, FAILED"
+        int attempt_count
+        string worker_lease_id
+        datetime lease_expires_at
+        jsonb output_data
+    }
+```
+
+---
+
+## 📡 REST API v1 Specification Catalog
+
+All private endpoints require `Authorization: Bearer <JWT>` and `X-Organization-ID: <org_id>`:
+
+| Method | Endpoint Path | Tenant Header | RBAC Scope | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/register` | Optional | Public | Creates user account and provisions default workspace |
+| `POST` | `/api/v1/auth/login` | Optional | Public | Authenticates credentials and returns JWT bearer token |
+| `GET` | `/api/v1/organizations/` | Optional | Viewer+ | Lists all organizations the authenticated user belongs to |
+| `POST` | `/api/v1/organizations/` | Optional | User | Creates a new tenant organization workspace |
+| `GET` | `/api/v1/workflows/` | Required | Viewer+ | Lists all workflows scoped to active organization |
+| `POST` | `/api/v1/workflows/` | Required | Builder+ | Creates a new workflow draft definition |
+| `POST` | `/api/v1/workflows/{id}/publish` | Required | Builder+ | Publishes immutable version with SHA-256 checksum |
+| `POST` | `/api/v1/workflows/{id}/runs` | Required | Builder+ | Enqueues execution run into Redis broker (<40ms) |
+| `GET` | `/api/v1/runs/{id}` | Required | Viewer+ | Fetches live execution status, tokens, and outputs |
+| `GET` | `/api/v1/runs/{id}/events` | Required | Viewer+ | Streams granular state transition audit events |
+| `GET` | `/api/v1/approvals/pending` | Required | Admin+ | Lists workflows paused for human governance review |
+| `POST` | `/api/v1/approvals/{id}/decision` | Required | Admin+ | Submits approval/rejection decision and resumes run |
+| `GET` | `/api/v1/evaluations/datasets` | Required | Viewer+ | Lists benchmark datasets for workflow accuracy |
+| `POST` | `/api/v1/evaluations/runs` | Required | Builder+ | Executes batch evaluation suite and logs metrics |
+
+---
+
+## 🎯 Enterprise Guided Blueprints & Use Cases
+
+FlowForge AI comes with pre-configured end-to-end enterprise scenarios available in the `/use-cases` section:
+
+1. **Customer Support Triage & Auto-Refund**:
+   - Ticket text ingestion & Pydantic email validation.
+   - Groq AI zero-shot classification (`Billing`, `Technical`, `Feature Request`).
+   - Vector retrieval of official refund policy limits.
+   - Conditional branch: auto-approves refunds $\le \$50.00$; routes refunds $> \$50.00$ to the Human Approval Queue.
+2. **Accounts Payable Invoice Auditing**:
+   - Extract supplier entity, line items, and invoice subtotals.
+   - 3-way matching against purchase orders.
+   - Deterministic arithmetic check (tax + subtotal == total).
+3. **Legal Contract & NDA Compliance**:
+   - Multi-party liability limit extraction.
+   - Clause conformance analysis against corporate standard playbooks.
+
+---
+
+## 🎓 Staff Engineer System Design Interview Q&A
+
+### Q1: Why use Celery and Redis rather than executing workflows synchronously in FastAPI?
+> **Answer**: LLM inference is high-latency, network-bound I/O taking anywhere from 500ms to 5+ seconds. Executing inference synchronously inside the web process ties up ASGI worker connections. Under moderate concurrency, the threadpool quickly starves, causing HTTP 504 timeouts. By decoupling task dispatch via an Upstash Redis broker, FastAPI returns `HTTP 202 Accepted` in under 40ms. Distributed Celery workers scale horizontally and independently based on queue depth.
+
+### Q2: How does FlowForge AI guarantee idempotent execution?
+> **Answer**: Clients supply an `Idempotency-Key` header with their run request. FlowForge generates a SHA-256 hash across the idempotency key and input payload. PostgreSQL enforces a unique constraint on `(organization_id, idempotency_key)`. If a duplicate request arrives (e.g. from network retries), the database rejects duplicate row insertion and the API returns the existing run record, preventing redundant LLM inference costs and duplicate side-effects.
+
+### Q3: What happens if a Celery worker dies mid-workflow execution?
+> **Answer**: Every executing DAG step writes a `worker_lease_id` and a bounded `lease_expires_at` timestamp to the database. Running workers emit heartbeats while active. If a worker process crashes or the host undergoes an OOM reboot, a background lease-recovery task detects orphaned `RUNNING` steps with expired leases. These zombie steps are transitioned to `RETRY_WAIT` and re-dispatched up to their configured `max_retries` threshold.
+
+### Q4: How is multi-tenancy enforced without data leaks?
+> **Answer**: FlowForge enforces tenant isolation at both the middleware layer and the database layer. Every API request resolves an active Organization from JWT claims or the `X-Organization-ID` header, verifying membership and role. Database queries explicitly filter on `organization_id`, and cross-organization operations are rejected with HTTP 403 Forbidden.
+
+### Q5: How do you evaluate and benchmark non-deterministic LLM workflow outputs?
+> **Answer**: FlowForge includes an integrated evaluation benchmark suite. Test datasets with ground-truth expected outputs are executed against workflow versions. The evaluation runner compares outputs using semantic similarity and strict schema validation, recording accuracy scores, token consumption, and p95 latency to detect performance regressions prior to production release.
+
+---
+
+## 🏗️ Quick Start & Local Execution
+
+### Prerequisites
+- Python 3.12+
+- Node.js 18+ and npm
+- PostgreSQL 15+ (Local or Cloud Supabase)
+- Redis 7.0+ (Local or Cloud Upstash)
+
+### 1. Repository Setup & Environment Configuration
+
 ```bash
-# Clone the repository
+git clone https://github.com/your-username/flowforge.git
 cd flowforge
 
+# Copy environment configuration
+cp .env.example .env
+```
+
+Configure your credentials in `.env`:
+```ini
+DATABASE_URL=postgresql+psycopg2://postgres:<password>@aws-0-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require
+REDIS_URL=rediss://default:<password>@capable-haddock-242252.upstash.io:6379/0
+CELERY_BROKER_URL=rediss://default:<password>@capable-haddock-242252.upstash.io:6379/0
+CELERY_RESULT_BACKEND=rediss://default:<password>@capable-haddock-242252.upstash.io:6379/0
+AI_PROVIDER=groq
+AI_MODEL=qwen/qwen3.8-27b
+AI_API_KEY=gsk_your_groq_api_key_here
+```
+
+### 2. Backend Setup & Database Migrations
+
+```bash
 # Create and activate virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 
 # Install dependencies
-pip install -e backend/
+pip install -r backend/requirements.txt
 
-# Run database migrations
+# Apply database migrations
 cd backend
 alembic upgrade head
-
-# Seed the Flagship Knowledge Base & Workflow
-python -c "from app.core.database import SessionLocal; from app.workflows.flagship import create_or_update_flagship_workflow; db=SessionLocal(); create_or_update_flagship_workflow(db); db.close()"
+cd ..
 ```
 
-#### 2. Start Backend & Celery Worker
-```bash
-# Terminal 1: Start FastAPI Server
-cd backend
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+### 3. Start Backend Services
 
-# Terminal 2: Start Celery Worker
+**Terminal 1: FastAPI API Gateway**
+```bash
 cd backend
-celery -A app.workers.celery_app worker --loglevel=info
+../.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-#### 3. Frontend Setup
+**Terminal 2: Celery Background Worker**
 ```bash
-# Terminal 3: Start Vite Frontend
+cd backend
+../.venv/bin/celery -A app.workers.celery_app worker --loglevel=info
+```
+
+### 4. Start React Frontend
+
+**Terminal 3: Vite Dev Server**
+```bash
 cd frontend
 npm install
 npm run dev
 ```
-Open **[http://localhost:5173](http://localhost:5173)** in your browser.
 
----
-
-### Option 2: Docker Compose Setup
-
-Run the entire platform (PostgreSQL, Redis, Backend, Celery Worker, and Frontend) in Docker containers:
-
-```bash
-docker compose up --build
-```
-- Frontend UI: `http://localhost:5173`
-- Backend API Docs: `http://localhost:8000/docs`
-
----
-
-## 🎯 Flagship Support Workflow Walkthrough
-
-FlowForge AI includes a pre-configured **Customer Support Triage & Response Drafting Workflow** demonstrating end-to-end multi-node execution:
-
-1. **Webhook Trigger (`trigger`)**: Ingests raw customer support tickets.
-2. **AI Intent Classifier (`ai_classify`)**: Uses the AI runtime to categorize tickets into `billing`, `technical`, or `general` with confidence scores.
-3. **Knowledge Retrieval (`retrieval`)**: Queries indexed policy documentation to retrieve relevant SLA terms, billing rules, or technical runbooks.
-4. **Structured Ticket Extractor (`structured_extract`)**: Uses strict JSON Schema validation to extract customer email, issue summary, and priority.
-5. **Conditional Router (`condition`)**: Evaluates high-priority or billing tickets to determine execution branching.
-6. **Human Approval Gate (`human_approval`)**: Pauses runs requiring managerial authorization (e.g., refund requests exceeding policy thresholds).
-7. **Resolution Synthesizer (`output`)**: Compiles validated citations, classified metadata, and draft customer responses into a cohesive output payload.
-
-### Triggering via API (cURL)
-```bash
-# 1. Trigger the Flagship Workflow
-curl -X POST "http://localhost:8000/api/v1/workflows/seed-flagship"
-curl -X POST "http://localhost:8000/api/v1/knowledge/seed"
-
-# 2. Start a Run
-curl -X POST "http://localhost:8000/api/v1/workflows/<WORKFLOW_ID>/runs" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input_payload": {
-      "ticket_text": "I was billed twice for $89.99 on invoice INV-2026. Please refund the duplicate transaction.",
-      "customer_email": "customer@enterprise.com"
-    }
-  }'
-
-# 3. Inspect Run Status & Step Outputs
-curl "http://localhost:8000/api/v1/runs/<RUN_ID>"
-curl "http://localhost:8000/api/v1/runs/<RUN_ID>/steps"
-curl "http://localhost:8000/api/v1/runs/<RUN_ID>/events"
-```
-
----
-
-## 📡 REST API Catalog
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/v1/health` | System liveness probe |
-| `GET` | `/api/v1/ready` | Readiness probe (verifies PostgreSQL & Redis connections) |
-| `POST` | `/api/v1/auth/register` | Register new user account with role permissions |
-| `POST` | `/api/v1/auth/login` | Authenticate user and issue JWT Bearer access token |
-| `GET` | `/api/v1/auth/me` | Retrieve authenticated user profile |
-| `GET` | `/api/v1/workflows/nodes` | Catalog of registered node types, schemas, and metadata |
-| `GET` | `/api/v1/workflows/` | List all workflows with latest published version |
-| `POST` | `/api/v1/workflows/` | Create a new workflow draft |
-| `GET` | `/api/v1/workflows/{id}` | Retrieve workflow draft definition and metadata |
-| `PUT` | `/api/v1/workflows/{id}` | Update workflow draft definition |
-| `POST` | `/api/v1/workflows/{id}/validate` | Authoritative DAG validation (cycles, orphans, schemas) |
-| `POST` | `/api/v1/workflows/{id}/publish` | Publish immutable version with SHA-256 checksum |
-| `GET` | `/api/v1/workflows/{id}/versions` | List published immutable version history |
-| `POST` | `/api/v1/workflows/seed-flagship` | Initialize or update flagship support workflow |
-| `POST` | `/api/v1/workflows/{id}/runs` | Trigger asynchronous workflow execution |
-| `GET` | `/api/v1/runs` | List executions across workflows |
-| `GET` | `/api/v1/runs/{id}` | Inspect execution status, latency, tokens, and output |
-| `GET` | `/api/v1/runs/{id}/steps` | List step-level execution details, attempts, and errors |
-| `GET` | `/api/v1/runs/{id}/events` | Chronological audit trail of state transitions |
-| `POST` | `/api/v1/runs/{id}/cancel` | Cancel an in-progress workflow execution |
-| `POST` | `/api/v1/runs/recover` | Reconcile and recover stale execution leases |
-| `GET` | `/api/v1/approvals/pending` | List pending human approval requests |
-| `POST` | `/api/v1/approvals/{id}/decision`| Submit Approve/Reject decision with reviewer comment |
-| `GET` | `/api/v1/knowledge/collections` | List semantic knowledge collections |
-| `POST` | `/api/v1/knowledge/seed` | Seed default customer support policy documents |
-| `POST` | `/api/v1/knowledge/search` | Search indexed knowledge documents by query |
-| `GET` | `/api/v1/evaluations/datasets` | List benchmark evaluation datasets |
-| `POST` | `/api/v1/evaluations/seed` | Seed default evaluation benchmark suite |
-| `POST` | `/api/v1/evaluations/runs` | Execute benchmark evaluation across workflow version |
-| `GET` | `/api/v1/evaluations/runs/{id}` | Inspect evaluation score, accuracy, latency, and assertions |
+Open your browser at `http://localhost:5173`.
+- Click **"Platform Engineer"** or **"Staff Architect"** quick-demo buttons on the login screen to sign in instantly.
+- Explore `/workflows` to visually design, connect, and validate DAG pipelines.
+- Explore `/use-cases` to trigger a live customer support triage workflow.
+- Explore `/approvals` to review and approve paused execution gates.
+- Explore `/evaluations` to run batch benchmark evaluation test suites.
+- Explore `/settings` to manage profile, organization team members, and test AI connectivity.
 
 ---
 
 ## 🧪 Testing & Verification
 
-FlowForge AI includes an exhaustive test suite verifying failure recovery, graph validation, state machines, AI runtime, auth, knowledge retrieval, and end-to-end user journeys:
-
+### Run Backend Test Suite (53 Tests)
 ```bash
-# Run backend test suite (52 tests)
-.venv/bin/pytest backend/tests/ -v
-
-# Run code style & linter checks
-.venv/bin/ruff check backend
-.venv/bin/ruff format --check backend
-
-# Run frontend tests
-npm --prefix frontend test
-
-# Run frontend production build
-npm --prefix frontend run build
+.venv/bin/pytest backend/tests -v
 ```
 
-**Verification Results:**
-- **Backend Tests**: 52 passed in ~3.4s
-- **Code Quality**: 100% compliant with Ruff (0 lint errors, 70 formatted files)
-- **Frontend Tests**: 2 passed in Vitest
-- **Frontend Build**: Zero warning production bundle built with Vite
+### Run Frontend Test Suite
+```bash
+cd frontend
+npm test
+```
+
+### Build Production Frontend
+```bash
+cd frontend
+npm run build
+```
 
 ---
 
 ## 📄 License
-MIT License. Built with precision for production-grade AI workflow orchestration.
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

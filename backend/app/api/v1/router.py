@@ -5,7 +5,9 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.evaluations import router as evaluations_router
 from app.api.v1.health import router as health_router
 from app.api.v1.knowledge import router as knowledge_router
+from app.api.v1.organizations import router as organizations_router
 from app.api.v1.runs import router as runs_router
+from app.api.v1.settings import router as settings_router
 from app.api.v1.workflows import router as workflows_router
 
 api_router = APIRouter()
@@ -16,3 +18,5 @@ api_router.include_router(knowledge_router, prefix="", tags=["Knowledge & Retrie
 api_router.include_router(approvals_router, prefix="", tags=["Human Approvals"])
 api_router.include_router(auth_router, prefix="", tags=["Authentication"])
 api_router.include_router(evaluations_router, prefix="", tags=["AI Evaluations & Benchmarks"])
+api_router.include_router(organizations_router, prefix="", tags=["Organizations & Multi-Tenancy"])
+api_router.include_router(settings_router, prefix="", tags=["Settings"])

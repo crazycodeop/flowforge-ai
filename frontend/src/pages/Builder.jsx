@@ -19,6 +19,8 @@ import {
   ChevronLeft,
   X,
   Play,
+  Plus,
+  Sliders,
 } from "lucide-react";
 import { api } from "../api/client";
 import CustomNode from "../components/builder/CustomNode";
@@ -44,13 +46,27 @@ export default function Builder() {
   const [validationResult, setValidationResult] = useState(null);
   const [isValidationOpen, setIsValidationOpen] = useState(false);
 
+  // Responsive Drawer states
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1200
+  );
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const isDesktop = windowWidth >= 1024;
+  const isMobile = windowWidth < 768;
+
   // Run execution modal state
   const [isRunModalOpen, setIsRunModalOpen] = useState(false);
   const [runInputJson, setRunInputJson] = useState(
     '{\n  "ticket_text": "I was charged $89 twice on my card. Please refund my statement."\n}'
   );
   const [running, setRunning] = useState(false);
-  const [recentRunId, setRecentRunId] = useState(null);
 
   // Load workflow from backend
   const loadWorkflow = useCallback(async () => {
@@ -142,7 +158,7 @@ export default function Builder() {
     const newNode = {
       id: newId,
       type: "custom",
-      position: { x: 300 + Math.random() * 80, y: 150 + Math.random() * 80 },
+      position: { x: 280 + Math.random() * 60, y: 120 + Math.random() * 60 },
       data: {
         id: newId,
         type,
@@ -155,6 +171,9 @@ export default function Builder() {
     };
     setNodes((nds) => [...nds, newNode]);
     setSelectedNodeId(newId);
+    if (!isDesktop) {
+      setIsPaletteOpen(false);
+    }
   };
 
   // Node Inspector updates
@@ -233,7 +252,6 @@ export default function Builder() {
     try {
       setPublishing(true);
       setStatusMessage(null);
-      // Auto-save draft first to ensure DB matches canvas
       const definition = buildDefinitionPayload();
       await api.updateWorkflow(id, { definition });
 
@@ -266,10 +284,8 @@ export default function Builder() {
         setRunning(false);
         return;
       }
-      const run = await api.triggerRun(id, { input_payload: payload });
-      setRecentRunId(run.id);
+      await api.triggerRun(id, { input_payload: payload });
       setIsRunModalOpen(false);
-      // Immediately navigate to Executions page so the user can inspect live progress
       navigate("/executions");
     } catch (err) {
       setStatusMessage({ type: "error", text: `Run failed to trigger: ${err.message}` });
@@ -289,61 +305,128 @@ export default function Builder() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 52px)", margin: "-28px", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", overflow: "hidden", position: "relative" }}>
       {/* Builder Subheader */}
       <div
         style={{
-          height: "48px",
-          background: "var(--surface-card)",
-          borderBottom: "1px solid var(--border-light)",
+          minHeight: "44px",
+          background: "#111111",
+          borderBottom: "1px solid #222222",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 18px",
+          padding: "0 clamp(8px, 2vw, 16px)",
           zIndex: 10,
+          flexWrap: "wrap",
+          gap: "8px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <Link to="/workflows" className="btn btn-ghost btn-sm" style={{ padding: "4px" }}>
+        {/* Left Subheader: Back, Title, Status */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+          <Link to="/workflows" className="btn btn-ghost btn-sm" style={{ padding: "4px" }} aria-label="Back to workflows">
             <ChevronLeft size={16} />
           </Link>
-          <div style={{ fontWeight: 600, fontSize: "14px" }}>{workflow?.name}</div>
+          <div
+            style={{
+              fontWeight: 600,
+              fontSize: "13px",
+              color: "#f5f5f5",
+              maxWidth: isMobile ? "120px" : "240px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+            title={workflow?.name}
+          >
+            {workflow?.name}
+          </div>
           {workflow?.latest_version ? (
-            <span className="badge badge-published">v{workflow.latest_version}</span>
+            <span className="badge badge-published" style={{ fontSize: "10px", padding: "1px 6px" }}>
+              v{workflow.latest_version}
+            </span>
           ) : (
-            <span className="badge badge-draft">Draft</span>
+            <span className="badge badge-draft" style={{ fontSize: "10px", padding: "1px 6px" }}>
+              Draft
+            </span>
+          )}
+
+          {/* Palette toggle button on tablet/mobile */}
+          {!isDesktop && (
+            <button
+              type="button"
+              onClick={() => setIsPaletteOpen(true)}
+              className="btn btn-secondary btn-sm"
+              style={{ padding: "4px 8px", fontSize: "11px" }}
+              title="Add Node to Canvas"
+            >
+              <Plus size={13} color="#8b5cf6" />
+              <span className="desktop-only">Nodes</span>
+            </button>
+          )}
+
+          {/* Inspector toggle button on tablet/mobile if node is selected */}
+          {!isDesktop && selectedNode && (
+            <button
+              type="button"
+              onClick={() => setSelectedNodeId(selectedNode.id)}
+              className="btn btn-secondary btn-sm"
+              style={{ padding: "4px 8px", fontSize: "11px" }}
+              title="Configure Selected Node"
+            >
+              <Sliders size={13} color="#a78bfa" />
+              <span className="desktop-only">Config</span>
+            </button>
           )}
         </div>
 
-        {/* Action Controls */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        {/* Right Subheader: Action Controls */}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
           {statusMessage && (
             <span
               style={{
-                fontSize: "12px",
+                fontSize: "11px",
                 color: statusMessage.type === "success" ? "var(--status-success)" : "var(--status-danger)",
-                marginRight: "8px",
+                marginRight: "4px",
+                display: isMobile ? "none" : "inline",
               }}
             >
               {statusMessage.text}
             </span>
           )}
-          <button onClick={handleValidate} className="btn btn-secondary btn-sm">
-            <CheckCircle size={14} color="var(--accent-ai)" />
-            <span>Validate</span>
+          <button
+            onClick={handleValidate}
+            className="btn btn-secondary btn-sm"
+            style={{ padding: isMobile ? "5px 7px" : "4px 10px", fontSize: "12px" }}
+            title="Validate Workflow Graph"
+          >
+            <CheckCircle size={14} color="#8b5cf6" />
+            <span className={isMobile ? "desktop-only" : ""}>Validate</span>
           </button>
-          <button onClick={handleSaveDraft} disabled={saving} className="btn btn-secondary btn-sm">
+          <button
+            onClick={handleSaveDraft}
+            disabled={saving}
+            className="btn btn-secondary btn-sm"
+            style={{ padding: isMobile ? "5px 7px" : "4px 10px", fontSize: "12px" }}
+            title="Save Draft Definition"
+          >
             <Save size={14} />
-            <span>{saving ? "Saving..." : "Save Draft"}</span>
+            <span className={isMobile ? "desktop-only" : ""}>{saving ? "Saving..." : "Save"}</span>
           </button>
-          <button onClick={handlePublish} disabled={publishing} className="btn btn-secondary btn-sm">
+          <button
+            onClick={handlePublish}
+            disabled={publishing}
+            className="btn btn-secondary btn-sm"
+            style={{ padding: isMobile ? "5px 7px" : "4px 10px", fontSize: "12px" }}
+            title="Publish Immutable Version"
+          >
             <UploadCloud size={14} />
-            <span>{publishing ? "Publishing..." : "Publish"}</span>
+            <span className={isMobile ? "desktop-only" : ""}>{publishing ? "Publishing..." : "Publish"}</span>
           </button>
           <button
             onClick={() => setIsRunModalOpen(true)}
             className="btn btn-primary btn-sm"
-            style={{ background: "#10b981", borderColor: "#10b981", color: "#fff" }}
+            style={{ padding: isMobile ? "5px 9px" : "4px 12px", fontSize: "12px" }}
+            title="Trigger Run"
           >
             <Play size={14} />
             <span>Run</span>
@@ -353,11 +436,11 @@ export default function Builder() {
 
       {/* Main Builder Workspace */}
       <div style={{ flex: 1, display: "flex", position: "relative", minHeight: 0 }}>
-        {/* Left Node Palette */}
-        <NodePalette onAddNode={handleAddNode} />
+        {/* Left Node Palette: In-flow on desktop */}
+        {isDesktop && <NodePalette onAddNode={handleAddNode} />}
 
         {/* Central React Flow Canvas */}
-        <div style={{ flex: 1, height: "100%", background: "#f8fafc" }}>
+        <div style={{ flex: 1, height: "100%", background: "#0b0b0b", position: "relative" }}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -369,22 +452,35 @@ export default function Builder() {
             nodeTypes={nodeTypes}
             fitView
           >
-            <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#cbd5e1" />
-            <Controls style={{ boxShadow: "var(--shadow-sm)", borderRadius: "6px" }} />
-            <MiniMap
-              nodeColor="#6366f1"
-              maskColor="rgba(15, 23, 42, 0.6)"
+            <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#262626" />
+            <Controls
               style={{
-                borderRadius: "8px",
-                border: "1px solid #1e293b",
-                backgroundColor: "#0b0f19",
+                boxShadow: "none",
+                borderRadius: "6px",
+                border: "1px solid #262626",
+                background: "#161616",
+                color: "#f5f5f5",
+                bottom: isMobile ? 12 : 20,
+                left: isMobile ? 12 : 20,
               }}
             />
+            {/* Show MiniMap only on screens >= 768px to prevent blocking touch canvas on mobile */}
+            {!isMobile && (
+              <MiniMap
+                nodeColor="#8b5cf6"
+                maskColor="rgba(11, 11, 11, 0.7)"
+                style={{
+                  borderRadius: "6px",
+                  border: "1px solid #262626",
+                  backgroundColor: "#111111",
+                }}
+              />
+            )}
           </ReactFlow>
         </div>
 
-        {/* Right Node Inspector */}
-        {selectedNode && (
+        {/* Right Node Inspector: In-flow on desktop */}
+        {isDesktop && selectedNode && (
           <NodeInspector
             node={selectedNode}
             onClose={() => setSelectedNodeId(null)}
@@ -394,38 +490,84 @@ export default function Builder() {
         )}
       </div>
 
+      {/* Mobile/Tablet Off-Canvas Node Palette Drawer */}
+      {!isDesktop && isPaletteOpen && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex" }}>
+          <div
+            onClick={() => setIsPaletteOpen(false)}
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.65)",
+              animation: "fadeInOverlay 0.2s ease",
+            }}
+          />
+          <div style={{ position: "relative", zIndex: 101, height: "100%", animation: "slideInLeft 0.25s ease" }}>
+            <NodePalette onAddNode={handleAddNode} onClose={() => setIsPaletteOpen(false)} isOverlay />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile/Tablet Off-Canvas Node Inspector Drawer */}
+      {!isDesktop && selectedNode && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", justifyContent: "flex-end" }}>
+          <div
+            onClick={() => setSelectedNodeId(null)}
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.65)",
+              animation: "fadeInOverlay 0.2s ease",
+            }}
+          />
+          <div style={{ position: "relative", zIndex: 101, height: "100%", animation: "slideInRight 0.25s ease" }}>
+            <NodeInspector
+              node={selectedNode}
+              onClose={() => setSelectedNodeId(null)}
+              onUpdateNode={handleUpdateNode}
+              onDeleteNode={handleDeleteNode}
+              isOverlay
+            />
+          </div>
+        </div>
+      )}
+
       {/* Bottom Validation Feedback Drawer */}
       {isValidationOpen && validationResult && (
         <div
           style={{
             position: "absolute",
             bottom: 0,
-            left: "220px",
-            right: selectedNode ? "300px" : 0,
-            background: "var(--surface-card)",
-            borderTop: "1px solid var(--border-light)",
-            boxShadow: "0 -4px 10px rgba(0, 0, 0, 0.05)",
-            padding: "14px 20px",
+            left: isDesktop ? "210px" : 0,
+            right: isDesktop && selectedNode ? "290px" : 0,
+            background: "#141414",
+            borderTop: "1px solid #262626",
+            boxShadow: "0 -4px 15px rgba(0, 0, 0, 0.5)",
+            padding: "14px 18px",
             maxHeight: "180px",
             overflowY: "auto",
-            zIndex: 20,
+            zIndex: 30,
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               {validationResult.is_valid ? (
-                <CheckCircle size={16} color="var(--status-success)" />
+                <CheckCircle size={15} color="#10b981" />
               ) : (
-                <AlertTriangle size={16} color="var(--status-danger)" />
+                <AlertTriangle size={15} color="#ef4444" />
               )}
-              <span style={{ fontSize: "13px", fontWeight: 600 }}>
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5" }}>
                 {validationResult.is_valid
                   ? "Graph Validation Passed (Ready to Publish)"
                   : `Graph Validation Failed (${validationResult.errors.length} errors)`}
               </span>
             </div>
-            <button onClick={() => setIsValidationOpen(false)} className="btn btn-ghost btn-sm" style={{ padding: "2px" }}>
-              <X size={15} />
+            <button
+              onClick={() => setIsValidationOpen(false)}
+              aria-label="Close validation output"
+              style={{ background: "transparent", border: "none", color: "#737373", cursor: "pointer", padding: "4px" }}
+            >
+              <X size={14} />
             </button>
           </div>
 
@@ -452,20 +594,26 @@ export default function Builder() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: "rgba(0, 0, 0, 0.5)",
+            background: "rgba(0, 0, 0, 0.65)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 100,
+            padding: "16px",
           }}
         >
           <div
             className="card"
-            style={{ width: "480px", maxWidth: "90vw", padding: "24px", background: "var(--surface-card)" }}
+            style={{ width: "480px", maxWidth: "100%", padding: "20px clamp(16px, 4vw, 24px)", background: "var(--surface-card)" }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: 700 }}>Trigger Workflow Run</h3>
-              <button onClick={() => setIsRunModalOpen(false)} className="btn btn-ghost btn-sm" style={{ padding: "4px" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0 }}>Trigger Workflow Run</h3>
+              <button
+                onClick={() => setIsRunModalOpen(false)}
+                className="btn btn-ghost btn-sm"
+                style={{ padding: "4px" }}
+                aria-label="Close modal"
+              >
                 <X size={16} />
               </button>
             </div>

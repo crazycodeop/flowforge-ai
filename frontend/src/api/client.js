@@ -1,6 +1,7 @@
 /**
  * FlowForge AI API Client Layer
  * Communicates with FastAPI backend versioned REST endpoints.
+ * Automatically injects JWT Bearer token and X-Organization-ID header.
  */
 
 const BASE_URL = "/api/v1";
@@ -13,12 +14,24 @@ const BASE_URL = "/api/v1";
  */
 async function request(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
+
+  const token = localStorage.getItem("token");
+  if (token && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const orgId = localStorage.getItem("org_id");
+  if (orgId && !headers["X-Organization-ID"]) {
+    headers["X-Organization-ID"] = orgId;
+  }
+
   const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
     ...options,
+    headers,
   });
 
   if (!response.ok) {
@@ -29,6 +42,8 @@ async function request(endpoint, options = {}) {
         errorMessage = errorBody.detail;
       } else if (errorBody.detail && errorBody.detail.message) {
         errorMessage = errorBody.detail.message;
+      } else if (Array.isArray(errorBody.detail)) {
+        errorMessage = errorBody.detail.map((d) => d.msg || JSON.stringify(d)).join(", ");
       }
     } catch {
       // Fallback to default message
@@ -51,6 +66,94 @@ export const api = {
 
   async getReadiness() {
     return request("/ready");
+  },
+
+  // --- Authentication ---
+  async login(email, password) {
+    return request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+  },
+
+  async register(email, password, full_name = "", role = "developer") {
+    return request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ email, password, full_name, role }),
+    });
+  },
+
+  async getCurrentUser() {
+    return request("/auth/me");
+  },
+
+  // --- Organizations & Tenancy ---
+  async listOrganizations() {
+    return request("/organizations/");
+  },
+
+  async createOrganization(payload) {
+    return request("/organizations/", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getOrganization(orgId) {
+    return request(`/organizations/${orgId}`);
+  },
+
+  async updateOrganization(orgId, payload) {
+    return request(`/organizations/${orgId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async listOrganizationMembers(orgId) {
+    return request(`/organizations/${orgId}/members`);
+  },
+
+  async addOrganizationMember(orgId, payload) {
+    return request(`/organizations/${orgId}/members`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async removeOrganizationMember(orgId, userId) {
+    return request(`/organizations/${orgId}/members/${userId}`, {
+      method: "DELETE",
+    });
+  },
+
+  // --- Settings ---
+  async getProfile() {
+    return request("/settings/profile");
+  },
+
+  async updateProfile(payload) {
+    return request("/settings/profile", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async changePassword(payload) {
+    return request("/settings/password", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getAISettings() {
+    return request("/settings/ai");
+  },
+
+  async testAIConnection() {
+    return request("/settings/ai/test", {
+      method: "POST",
+    });
   },
 
   // --- Workflows ---

@@ -50,7 +50,12 @@ def test_error_classification_and_backoff():
     assert delay_capped == 10.0
 
 
-def test_bounded_retries_for_transient_failures(client: TestClient, db_session: Session):
+def test_bounded_retries_for_transient_failures(
+    client: TestClient, db_session: Session, monkeypatch
+):
+    # Prevent concurrent background Celery worker from racing synchronous step verification
+    monkeypatch.setattr("app.api.v1.runs.execute_workflow_task.delay", lambda *args, **kwargs: None)
+
     # Workflow with max_retries=2
     res = client.post("/api/v1/workflows/", json={"name": "Retry Test Workflow"})
     workflow_id = res.json()["id"]

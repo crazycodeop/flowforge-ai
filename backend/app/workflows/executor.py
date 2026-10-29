@@ -311,7 +311,7 @@ def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
                     )
                     db.commit()
                     # Step scheduled for future retry; exit current execution cycle
-                    break
+                    return run
 
                 # Permanent failure or retries exhausted
                 logger.error("Step '%s' permanently failed: %s", node_id, str(e))

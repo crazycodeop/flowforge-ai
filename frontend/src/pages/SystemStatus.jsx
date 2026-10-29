@@ -25,81 +25,93 @@ export default function SystemStatus() {
   }, []);
 
   return (
-    <div style={{ maxWidth: "1000px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "24px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div style={{ maxWidth: "1080px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "24px" }}>
+      {/* Top Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <h1 style={{ fontSize: "20px", fontWeight: 700 }}>System Health & Readiness</h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "2px" }}>
-            Operational diagnostics for PostgreSQL persistence and Celery message broker.
+          <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text-main)", letterSpacing: "-0.02em", margin: "0 0 4px 0" }}>
+            System Status & Diagnostics
+          </h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: "13px", margin: 0 }}>
+            Operational diagnostics for PostgreSQL persistence, Upstash Redis broker, and Celery workers.
           </p>
         </div>
         <button onClick={checkStatus} disabled={loading} className="btn btn-secondary btn-sm">
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          <RefreshCw size={13} className={loading ? "spin" : ""} />
           <span>Refresh</span>
         </button>
       </div>
 
       {error && (
-        <div style={{ padding: "12px 16px", background: "var(--status-danger-bg)", border: "1px solid var(--status-danger-border)", borderRadius: "6px", color: "var(--status-danger)", fontSize: "13px" }}>
+        <div
+          style={{
+            padding: "10px 14px",
+            background: "rgba(239, 68, 68, 0.12)",
+            border: "1px solid rgba(239, 68, 68, 0.25)",
+            borderRadius: "6px",
+            color: "#f87171",
+            fontSize: "12px",
+          }}
+        >
           {error}
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: "16px" }}>
         {/* PostgreSQL Card */}
-        <div className="card" style={{ padding: "20px" }}>
+        <div style={{ padding: "20px", background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Database size={18} color="var(--accent-ai)" />
-              <span style={{ fontWeight: 600 }}>PostgreSQL</span>
+              <Database size={16} color="#8b5cf6" />
+              <span style={{ fontWeight: 600, color: "#f5f5f5", fontSize: "13px" }}>Supabase PostgreSQL</span>
             </div>
             <span className={`badge ${readiness?.database?.healthy ? "badge-published" : "badge-danger"}`}>
               {readiness?.database?.healthy ? "Online" : "Offline"}
             </span>
           </div>
-          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "10px" }}>
+          <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.4 }}>
             {readiness?.database?.details || "Connecting..."}
           </p>
-          <div style={{ fontSize: "11px", color: "var(--text-subtle)", borderTop: "1px solid var(--border-light)", paddingTop: "8px" }}>
-            Port 5433 • Schema Migrations Applied
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", borderTop: "1px solid #222222", paddingTop: "8px", fontFamily: "var(--font-mono)" }}>
+            Pooler Active • SSL Mode Required
           </div>
         </div>
 
         {/* Redis Card */}
-        <div className="card" style={{ padding: "20px" }}>
+        <div style={{ padding: "20px", background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Cpu size={18} color="var(--accent-ai)" />
-              <span style={{ fontWeight: 600 }}>Redis Message Broker</span>
+              <Cpu size={16} color="#06b6d4" />
+              <span style={{ fontWeight: 600, color: "#f5f5f5", fontSize: "13px" }}>Upstash Redis Broker</span>
             </div>
             <span className={`badge ${readiness?.redis?.healthy ? "badge-published" : "badge-danger"}`}>
               {readiness?.redis?.healthy ? "Online" : "Offline"}
             </span>
           </div>
-          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "10px" }}>
+          <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.4 }}>
             {readiness?.redis?.details || "Connecting..."}
           </p>
-          <div style={{ fontSize: "11px", color: "var(--text-subtle)", borderTop: "1px solid var(--border-light)", paddingTop: "8px" }}>
-            Port 6379 • Broker & Result Backend
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", borderTop: "1px solid #222222", paddingTop: "8px", fontFamily: "var(--font-mono)" }}>
+            TLS Encrypted • Prefetch Locked to 1
           </div>
         </div>
 
         {/* Celery Pipeline Card */}
-        <div className="card" style={{ padding: "20px" }}>
+        <div style={{ padding: "20px", background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Server size={18} color="var(--accent-ai)" />
-              <span style={{ fontWeight: 600 }}>Celery Dispatch</span>
+              <Server size={16} color="#10b981" />
+              <span style={{ fontWeight: 600, color: "#f5f5f5", fontSize: "13px" }}>Celery Distributed Workers</span>
             </div>
             <span className={`badge ${readiness?.celery?.healthy ? "badge-published" : "badge-danger"}`}>
               {readiness?.celery?.healthy ? "Ready" : "Offline"}
             </span>
           </div>
-          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "10px" }}>
+          <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.4 }}>
             {readiness?.celery?.details || "Connecting..."}
           </p>
-          <div style={{ fontSize: "11px", color: "var(--text-subtle)", borderTop: "1px solid var(--border-light)", paddingTop: "8px" }}>
-            Task Queue Ready • Prefork Concurrency 4
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", borderTop: "1px solid #222222", paddingTop: "8px", fontFamily: "var(--font-mono)" }}>
+            Task Queue Ready • Dynamic Lease Recovery
           </div>
         </div>
       </div>

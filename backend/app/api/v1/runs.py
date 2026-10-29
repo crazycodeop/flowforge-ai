@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
+from app.api.deps import TenantContext, get_optional_tenant_context
 from app.core.database import get_db
 from app.models.execution import ExecutionEvent, StepRun, WorkflowRun
 from app.models.workflow import Workflow, WorkflowVersion
@@ -46,11 +47,17 @@ def trigger_workflow_run(
     payload: RunCreateRequest,
     idempotency_key: str | None = Header(None, alias="Idempotency-Key"),
     db: Session = Depends(get_db),
+    tenant: TenantContext | None = Depends(get_optional_tenant_context),
 ) -> WorkflowRunResponse:
     """Initializes a workflow execution with idempotency protection and bounded dispatch."""
     workflow = db.get(Workflow, workflow_id)
     if not workflow:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workflow not found")
+    if tenant and workflow.organization_id and workflow.organization_id != tenant.org.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Workflow belongs to another organization.",
+        )
 
     # Resolve target version
     if payload.version_number is not None:
@@ -103,6 +110,7 @@ def trigger_workflow_run(
 
     # Create WorkflowRun
     run = WorkflowRun(
+        organization_id=tenant.org.id if tenant else workflow.organization_id,
         workflow_id=workflow.id,
         workflow_version_id=version.id,
         status=RunStatus.QUEUED.value,
@@ -151,11 +159,17 @@ def list_all_runs(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: Session = Depends(get_db),
+    tenant: TenantContext | None = Depends(get_optional_tenant_context),
 ) -> list[WorkflowRunResponse]:
-    """Lists recent workflow executions across the workspace."""
-    stmt = select(WorkflowRun).order_by(desc(WorkflowRun.created_at)).offset(skip).limit(limit)
+    """Lists recent workflow executions across the workspace with tenant scoping."""
+    stmt = select(WorkflowRun)
+    if tenant:
+        stmt = stmt.where(
+            (WorkflowRun.organization_id == tenant.org.id) | (WorkflowRun.organization_id.is_(None))
+        )
     if status:
         stmt = stmt.where(WorkflowRun.status == status.upper())
+    stmt = stmt.order_by(desc(WorkflowRun.created_at)).offset(skip).limit(limit)
     runs = db.scalars(stmt).all()
     return [WorkflowRunResponse.model_validate(r) for r in runs]
 
@@ -180,11 +194,20 @@ def list_workflow_runs(
 
 
 @router.get("/runs/{run_id}", response_model=WorkflowRunResponse)
-def get_run_status(run_id: str, db: Session = Depends(get_db)) -> WorkflowRunResponse:
+def get_run_status(
+    run_id: str,
+    db: Session = Depends(get_db),
+    tenant: TenantContext | None = Depends(get_optional_tenant_context),
+) -> WorkflowRunResponse:
     """Retrieves current status, timing, and inputs/outputs of a workflow run."""
     run = db.get(WorkflowRun, run_id)
     if not run:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found")
+    if tenant and run.organization_id and run.organization_id != tenant.org.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Run belongs to another organization.",
+        )
     return WorkflowRunResponse.model_validate(run)
 
 

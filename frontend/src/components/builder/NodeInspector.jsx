@@ -1,16 +1,23 @@
 import React from "react";
-import { X, Trash2, Sliders, ShieldAlert, Sparkles, Zap } from "lucide-react";
+import { X, Trash2, Sliders } from "lucide-react";
 
 /**
- * Inspector panel for configuring the selected node's attributes.
+ * Render-inspired dark inspector panel for configuring selected nodes.
  * @param {{
  *   node: any,
  *   onClose: () => void,
  *   onUpdateNode: (nodeId: string, updates: any) => void,
  *   onDeleteNode: (nodeId: string) => void,
+ *   isOverlay?: boolean,
  * }} props
  */
-export default function NodeInspector({ node, onClose, onUpdateNode, onDeleteNode }) {
+export default function NodeInspector({
+  node,
+  onClose,
+  onUpdateNode,
+  onDeleteNode,
+  isOverlay = false,
+}) {
   if (!node) return null;
 
   const nodeType = node.data.type || "transform";
@@ -36,32 +43,58 @@ export default function NodeInspector({ node, onClose, onUpdateNode, onDeleteNod
   return (
     <aside
       style={{
-        width: "300px",
-        background: "var(--surface-card)",
-        borderLeft: "1px solid var(--border-light)",
+        width: isOverlay ? "min(340px, 92vw)" : "290px",
+        background: "#111111",
+        borderLeft: "1px solid #222222",
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
         padding: "16px",
         flexShrink: 0,
-        boxShadow: "var(--shadow-sm)",
+        height: "100%",
+        zIndex: isOverlay ? 40 : "auto",
       }}
     >
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", paddingBottom: "10px", borderBottom: "1px solid var(--border-light)" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "16px",
+          paddingBottom: "10px",
+          borderBottom: "1px solid #222222",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Sliders size={15} color="var(--accent-ai)" />
-          <span style={{ fontSize: "13px", fontWeight: 600 }}>Configure Node</span>
+          <Sliders size={14} color="#8b5cf6" />
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5" }}>
+            Configure Node
+          </span>
         </div>
-        <button onClick={onClose} className="btn btn-ghost btn-sm" style={{ padding: "4px" }}>
+        <button
+          onClick={onClose}
+          type="button"
+          aria-label="Close configuration"
+          style={{
+            background: "transparent",
+            border: "none",
+            color: "#737373",
+            cursor: "pointer",
+            padding: "4px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <X size={15} />
         </button>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "14px", flex: 1 }}>
-        {/* Basic Metadata */}
+        {/* Node Label */}
         <div>
-          <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>
+          <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
             Node Label
           </label>
           <input
@@ -69,11 +102,13 @@ export default function NodeInspector({ node, onClose, onUpdateNode, onDeleteNod
             value={node.data.name || ""}
             onChange={(e) => handleFieldChange("name", e.target.value)}
             className="input"
+            style={{ fontSize: "12px" }}
           />
         </div>
 
+        {/* Node Description */}
         <div>
-          <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>
+          <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
             Description
           </label>
           <input
@@ -81,167 +116,92 @@ export default function NodeInspector({ node, onClose, onUpdateNode, onDeleteNod
             value={node.data.description || ""}
             onChange={(e) => handleFieldChange("description", e.target.value)}
             className="input"
-            placeholder="Brief step note..."
+            style={{ fontSize: "12px" }}
           />
         </div>
 
-        {/* Node-Specific Configuration Forms */}
-        {nodeType === "trigger" && (
+        {/* Specific Node Configurations */}
+        {nodeType === "ai_classify" && (
           <div>
-            <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>
-              Trigger Type
+            <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
+              Categories (comma-separated)
+            </label>
+            <input
+              type="text"
+              value={(config.categories || []).join(", ")}
+              onChange={(e) =>
+                handleConfigChange(
+                  "categories",
+                  e.target.value.split(",").map((s) => s.trim()).filter(Boolean)
+                )
+              }
+              className="input"
+              style={{ fontSize: "12px" }}
+            />
+          </div>
+        )}
+
+        {nodeType === "retrieval" && (
+          <div>
+            <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
+              Top K Documents
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={10}
+              value={config.top_k || 3}
+              onChange={(e) => handleConfigChange("top_k", parseInt(e.target.value) || 3)}
+              className="input"
+              style={{ fontSize: "12px" }}
+            />
+          </div>
+        )}
+
+        {nodeType === "condition" && (
+          <div>
+            <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
+              Condition Operator
             </label>
             <select
-              value={config.trigger_type || "api"}
-              onChange={(e) => handleConfigChange("trigger_type", e.target.value)}
+              value={config.operator || "greater_than"}
+              onChange={(e) => handleConfigChange("operator", e.target.value)}
               className="input"
+              style={{ fontSize: "12px" }}
             >
-              <option value="api">REST API Webhook</option>
-              <option value="manual">Manual Execution</option>
-              <option value="scheduled">Scheduled Interval</option>
+              <option value="greater_than">Greater than (&gt;)</option>
+              <option value="less_than">Less than (&lt;)</option>
+              <option value="equals">Equals (==)</option>
+              <option value="contains">Contains</option>
             </select>
           </div>
         )}
 
-        {nodeType === "ai_classify" && (
-          <>
-            <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>
-                Prompt Template *
-              </label>
-              <textarea
-                rows={3}
-                value={config.prompt_template || ""}
-                onChange={(e) => handleConfigChange("prompt_template", e.target.value)}
-                className="input"
-                placeholder="Classify the incoming ticket text: {ticket}"
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>
-                Categories (comma-separated) *
-              </label>
-              <input
-                type="text"
-                value={(config.categories || ["billing", "technical"]).join(", ")}
-                onChange={(e) =>
-                  handleConfigChange(
-                    "categories",
-                    e.target.value.split(",").map((s) => s.trim()).filter(Boolean)
-                  )
-                }
-                className="input"
-                placeholder="billing, technical, account"
-              />
-            </div>
-          </>
-        )}
-
-        {nodeType === "retrieval" && (
-          <>
-            <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>
-                Knowledge Collection *
-              </label>
-              <input
-                type="text"
-                value={config.collection_name || "support-policy-v1"}
-                onChange={(e) => handleConfigChange("collection_name", e.target.value)}
-                className="input"
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>
-                Query Template *
-              </label>
-              <input
-                type="text"
-                value={config.query_template || "{ticket.issue}"}
-                onChange={(e) => handleConfigChange("query_template", e.target.value)}
-                className="input"
-              />
-            </div>
-          </>
-        )}
-
-        {nodeType === "human_approval" && (
-          <>
-            <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>
-                Approval Action Title *
-              </label>
-              <input
-                type="text"
-                value={config.title || "Review Refund Request"}
-                onChange={(e) => handleConfigChange("title", e.target.value)}
-                className="input"
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>
-                Required Role
-              </label>
-              <input
-                type="text"
-                value={config.required_role || "reviewer"}
-                onChange={(e) => handleConfigChange("required_role", e.target.value)}
-                className="input"
-              />
-            </div>
-          </>
-        )}
-
-        {/* Execution Policies */}
-        <div style={{ marginTop: "10px", paddingTop: "12px", borderTop: "1px solid var(--border-light)" }}>
-          <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px" }}>
-            Execution Policies
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-            <div>
-              <label style={{ display: "block", fontSize: "10px", color: "var(--text-muted)", marginBottom: "2px" }}>
-                Timeout (s)
-              </label>
-              <input
-                type="number"
-                value={node.data.timeout_seconds || 60}
-                onChange={(e) => handleFieldChange("timeout_seconds", parseInt(e.target.value, 10) || 60)}
-                className="input"
-                min={1}
-                max={1800}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "10px", color: "var(--text-muted)", marginBottom: "2px" }}>
-                Max Retries
-              </label>
-              <input
-                type="number"
-                value={node.data.retry_policy?.max_retries ?? 3}
-                onChange={(e) =>
-                  handleFieldChange("retry_policy", {
-                    ...(node.data.retry_policy || {}),
-                    max_retries: parseInt(e.target.value, 10) || 0,
-                  })
-                }
-                className="input"
-                min={0}
-                max={10}
-              />
-            </div>
-          </div>
+        {/* Danger Zone: Delete Node */}
+        <div style={{ marginTop: "auto", paddingTop: "16px", borderTop: "1px solid #222222" }}>
+          <button
+            type="button"
+            onClick={() => onDeleteNode(node.id)}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              padding: "8px 10px",
+              background: "rgba(239, 68, 68, 0.1)",
+              border: "1px solid rgba(239, 68, 68, 0.25)",
+              borderRadius: "6px",
+              color: "#f87171",
+              fontSize: "12px",
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            <Trash2 size={13} />
+            <span>Delete Node</span>
+          </button>
         </div>
-      </div>
-
-      {/* Delete Action */}
-      <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--border-light)" }}>
-        <button
-          onClick={() => onDeleteNode(node.id)}
-          className="btn btn-secondary btn-sm"
-          style={{ width: "100%", color: "var(--status-danger)", borderColor: "var(--status-danger-border)" }}
-        >
-          <Trash2 size={13} />
-          <span>Remove Node</span>
-        </button>
       </div>
     </aside>
   );

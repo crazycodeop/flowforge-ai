@@ -13,292 +13,156 @@
 - [x] **Milestone 8: Visual Workflow Builder Frontend Polish (Connected to Runtime)**
 - [x] **Milestone 9: Execution Inspector, Audit Timeline & Evaluation Benchmark**
 - [x] **Milestone 10: Release Polish, Verification & Final Presentation**
+- [x] **Milestone 11: Multi-Tenant B2B SaaS Architecture, In-App Architecture Center, Settings Persistence & GitHub Readiness**
+- [x] **Milestone 12: Render-Inspired Dark Dashboard Theme & Operational Cloud UI**
+- [x] **Milestone 13: Complete Responsive Design Overhaul & Viewport Hardening (320px–1920px)**
+- [x] **Milestone 14: Visual Architecture Decoupling (GitHub README Consolidation), Sidebar Collapse Polish & Render-Aesthetic Alignment**
 
 ---
 
-### Milestone 10: Release Polish, Verification & Final Presentation
+### Milestone 14: Visual Architecture Decoupling (GitHub README Consolidation), Sidebar Collapse Polish & Render-Aesthetic Alignment
 - **Date**: 2026-10-29
 - **Status**: Completed
 - **Features Implemented**:
-  - Comprehensive End-to-End System Test suite in `backend/tests/test_full_system_e2e.py`:
-    - Full user authentication lifecycle (registration, PBKDF2 hashing, JWT access token issue, protected route enforcement).
-    - Knowledge base seeding and verified semantic search with relevance scoring.
-    - Flagship support triage workflow automated execution (AI classification, knowledge citation retrieval, structured ticket extraction, priority routing, response synthesis).
-    - Human-in-the-loop review workflow (execution pause at approval gate, review inbox inspection, reviewer authorization decision, run resumption, and successful completion).
-    - Full AI evaluation benchmarking run against golden dataset (accuracy scoring, token tracking, latency logging).
-    - Execution event audit trail verification.
-  - One-click Flagship Workflow seeding endpoint `POST /api/v1/workflows/seed-flagship`.
-  - Created portfolio-grade `README.md` with:
-    - Architecture Mermaid diagram
-    - Quickstart instructions for local setup and Docker Compose
-    - Flagship workflow walkthrough and cURL commands
-    - Comprehensive REST API catalog
-    - Test verification commands and metrics
-  - Updated `docs/architecture.md` detailing subsystems, security boundaries, and data models.
-- **Tests & Verification**:
-  - `pytest backend/tests`: **52 passed** in 3.44s.
-  - `ruff check backend && ruff format --check backend`: 0 lint errors, 70 files formatted.
-  - `npm --prefix frontend test`: 2 passed in 2.25s.
-  - `npm --prefix frontend run build`: Successful production Vite build in 2.88s.
+  1. **Consolidated Architecture Documentation to GitHub `README.md`**:
+     - Removed the in-app `/architecture` route and deleted `frontend/src/pages/Architecture.jsx` to eliminate developer/architecture noise from the client-facing UI.
+     - Frontend bundle size decreased from 1.5MB+ to 509KB, and production build time dropped from 29.5s to 2.74s.
+     - Completely overhauled root `README.md` with:
+       - High-Level Distributed Topology diagram (`flowchart TD`).
+       - Execution Lifecycle sequence diagram (`sequenceDiagram`).
+       - Deterministic DAG Finite State Machine diagram (`stateDiagram-v2`).
+       - Multi-Tenant Relational ER diagram (`erDiagram`).
+       - Enterprise Resilience & Recovery specifications (leases, zombie detection, jittered exponential backoff).
+       - AI Guardrails & Pydantic structured output validation.
+       - Multi-tenant RBAC specifications (`Owner`, `Admin`, `Builder`, `Viewer`).
+       - Full REST API v1 catalog table.
+       - Staff Engineer interview design questions and answers.
+  2. **Sidebar Collapse & UI Overhaul (`frontend/src/components/Shell.jsx`)**:
+     - Eliminated text word "Collapse" from the bottom sidebar button, replacing it with an intuitive icon-only toggle (`<PanelLeftClose />` / `<PanelLeftOpen />`).
+     - Fixed vertical letter wrapping bug in collapsed mode (`WORKSPAC`, `AI &`, `ORGANIZAT`) by conditionally omitting category headers when `isNarrow`.
+     - Standardized topbar (50px height) with workspace switcher popover, breadcrumbs, `⌘K` search trigger, `+ New Workflow` button, and user profile avatar.
+     - Standardized sidebar (240px expanded / 54px collapsed) with Render-style 32px navigation rows, `#7E22CE` active indicator, and clean Lucide icons.
+  3. **Reverted Mock Cloud Terminology from Settings (`frontend/src/pages/Settings.jsx`)**:
+     - Reverted all copied cloud deployment/Docker/service hosting terminology (e.g., "Web Service", "docvyn-backend", "PR Previews").
+     - Restored FlowForge AI's genuine 5-tab settings:
+       - Profile (Name, Email, Role badge).
+       - Organization & Team (Workspace rename form, RBAC invitations for Admin/Builder/Viewer, members table with remove action).
+       - AI Provider & Runtime (Active Groq LPU / OpenAI / Mock provider display, model name `qwen/qwen3.8-27b`, live Test AI Connection button with roundtrip latency & token telemetry).
+       - Canvas Preferences (Theme, Grid pattern, Snap-to-grid, MiniMap toggle).
+       - Security & Sessions (Password change form, active sessions, logout).
+  4. **Render Visual Aesthetic Alignment**:
+     - Applied Render's dark charcoal/black palette (`#0B0B0B`, `#141414`), thin borders (`#1F1F1F`, `#222222`), 4px/6px border radii, flat cards, and vivid purple highlights across all pages.
+- **Verification**:
+  - `vitest` unit tests: 2 passed (`src/App.test.jsx`).
+  - `vite build` production bundle: 0 errors, built in 2.74s (`dist/assets/index-6Bh_ip6S.js` 509.18 kB).
+  - `pytest backend/tests`: 53 passed across all unit and integration test suites in 446.53s.
+  - `ruff check backend`: All checks passed with 0 errors.
 
 ---
 
-### Milestone 8 & 9: Frontend Runtime Integration, Execution Inspector, Approvals & Evaluations
+### Milestone 13: Complete Responsive Design Overhaul & Viewport Hardening (320px–1920px)
 - **Date**: 2026-10-29
 - **Status**: Completed
 - **Features Implemented**:
-  - AI Evaluation Benchmark Subsystem:
-    - Models `EvaluationDataset` and `EvaluationRun` in `app/models/evaluation.py`.
-    - Alembic migration `17364d7162b2` (`create_evaluations_tables`).
-    - Evaluation engine `run_evaluation_benchmark` in `app/evaluations/runner.py` calculating accuracy scores, average latency, total token cost, and individual test assertions.
-    - REST endpoints in `app/api/v1/evaluations.py` (`GET /datasets`, `POST /seed`, `POST /runs`, `GET /runs/{id}`).
-  - Workflow Execution Trigger & Payload Modal:
-    - Added "Run" action in `frontend/src/pages/Builder.jsx` opening an interactive JSON input payload modal.
-    - Submits execution to `POST /api/v1/workflows/{id}/runs` and routes to live execution drawer.
-  - Execution Inspector Drawer in `frontend/src/pages/Executions.jsx`:
-    - Added `GET /api/v1/runs` endpoint in backend to list all historical executions across workflows.
-    - Real-time execution status filters (All, Running, Paused, Succeeded, Failed).
-    - Interactive slide-over drawer displaying step-by-step progress cards, node types, token counts, and latency.
-    - Chronological audit event log viewer rendering state transitions (`RUN_STARTED`, `STEP_STARTED`, `STEP_SUCCEEDED`, etc.).
-  - Human Approvals Inbox in `frontend/src/pages/Approvals.jsx`:
-    - Live pending approvals list connected to `GET /api/v1/approvals/pending`.
-    - Review modal displaying workflow run context, requested parameters, and reviewer comment input.
-    - Direct Approve / Reject decision actions executing `POST /api/v1/approvals/{id}/decision` and refreshing the queue.
-  - AI Benchmark Dashboard in `frontend/src/pages/Evaluations.jsx`:
-    - Golden evaluation dataset selector and one-click "Seed Benchmark Dataset" button.
-    - "Run Benchmark" action triggering evaluation execution across versioned workflows.
-    - Historical runs table displaying accuracy percentages, average latency, and test case pass/fail badges.
-- **Tests & Verification**:
-  - `pytest backend/tests`: 51 passed in 3.24s (including `test_evaluations.py`).
-  - `npm --prefix frontend test`: 2 passed.
-  - `npm --prefix frontend run build`: Successful production Vite build.
+  1. **Cross-Device Viewport Hardening**:
+     - Audited and updated styling across Small Mobile (320–374px), Standard Mobile (375–430px), Large Mobile (431–767px), Tablet (768–1023px), Laptop (1024–1439px), Desktop (1440–1919px), and Ultrawide (1920px+).
+     - Eliminated horizontal page overflow and fixed minimum width constraints.
+  2. **Mobile Navigation Drawer & Responsive Topbar**:
+     - Implemented slide-out mobile drawer overlay for viewports under 768px.
+     - Collapsible header actions with responsive breadcrumb truncations and touch-friendly targets (minimum 44x44px).
+  3. **Responsive Builder Canvas & Drawers**:
+     - Floating node palette on mobile/tablet viewports.
+     - Responsive node inspector bottom sheet for viewports under 1024px.
+  4. **Data Tables & Observability Views**:
+     - Horizontally scrollable high-density data tables with sticky column headers and responsive mobile card fallbacks.
+- **Verification**:
+  - Tested viewports with headless Chrome screenshots at 375px, 768px, 1280px, and 1920px widths with 0 layout breaks or unintended scrolling.
 
 ---
 
-### Milestone 7: Human Approval, Authentication & Application Security
+---
+
+### Milestone 12: Render-Inspired Dark Dashboard Theme & Operational Cloud UI
 - **Date**: 2026-10-29
 - **Status**: Completed
 - **Features Implemented**:
-  - User Authentication & Role-Based Access Control (RBAC):
-    - `User` model in `app/models/user.py` with unique email constraint, active flag, and role (`admin`, `reviewer`, `operator`).
-    - Password hashing using PBKDF2-SHA256 with cryptographic salt in `app/core/security.py`.
-    - PyJWT access token generation and signature verification with configurable TTL.
-    - Dependency injection utilities in `app/api/deps.py` (`get_current_user`, `require_role`).
-    - REST endpoints in `app/api/v1/auth.py` (`/register`, `/login`, `/me`).
-  - Human Approval Governance Subsystem:
-    - `ApprovalRequest` model in `app/models/approval.py` with states `PENDING`, `APPROVED`, `REJECTED`, `EXPIRED`.
-    - Alembic migration `197e975381c1` (`create_users_and_approvals`).
-    - `HumanApprovalExecutor` node pausing workflow execution, transitioning step and workflow run to `PAUSED`, and creating a persistent approval request.
-    - State machine updated to allow valid transition from `PAUSED` to `SUCCEEDED` upon reviewer approval.
-    - REST endpoints in `app/api/v1/approvals.py` (`GET /pending`, `GET /{id}`, `POST /{id}/decision`).
-    - Resumption logic in `decide_approval`: approving resumes execution via Celery/Engine, rejecting marks step/run as rejected/halted.
-- **Tests & Verification**:
-  - `backend/tests/test_auth_and_approval.py`: 4 passed (password hashing, registration/login flow, token protection, approval pause and resume).
+  1. **Render Aesthetic Design System & Tokens (`frontend/src/index.css`)**:
+     - Main background `#0B0B0B`, sidebar background `#111111`, card surfaces `#161616`, hover surfaces `#202020`, borders and dividers `#262626` / `#333333`.
+     - Restrained purple/violet accents (`#8B5CF6`, active pill `#4C1D95` / `#581c87`, hover `#A78BFA`).
+     - Subdued operational status badges (`#10B981` text with subtle translucent backgrounds, `#F59E0B` warning, `#EF4444` error).
+     - Segmented filter pill controls (`.filter-pills-container`, `.filter-pill.active`) matching Render's dashboard tab pattern.
+     - Clean, high-density table typography with thin dividers and subdued header text.
+  2. **Render Full-Height Left Sidebar & Header (`frontend/src/components/Shell.jsx`)**:
+     - Full-height `#111111` sidebar with workspace switcher popover at the top displaying active organization and role.
+     - Categorized navigation groups: **Workspace** (`Overview`, `Workflows`, `Executions`, `Approvals`), **AI & Operations** (`Evaluations`, `Architecture`, `Use Cases`), **Organization** (`Settings`).
+     - Bottom collapse/expand toggle and live system status indicator.
+     - Thin top navigation bar with breadcrumb context, `Search ⌘K` command shortcut modal, compact `+ New` button, and user profile avatar.
+  3. **Operational Cloud Overview Dashboard (`frontend/src/pages/Overview.jsx`)**:
+     - Flat developer-oriented header with `Invite your team` action.
+     - Featured card "Get organized with Workflows" with quick workflow creation action.
+     - Segmented filter pills: `Active (N)`, `Draft (N)`, `All (N)`.
+     - Live search input filter and high-density operational table showing status pills (`✓ Deployed (vN)`, `Draft`), runtime tags (`Groq LPU`), environment (`Production`), and relative timestamps.
+  4. **Workflows Catalog (`frontend/src/pages/Workflows.jsx`)**:
+     - High-density table with `All`, `Published`, and `Draft` segmented filter tabs, search filter, and `+ New workflow` creation modal.
+  5. **Visual Workflow Builder Dark Mode (`frontend/src/pages/Builder.jsx`)**:
+     - Canvas set to deep `#0B0B0B` background with `#262626` dot grid.
+     - Dark custom nodes (`frontend/src/components/builder/CustomNode.jsx`) with `#161616` cards, `#2A2A2A` borders, violet selection halos (`#8B5CF6`), and color-coded branch handles.
+     - Dark `#111111` node library palette (`frontend/src/components/builder/NodePalette.jsx`) and node inspector drawer (`frontend/src/components/builder/NodeInspector.jsx`).
+     - Dark validation drawer, dark minimap, and dark execution input/result modal.
+  6. **Observability, Approvals & Evaluations (`frontend/src/pages/`)**:
+     - `Executions.jsx`: High-density observability log with monospace execution IDs, compact status badges (`✓ Succeeded`, `⟳ Running`, `⏸ Paused`, `✕ Failed`), segmented filter pills, and dark inspection drawer.
+     - `Approvals.jsx`: Operational review queue with dark review cards and approval actions.
+     - `Evaluations.jsx`: Benchmark evaluation dashboard with dark score cards and scenario inspection.
+     - `SystemStatus.jsx`: Diagnostic health monitors for Supabase PostgreSQL, Upstash Redis, and Celery workers.
+  7. **Authentication & Settings Polish**:
+     - `Login.jsx` & `Register.jsx`: Updated from glassmorphism to Render deep `#0B0B0B` background, `#161616` card, thin `#262626` borders, and flat violet primary button (`#8B5CF6`).
+     - `Settings.jsx`: Polished all 5 tabs to Render dark tokens (Profile, Organization & Team, AI Runtime, Appearance, Security).
+     - `Architecture.jsx` & `UseCases.jsx`: Dark theme badges, method tags, and runner cards.
+- **Verification**:
+  - `vitest` unit tests: 2 passed (`src/App.test.jsx`).
+  - `vite build` production bundle: 0 errors, built in 29.06s.
+  - `pytest backend/tests`: 53 passed across all unit and integration test suites in 452.88s.
+  - `ruff check backend`: All checks passed with 0 errors.
 
 ---
 
-### Milestone 6: Knowledge Retrieval & Flagship Support Workflow
+### Milestone 11: Multi-Tenant B2B SaaS Architecture, In-App Architecture Center, Settings Persistence & GitHub Readiness
 - **Date**: 2026-10-29
 - **Status**: Completed
 - **Features Implemented**:
-  - Knowledge Base Subsystem:
-    - Database models `KnowledgeCollection` and `KnowledgeDocument` in `app/models/knowledge.py`.
-    - Alembic migration `351cab5f4f20` (`create_knowledge_tables`).
-    - Semantic scoring algorithm in `app/retrieval/engine.py` calculating normalized term frequency overlap and exact phrase proximity.
-    - Knowledge search routine `search_knowledge_base` returning citations, passages, and relevance scores.
-    - REST endpoints in `app/api/v1/knowledge.py` (`/collections`, `/documents`, `/seed`, `/search`).
-  - Retrieval Node Executor:
-    - Implemented `RetrievalExecutor` in `app/nodes/executors.py` querying indexed collections, filtering by `score_threshold`, and attaching top-k passages and citations to execution context.
-  - Flagship Customer Support Triage Workflow:
-    - Seed routine in `app/workflows/flagship.py` creating policy collection (`flowforge-customer-support-policies`) with refund policies, SLAs, and security standards.
-    - Pre-configured multi-node DAG: `trigger` -> `ai_classify` -> `retrieval` -> `structured_extract` -> `condition` -> `output`.
+  1. **Multi-Tenant SaaS Data Isolation**:
+     - Created `Organization` and `OrganizationMember` models with roles `owner`, `admin`, `builder`, `viewer` and unique constraints.
+     - Scoped `Workflow`, `WorkflowRun`, `ApprovalRequest`, `KnowledgeCollection`, and `EvaluationRun` tables with `organization_id` foreign keys and cascade deletions.
+     - Authored and applied Alembic migration `20261029_1000_48c7e930f1a2_create_organizations_and_tenant_isolation.py` on Supabase PostgreSQL.
+     - Implemented `TenantContext` resolution in `backend/app/api/deps.py` via `X-Organization-ID` and JWT bearer token, rejecting cross-tenant operations with HTTP 403 Forbidden.
+     - Added organization management endpoints in `backend/app/api/v1/organizations.py` (`GET /`, `POST /`, `GET /{id}`, `PUT /{id}`, `GET /{id}/members`, `POST /{id}/members`, `DELETE /{id}/members/{user_id}`).
+  2. **Workspace Settings API & Real Persistence**:
+     - Created `backend/app/api/v1/settings.py` supporting `GET/PUT /profile`, `POST /password`, `GET /ai`, and `POST /ai/test` diagnostic probe.
+  3. **Frontend Client Authentication & Multi-Tenancy**:
+     - Updated `frontend/src/api/client.js` with automatic JWT Bearer token and `X-Organization-ID` header injection.
+     - Created `frontend/src/pages/Login.jsx` with real authentication, friendly error handling, and one-click quick-demo personas ("Platform Engineer" and "Staff Architect").
+     - Created `frontend/src/pages/Register.jsx` with instant workspace creation.
+     - Created `frontend/src/components/ProtectedRoute.jsx` route guard.
+  4. **Collapsible Shell & Functional Workspace Selector**:
+     - Updated `frontend/src/components/Shell.jsx` with smooth 240px ⟷ 68px width collapse transition and local storage preference persistence.
+     - Implemented dynamic Workspace Selector dropdown displaying active tenant organization and user role badge, listing memberships, switching active tenant context, and opening a modal to create new workspaces.
+  5. **Interactive Architecture Center (`frontend/src/pages/Architecture.jsx`)**:
+     - Built comprehensive in-app architecture center with reusable Mermaid renderer (`frontend/src/components/MermaidViewer.jsx`).
+     - Rendered 4 interactive diagrams: High-Level Distributed Topology, Execution Sequence Lifecycle, State Machine Internals, and Multi-Tenant Database ER Diagram.
+     - Included an interactive REST API catalog and a Staff Engineer System Design Interview Guide.
+  6. **Client Use Cases & Live Demonstration Hub (`frontend/src/pages/UseCases.jsx`)**:
+     - Created guided showcase for Customer Support Triage, Automated Accounts Payable Invoice Auditing, and Legal Contract Compliance Review.
+     - Added "Run Live Demonstration" button triggering real-time DAG execution against live Groq LPU and Supabase PostgreSQL.
+  7. **Settings UI (`frontend/src/pages/Settings.jsx`)**:
+     - Implemented 5 functional tabs: My Profile, Organization & Team (with member invite/remove), AI Provider & Runtime (with live latency diagnostic probe), Appearance & Canvas preferences, and Security (password update & session logout).
+  8. **Comprehensive Technical Documentation (`docs/architecture/`)**:
+     - Authored 9 in-depth markdown files: `overview.md`, `system-diagram.md`, `workflow-execution.md`, `multi-tenancy-auth.md`, `database-design.md`, `ai-subsystem.md`, `reliability-and-failures.md`, `security.md`, `architecture-decisions.md`, `interview-guide.md`.
+  9. **GitHub Push Preparation**:
+     - Ensured `.env` is ignored by `.gitignore`.
+     - Updated `.env.example` with clean placeholders and clear instructions for Supabase pooler, Upstash Redis TLS, and Groq API.
+     - Added MIT `LICENSE`.
 - **Tests & Verification**:
-  - `backend/tests/test_retrieval_and_flagship.py`: 4 passed (scoring algorithm, seeding & search, API endpoints, and end-to-end multi-node flagship execution).
-
----
-
-### Milestone 5: AI Runtime, Provider Abstraction & Structured Validation
-- **Date**: 2026-10-29
-- **Status**: Completed
-- **Features Implemented**:
-  - Modular AI provider architecture in `app/ai/`:
-    - `BaseAIProvider` abstract interface in `app/ai/base.py` defining `complete`, `classify`, and `extract` operations with typed `LLMMessage`, `LLMUsage`, and `LLMResponse` envelopes.
-    - Cost calculator in `app/ai/cost.py` with model-specific pricing per million tokens (OpenAI GPT-4o / GPT-4o-mini, Groq Llama 3.3 70B / 3.1 8B, Mixtral, Anthropic Claude, and zero-cost mock).
-    - High-fidelity, deterministic `MockAIProvider` in `app/ai/mock.py` for zero-credential testing, offline development, and CI (keyword heuristic classification, JSON Schema-compliant instance generation, realistic token/latency simulation, and configurable error injection).
-    - Universal `OpenAICompatibleProvider` in `app/ai/providers.py` supporting OpenAI, Groq, Ollama, and local OpenAI-compatible endpoints with HTTP error categorization (`RateLimitExceededError`, `TransientNetworkError`, `PermanentValidationError`).
-    - Configurable provider factory in `app/ai/factory.py` (`get_ai_provider`).
-  - Output schema validation and markdown stripping in `app/ai/validation.py`:
-    - `parse_and_clean_json` safely stripping markdown code blocks (` ```json ... ``` `) and validating JSON formatting.
-    - `validate_classification_output` enforcing case-insensitive category matching, rejecting hallucinated categories with `ModelOutputInvalidError`, and clamping confidence scores.
-    - `validate_structured_output` running strict JSON Schema validation using `jsonschema`.
-  - Implemented real AI executors in `app/nodes/executors.py`:
-    - `AIClassifyExecutor` rendering context templates, calling AI provider `classify`, validating categories, and returning structured classification results.
-    - `StructuredExtractExecutor` rendering context templates, calling AI provider `extract`, validating against JSON Schema, and returning validated fields.
-  - Usage, latency, and cost tracking across executions:
-    - Added `prompt_tokens`, `completion_tokens`, `total_tokens`, `cost_usd`, and `latency_ms` to `StepRun`.
-    - Added `total_tokens` and `total_cost_usd` aggregations to `WorkflowRun`.
-    - Created and applied Alembic migration `2d9bbe02c3b4` (`add_ai_usage_and_cost_metrics`).
-    - Updated execution engine in `app/workflows/executor.py` to record step latency, populate AI usage metrics, accumulate workflow totals, and emit `AI_INFERENCE_COMPLETED` audit events.
-    - Updated `resolve_path` in `ExecutionContext` to handle explicit namespace prefixes (`upstream_outputs.` and `run_input.`).
-- **Tests & Verification**:
-  - `pytest backend/tests`: **41 passed** in 1.82s (10 new unit and integration tests covering pricing, JSON parsing, classification validation, structured schema validation, mock provider heuristics, error injection, factory configuration, OpenAI adapter mocking, end-to-end multi-node AI pipeline execution in PostgreSQL, and rate-limit backoff retry recovery).
-  - `ruff check backend && ruff format --check backend`: 0 lint errors, 50 files formatted.
-  - `npm --prefix frontend test`: 2 passed in 2.58s.
-  - `npm --prefix frontend run build`: Successful production Vite build in 3.76s.
-- **Next Action**:
-  - Milestone 6: Implement Knowledge Retrieval Node (pgvector / knowledge collections), document store models, and the Flagship Customer Support Triage & Response Drafting Workflow with policy compliance checks.
-
----
-
-### Milestone 4: Reliability, Recovery, Retries & Idempotency
-- **Date**: 2026-10-29
-- **Status**: Completed
-- **Features Implemented**:
-  - Implemented domain error classification in `app/workflows/errors.py`:
-    - Categorizes exceptions into `TRANSIENT_NETWORK`, `RATE_LIMIT`, `MODEL_OUTPUT_INVALID`, `PERMANENT_VALIDATION`, `PERMISSION_DENIED`, `BUSINESS_RULE_VIOLATION`, `SYSTEM_ERROR`.
-    - Sanitizes internal exceptions into user-safe messages (`user_message`) to avoid exposing internal stack traces.
-  - Implemented exponential backoff with full jitter formula in `calculate_backoff_delay`.
-  - Added bounded retry loop in `app/workflows/executor.py`:
-    - Differentiates recoverable transient errors from permanent validation failures.
-    - Transitions recoverable step runs to `RETRY_WAIT` and records `STEP_RETRY_SCHEDULED` events with backoff delay.
-    - Enforces `max_retries` per node configuration before failing permanently.
-  - Implemented worker execution leases and heartbeats:
-    - Added `worker_lease_id`, `lease_expires_at`, and `heartbeat_at` columns to `step_runs`.
-    - Executing steps hold an exclusive lease tied to `node.timeout_seconds`.
-  - Implemented run creation idempotency protection:
-    - Added `idempotency_key` and canonical SHA-256 `idempotency_hash` to `workflow_runs` with unique constraint `(workflow_id, idempotency_key)`.
-    - Duplicate run requests with matching headers return the existing run; mismatched payloads return HTTP 409 Conflict.
-  - Implemented orphaned step recovery routine in `app/workflows/recovery.py` (`recover_stale_runs`):
-    - Identifies running steps whose worker leases have expired without completion.
-    - Reschedules eligible steps (`RETRY_WAIT`) and preserves already-succeeded upstream step outputs without redundant re-execution.
-    - Exposed `POST /api/v1/runs/recover` endpoint for automated or manual recovery reconciliation.
-  - Applied Alembic migration `12933d4a3599` adding lease and idempotency columns.
-- **Tests & Verification**:
-  - `pytest backend/tests`: **31 passed** in 1.50s (testing transient retries, permanent validation error containment, idempotency replays/conflicts, stale lease recovery, state machines, and DAG scheduling).
-  - `ruff check backend && ruff format --check backend`: 0 lint errors, 41 files formatted.
-  - `npm --prefix frontend test`: 2 passed in 2.97s.
-- **Next Action**:
-  - Milestone 5: Implement AI Runtime, Provider Abstraction (Mock, Groq/OpenAI, Ollama), Pydantic structured output validation, token/cost estimation, and AI Classification/Extraction nodes.
-
----
-
-### Milestone 3: Deterministic Execution Engine & State Machine
-- **Date**: 2026-10-29
-- **Status**: Completed
-- **Features Implemented**:
-  - Implemented explicit state machine in `app/workflows/state_machine.py` defining valid transitions for `WorkflowRun` (`PENDING`, `QUEUED`, `RUNNING`, `PAUSED`, `SUCCEEDED`, `FAILED`, `CANCELLED`) and `StepRun` (`PENDING`, `QUEUED`, `RUNNING`, `RETRY_WAIT`, `SUCCEEDED`, `FAILED`, `PAUSED`, `CANCELLED`, `SKIPPED`) with transition validation functions.
-  - Implemented database models in `app/models/execution.py` (`WorkflowRun`, `StepRun`, `ExecutionEvent`) with unique constraint on `(workflow_run_id, node_id)` and cascaded deletions.
-  - Applied Alembic migration `18ed4ea11d51` creating `workflow_runs`, `step_runs`, and `execution_events` tables in PostgreSQL.
-  - Implemented ExecutionContext in `app/workflows/context.py` with dot-delimited path resolution (`resolve_path`) and template variable interpolation (`render_template`).
-  - Implemented deterministic node executors in `app/nodes/executors.py` for `trigger`, `input_data`, `condition` (rule evaluator for `equals`, `not_equals`, `contains`, `greater_than`, `less_than`, `is_empty`, `is_not_empty`), `transform` (field mapping), and `output`.
-  - Implemented dependency scheduler in `app/workflows/scheduler.py` identifying ready nodes in the DAG and cascading skips to unselected conditional branch paths.
-  - Implemented engine orchestrator loop in `app/workflows/executor.py` managing step state transitions, output persistence, error recording, and append-only audit event logging.
-  - Implemented Celery background task `execute_workflow_task` in `app/workers/tasks.py`.
-  - Implemented execution REST endpoints in `app/api/v1/runs.py`:
-    - `POST /api/v1/workflows/{id}/runs`: Trigger execution (returns HTTP 202 Accepted)
-    - `GET /api/v1/workflows/{id}/runs`: List runs for a workflow
-    - `GET /api/v1/runs/{id}`: Inspect run status and outputs
-    - `GET /api/v1/runs/{id}/steps`: List step runs with status, outputs, attempts
-    - `GET /api/v1/runs/{id}/events`: Retrieve chronological audit timeline
-    - `POST /api/v1/runs/{id}/cancel`: Request run cancellation
-- **Tests & Verification**:
-  - `pytest backend/tests`: **26 passed** in 0.82s (testing state machine transitions, linear execution, branching skip cascade, failure containment, run cancellation, and Celery task apply).
-  - `ruff check backend && ruff format --check backend`: 0 lint errors, 37 files formatted.
-  - `npm --prefix frontend test`: 2 passed in 2.77s.
-- **Next Action**:
-  - Milestone 4: Implement bounded retries, exponential backoff with jitter, idempotency keys, execution leases, and stale-step worker recovery.
-
----
-
-### UI/UX Transformation: Modern Developer-Tool Design System & Visual Workflow Builder
-- **Date**: 2026-10-29
-- **Status**: Completed
-- **Features Implemented**:
-  - Linear/Vercel-inspired design tokens in `frontend/src/index.css`: dark charcoal navigation surfaces (`#0b0f19`), warm off-white canvas workspace (`#f8fafc`), electric indigo AI accent (`#6366f1`), emerald success states (`#10b981`), refined elevation shadows and typography (Inter & JetBrains Mono).
-  - Production application shell in `frontend/src/components/Shell.jsx`: custom geometric FlowForge mark, workspace switcher, Lucide icon navigation, active indicator dot, and topbar breadcrumbs.
-  - Operational Overview Dashboard in `frontend/src/pages/Overview.jsx`: live workflow metrics, real PostgreSQL/Redis/Celery connectivity statuses, recent workflow list, and onboarding prompt.
-  - Workflow Library in `frontend/src/pages/Workflows.jsx`: full search, status filtering ("All", "Published", "Draft"), modal for creating drafts, deletion with confirmation, and direct links to editor.
-  - Visual Workflow Builder in `frontend/src/pages/Builder.jsx`:
-    - Full-height React Flow (`@xyflow/react`) node-based canvas with subtle dot grid.
-    - Custom node component (`CustomNode.jsx`) with distinct badges, handles, and icons.
-    - Node palette (`NodePalette.jsx`) organized into categories (Input, AI & Intelligence, Logic & Routing, Gates & Results).
-    - Right configuration inspector (`NodeInspector.jsx`) editing title, prompt templates, categories, timeout, and retry policies.
-    - Authoritative backend validation drawer reporting graph errors and warnings.
-    - Save draft and immutable version publishing integration.
-  - Honest status and queue pages: `Executions.jsx`, `Approvals.jsx`, `Evaluations.jsx`, and `SystemStatus.jsx`.
-- **Tests & Verification**:
-  - `npm --prefix frontend test`: 2 passed in 1.78s (testing shell layout, navigation, and overview metrics).
-  - `npm --prefix frontend run build`: Successful production build in 2.68s.
-  - `pytest backend/tests`: 17 passed in 0.31s.
-
----
-
-### Milestone 2: Workflow Schemas and Validation
-- **Date**: 2026-10-29
-- **Status**: Completed
-- **Features Implemented**:
-  - Implemented node definitions and configuration models for all initial node types (`trigger`, `input_data`, `ai_classify`, `structured_extract`, `retrieval`, `condition`, `transform`, `human_approval`, `output`) in `app/nodes/base.py`.
-  - Implemented central `NODE_REGISTRY` in `app/nodes/registry.py` providing schema validation and metadata catalog.
-  - Implemented versioned workflow Pydantic schemas in `app/schemas/workflow.py` (`NodeDefinition`, `EdgeDefinition`, `RetryPolicy`, `WorkflowDefinition`, `ValidationResult`).
-  - Implemented robust DAG validation engine in `app/workflows/validation.py`:
-    - Duplicate node ID detection
-    - Missing start / trigger node detection
-    - Self-loop detection
-    - Topological cycle detection using Kahn's algorithm
-    - Unreachable / orphan node detection from start nodes
-    - Edge reference integrity verification
-    - Platform limit enforcement (max nodes, max graph depth)
-    - Node-specific configuration schema validation
-  - Implemented database models `Workflow` and `WorkflowVersion` in `app/models/workflow.py` with deterministic SHA-256 checksum generation for tamper-evident snapshots.
-  - Applied Alembic migration `858411219fc0` creating `workflows` and `workflow_versions` tables with unique constraint `(workflow_id, version_number)`.
-  - Implemented REST API endpoints in `app/api/v1/workflows.py` for listing node types, CRUD operations on drafts, validating drafts, publishing immutable versions, and version inspection.
-- **Tests & Verification**:
-  - `pytest backend/tests`: 17 passed in 0.39s (10 new unit tests for graph validation edge cases and comprehensive workflow lifecycle API tests).
-  - `ruff check backend && ruff format --check backend`: 0 lint errors, 26 files formatted.
-  - `npm --prefix frontend test`: 3 passed in 1.02s.
-- **Next Action**:
-  - Milestone 3: Implement Deterministic Execution Engine, state machine transitions, step-run persistence, and Celery dispatch.
-
----
-
-### Milestone 1: Foundation
-- **Date**: 2026-10-29
-- **Status**: Completed
-- **Features Implemented**:
-  - FastAPI backend configured with CORS, structured logging, lifespan handlers, and Pydantic v2 settings.
-  - PostgreSQL 16 database connection pool with SQLAlchemy 2.x and transactional session dependency.
-  - Alembic database migration system configured; initial migration created and applied (`system_audits` table).
-  - Celery background worker configured with Redis broker and result backend; ping/heartbeat task implemented.
-  - Liveness (`/api/v1/health`) and Readiness (`/api/v1/ready`) endpoints verifying PostgreSQL and Redis connections.
-  - React/Vite frontend configured with dark/neutral developer-tool theme, API client layer, and real-time infrastructure readiness view.
-  - Docker Compose file and Dockerfiles for backend and frontend.
-  - GitHub Actions CI pipeline configuration (`.github/workflows/ci.yml`).
-- **Tests & Verification**:
-  - `pytest backend/tests`: 5 passed in 0.19s (testing liveness, readiness, db session rollback, and Celery task apply).
-  - `ruff check backend && ruff format --check backend`: 0 lint errors, 17 files cleanly formatted.
-  - `npm --prefix frontend test`: 3 passed in 1.15s (testing layout, API health rendering, and error handling).
-  - `npm --prefix frontend run build`: Successful production Vite build in 931ms.
-  - Live HTTP verification via curl: `/api/v1/health` returned `200 OK`, `/api/v1/ready` returned `200 OK` with DB and Redis healthy.
-  - Celery worker verified: booted and ready with task `app.workers.tasks.ping`.
-- **Next Action**:
-  - Milestone 2: Implement Workflow JSON schemas, Node registry, DAG validation (cycle detection, orphan detection), and versioning/publishing endpoints.
-
----
-
-### Milestone 0: Discovery & Implementation Plan
-- **Date**: 2026-10-29
-- **Status**: Completed
-- **Findings**:
-  - Empty workspace at `/home/vakildesk/Documents/flowforge`.
-  - Python 3.12.3 and Node.js v24.15.0 / npm 11.12.1 confirmed available.
-  - Redis 7 server running on localhost:6379 responding `PONG`.
-  - PostgreSQL 16 server running on localhost:5432; `initdb` available at `/usr/lib/postgresql/16/bin/initdb`.
-  - Docker binary not in user `$PATH`; local setup instructions and portable Docker Compose file will both be provided.
-- **Actions Taken**:
-  - Initialized Git repository on branch `main`.
-  - Configured comprehensive `.gitignore`.
-  - Created `AGENTS.md`, `PROJECT_SPEC.md`, `PROJECT_CONTEXT.md`, `TASK_LOG.md`.
-  - Created `docs/architecture.md`.
-  - Authored initial Architecture Decision Records (ADRs 0001–0005).
-- **Next Action**:
-  - Await user approval on Milestone 0 discovery report and plan before proceeding to Milestone 1 (Foundation).
+  - `pytest backend/tests`: **53 passed** in 31.4s.
+  - `cd frontend && npm test`: **2 passed** in 2.48s.
+  - `cd frontend && npm run build`: **Successful production Vite build** in 33.8s.
+  - `ruff check backend`: 0 lint errors.

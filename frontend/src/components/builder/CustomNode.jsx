@@ -24,26 +24,27 @@ const NODE_ICONS = {
   output: CheckCircle2,
 };
 
-const NODE_COLORS = {
-  trigger: { bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
-  input_data: { bg: "#f8fafc", text: "#475569", border: "#cbd5e1" },
-  ai_classify: { bg: "#eef2ff", text: "#4338ca", border: "#c7d2fe" },
-  structured_extract: { bg: "#f5f3ff", text: "#6d28d9", border: "#ddd6fe" },
-  retrieval: { bg: "#ecfeff", text: "#0e7490", border: "#a5f3fc" },
-  condition: { bg: "#fffbeb", text: "#b45309", border: "#fde68a" },
-  transform: { bg: "#f1f5f9", text: "#334155", border: "#cbd5e1" },
-  human_approval: { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa" },
-  output: { bg: "#ecfdf5", text: "#047857", border: "#a7f3d0" },
+const NODE_TAGS = {
+  trigger: "Trigger",
+  input_data: "Input",
+  ai_classify: "AI Classify",
+  structured_extract: "AI Extract",
+  retrieval: "Knowledge",
+  condition: "Logic",
+  transform: "Transform",
+  human_approval: "Review Gate",
+  output: "Result",
 };
 
 /**
- * Custom React Flow Node rendering strong visual hierarchy,
- * icon, title, description, and source/target handles.
+ * Render-inspired dark custom node card:
+ * Neutral dark surface `#161616`, thin border `#262626`,
+ * restrained violet selection ring `#8b5cf6`, compact typography.
  */
 export default function CustomNode({ data, selected }) {
   const nodeType = data.type || "transform";
-  const colors = NODE_COLORS[nodeType] || NODE_COLORS.transform;
   const Icon = NODE_ICONS[nodeType] || Shuffle;
+  const tag = NODE_TAGS[nodeType] || "Node";
 
   const isStart = nodeType === "trigger" || nodeType === "input_data";
   const isTerminal = nodeType === "output";
@@ -52,103 +53,152 @@ export default function CustomNode({ data, selected }) {
   return (
     <div
       style={{
-        background: "#ffffff",
-        border: selected ? "2px solid var(--accent-ai)" : "1px solid var(--border-light)",
-        borderRadius: "8px",
-        boxShadow: selected ? "0 0 0 3px rgba(99, 102, 241, 0.2)" : "var(--shadow-sm)",
-        minWidth: "220px",
-        maxWidth: "260px",
-        padding: "12px 14px",
+        background: "#161616",
+        border: selected ? "1px solid #8b5cf6" : "1px solid #2a2a2a",
+        borderRadius: "6px",
+        boxShadow: selected
+          ? "0 0 0 2px rgba(139, 92, 246, 0.35), 0 4px 12px rgba(0, 0, 0, 0.5)"
+          : "0 2px 6px rgba(0, 0, 0, 0.4)",
+        minWidth: "210px",
+        maxWidth: "250px",
         fontFamily: "var(--font-sans)",
-        transition: "border-color 0.15s, box-shadow 0.15s",
+        transition: "border-color 0.1s ease, box-shadow 0.1s ease",
       }}
     >
-      {/* Target Handle (input from upstream) */}
+      {/* Incoming Connection Handle */}
       {!isStart && (
         <Handle
           type="target"
           position={Position.Top}
           style={{
-            background: "#64748b",
+            background: "#111111",
+            border: "2px solid #8b5cf6",
             width: "8px",
             height: "8px",
-            border: "2px solid #ffffff",
+            top: "-5px",
           }}
         />
       )}
 
       {/* Node Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-        <div
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "7px 10px",
+          background: "#1b1b1b",
+          borderBottom: "1px solid #242424",
+          borderTopLeftRadius: "5px",
+          borderTopRightRadius: "5px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Icon size={13} color="#a78bfa" />
+          <span style={{ fontSize: "11px", fontWeight: 600, color: "#f5f5f5" }}>
+            {data.label || data.name || "Node"}
+          </span>
+        </div>
+        <span
           style={{
-            width: "24px",
-            height: "24px",
-            borderRadius: "5px",
-            background: colors.bg,
-            border: `1px solid ${colors.border}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: colors.text,
-            flexShrink: 0,
+            fontSize: "9px",
+            fontWeight: 600,
+            padding: "1px 5px",
+            borderRadius: "3px",
+            background: "#222222",
+            color: "#a3a3a3",
+            textTransform: "uppercase",
+            letterSpacing: "0.03em",
           }}
         >
-          <Icon size={13} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: "11px", textTransform: "uppercase", fontWeight: 600, color: colors.text, letterSpacing: "0.02em" }}>
-            {data.typeName || nodeType.replace("_", " ")}
-          </div>
-          <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {data.name || "Untitled Node"}
-          </div>
-        </div>
+          {tag}
+        </span>
       </div>
 
-      {/* Node Description Preview */}
-      {data.description && (
-        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.3" }}>
-          {data.description}
-        </div>
-      )}
+      {/* Node Body Details */}
+      <div style={{ padding: "8px 10px" }}>
+        {data.description ? (
+          <div style={{ fontSize: "11px", color: "#888888", lineHeight: 1.3, marginBottom: "4px" }}>
+            {data.description}
+          </div>
+        ) : null}
 
-      {/* Source Handle(s) (output to downstream) */}
-      {!isTerminal && !isCondition && (
+        {/* Dynamic configuration preview pill */}
+        {nodeType === "ai_classify" && data.config?.categories && (
+          <div style={{ fontSize: "10px", color: "#a78bfa", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
+            [{data.config.categories.slice(0, 3).join(", ")}]
+          </div>
+        )}
+        {nodeType === "retrieval" && (
+          <div style={{ fontSize: "10px", color: "#67e8f9", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
+            Top K: {data.config?.top_k || 3}
+          </div>
+        )}
+        {nodeType === "condition" && (
+          <div style={{ fontSize: "10px", color: "#fbbf24", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
+            Rule: {data.config?.operator || "equals"}
+          </div>
+        )}
+      </div>
+
+      {/* Outgoing Connection Handles */}
+      {isCondition ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "0 14px 4px 14px",
+            fontSize: "9px",
+            fontWeight: 600,
+            color: "#737373",
+          }}
+        >
+          <div style={{ position: "relative" }}>
+            <span>TRUE</span>
+            <Handle
+              type="source"
+              position={Position.Bottom}
+              id="true"
+              style={{
+                left: "50%",
+                background: "#10b981",
+                border: "2px solid #064e3b",
+                width: "8px",
+                height: "8px",
+                bottom: "-5px",
+              }}
+            />
+          </div>
+          <div style={{ position: "relative" }}>
+            <span>FALSE</span>
+            <Handle
+              type="source"
+              position={Position.Bottom}
+              id="false"
+              style={{
+                left: "50%",
+                background: "#ef4444",
+                border: "2px solid #7f1d1d",
+                width: "8px",
+                height: "8px",
+                bottom: "-5px",
+              }}
+            />
+          </div>
+        </div>
+      ) : !isTerminal ? (
         <Handle
           type="source"
           position={Position.Bottom}
           style={{
-            background: "var(--accent-ai)",
+            background: "#111111",
+            border: "2px solid #8b5cf6",
             width: "8px",
             height: "8px",
-            border: "2px solid #ffffff",
+            bottom: "-5px",
           }}
         />
-      )}
-
-      {/* Condition handles for multiple branches */}
-      {isCondition && (
-        <div style={{ display: "flex", justifyContent: "space-around", marginTop: "10px", paddingTop: "6px", borderTop: "1px dashed var(--border-light)" }}>
-          <div style={{ position: "relative", fontSize: "10px", color: "#b45309", fontWeight: 600 }}>
-            <span>branch</span>
-            <Handle
-              type="source"
-              id="branch"
-              position={Position.Bottom}
-              style={{ background: "#f59e0b", width: "7px", height: "7px", border: "1px solid #ffffff" }}
-            />
-          </div>
-          <div style={{ position: "relative", fontSize: "10px", color: "#64748b", fontWeight: 600 }}>
-            <span>default</span>
-            <Handle
-              type="source"
-              id="default"
-              position={Position.Bottom}
-              style={{ background: "#64748b", width: "7px", height: "7px", border: "1px solid #ffffff" }}
-            />
-          </div>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }

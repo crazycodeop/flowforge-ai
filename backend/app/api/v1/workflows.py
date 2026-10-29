@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
+from app.api.deps import TenantContext, get_optional_tenant_context
 from app.core.database import get_db
 from app.models.workflow import Workflow, WorkflowVersion, compute_definition_checksum
 from app.nodes.registry import get_available_node_types
@@ -33,8 +34,12 @@ def list_available_nodes() -> list[dict[str, Any]]:
 
 
 @router.post("/", response_model=WorkflowResponse, status_code=status.HTTP_201_CREATED)
-def create_workflow(payload: WorkflowCreate, db: Session = Depends(get_db)) -> WorkflowResponse:
-    """Creates a new workflow with an initial draft definition."""
+def create_workflow(
+    payload: WorkflowCreate,
+    db: Session = Depends(get_db),
+    tenant: TenantContext | None = Depends(get_optional_tenant_context),
+) -> WorkflowResponse:
+    """Creates a new workflow with an initial draft definition scoped to tenant."""
     default_def = (
         payload.definition.model_dump()
         if payload.definition
@@ -49,6 +54,7 @@ def create_workflow(payload: WorkflowCreate, db: Session = Depends(get_db)) -> W
     )
 
     workflow = Workflow(
+        organization_id=tenant.org.id if tenant else None,
         name=payload.name,
         description=payload.description,
         draft_definition=default_def,
@@ -74,15 +80,22 @@ def list_workflows(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: Session = Depends(get_db),
+    tenant: TenantContext | None = Depends(get_optional_tenant_context),
 ) -> list[WorkflowResponse]:
-    """Lists workflows with their latest published version number."""
+    """Lists workflows scoped to tenant or global templates."""
     stmt = (
         select(
             Workflow,
             func.max(WorkflowVersion.version_number).label("latest_version"),
         )
         .outerjoin(WorkflowVersion, Workflow.id == WorkflowVersion.workflow_id)
-        .group_by(Workflow.id)
+    )
+    if tenant:
+        stmt = stmt.where(
+            (Workflow.organization_id == tenant.org.id) | (Workflow.organization_id.is_(None))
+        )
+    stmt = (
+        stmt.group_by(Workflow.id)
         .order_by(desc(Workflow.updated_at))
         .offset(skip)
         .limit(limit)
@@ -127,11 +140,20 @@ def seed_flagship(db: Session = Depends(get_db)) -> WorkflowResponse:
 
 
 @router.get("/{workflow_id}", response_model=WorkflowResponse)
-def get_workflow(workflow_id: str, db: Session = Depends(get_db)) -> WorkflowResponse:
-    """Retrieves workflow details and draft definition."""
+def get_workflow(
+    workflow_id: str,
+    db: Session = Depends(get_db),
+    tenant: TenantContext | None = Depends(get_optional_tenant_context),
+) -> WorkflowResponse:
+    """Retrieves workflow details and draft definition with tenant isolation."""
     workflow = db.get(Workflow, workflow_id)
     if not workflow:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workflow not found")
+    if tenant and workflow.organization_id and workflow.organization_id != tenant.org.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Workflow belongs to another organization.",
+        )
 
     latest_version = db.scalar(
         select(func.max(WorkflowVersion.version_number)).where(

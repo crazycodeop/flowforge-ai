@@ -21,6 +21,9 @@ class ApprovalRequest(Base):
     __tablename__ = "approval_requests"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    organization_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     workflow_run_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("workflow_runs.id", ondelete="CASCADE"), nullable=False, index=True
     )

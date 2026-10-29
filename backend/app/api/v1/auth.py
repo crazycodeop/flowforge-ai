@@ -61,6 +61,11 @@ def register_user(payload: UserRegisterRequest, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    from app.api.deps import get_or_create_default_org
+
+    get_or_create_default_org(user, db)
+
     return user
 
 
