@@ -4,14 +4,38 @@
 - [x] **Milestone 0: Repository Discovery, Environment Audit, Context Setup & Implementation Plan**
 - [x] **Milestone 1: Foundation (Backend Skeleton, Frontend Skeleton, DB, Alembic, Redis, Celery, Tests & CI)**
 - [x] **Milestone 2: Workflow Schemas, Registry & Graph Validation**
+- [x] **UI/UX Transformation: Modern Developer-Tool Design System & Visual Workflow Builder**
 - [ ] **Milestone 3: Deterministic Execution Engine & State Machine**
 - [ ] **Milestone 4: Reliability, Recovery, Retries & Idempotency**
 - [ ] **Milestone 5: AI Runtime, Provider Abstraction & Structured Validation**
 - [ ] **Milestone 6: Knowledge Retrieval & Flagship Support Workflow**
 - [ ] **Milestone 7: Human Approval, Authentication & Application Security**
-- [ ] **Milestone 8: React Frontend Visual Workflow Builder**
+- [ ] **Milestone 8: Visual Workflow Builder Frontend Polish (Connected to Runtime)**
 - [ ] **Milestone 9: Execution Inspector, Audit Timeline & Evaluation Benchmark**
 - [ ] **Milestone 10: Release Polish, Verification & Final Presentation**
+
+---
+
+### UI/UX Transformation: Modern Developer-Tool Design System & Visual Workflow Builder
+- **Date**: 2026-10-29
+- **Status**: Completed
+- **Features Implemented**:
+  - Linear/Vercel-inspired design tokens in `frontend/src/index.css`: dark charcoal navigation surfaces (`#0b0f19`), warm off-white canvas workspace (`#f8fafc`), electric indigo AI accent (`#6366f1`), emerald success states (`#10b981`), refined elevation shadows and typography (Inter & JetBrains Mono).
+  - Production application shell in `frontend/src/components/Shell.jsx`: custom geometric FlowForge mark, workspace switcher, Lucide icon navigation, active indicator dot, and topbar breadcrumbs.
+  - Operational Overview Dashboard in `frontend/src/pages/Overview.jsx`: live workflow metrics, real PostgreSQL/Redis/Celery connectivity statuses, recent workflow list, and onboarding prompt.
+  - Workflow Library in `frontend/src/pages/Workflows.jsx`: full search, status filtering ("All", "Published", "Draft"), modal for creating drafts, deletion with confirmation, and direct links to editor.
+  - Visual Workflow Builder in `frontend/src/pages/Builder.jsx`:
+    - Full-height React Flow (`@xyflow/react`) node-based canvas with subtle dot grid.
+    - Custom node component (`CustomNode.jsx`) with distinct badges, handles, and icons.
+    - Node palette (`NodePalette.jsx`) organized into categories (Input, AI & Intelligence, Logic & Routing, Gates & Results).
+    - Right configuration inspector (`NodeInspector.jsx`) editing title, prompt templates, categories, timeout, and retry policies.
+    - Authoritative backend validation drawer reporting graph errors and warnings.
+    - Save draft and immutable version publishing integration.
+  - Honest status and queue pages: `Executions.jsx`, `Approvals.jsx`, `Evaluations.jsx`, and `SystemStatus.jsx`.
+- **Tests & Verification**:
+  - `npm --prefix frontend test`: 2 passed in 1.78s (testing shell layout, navigation, and overview metrics).
+  - `npm --prefix frontend run build`: Successful production build in 2.68s.
+  - `pytest backend/tests`: 17 passed in 0.31s.
 
 ---
 
