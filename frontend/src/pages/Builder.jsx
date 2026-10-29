@@ -43,6 +43,14 @@ export default function Builder() {
   const [validationResult, setValidationResult] = useState(null);
   const [isValidationOpen, setIsValidationOpen] = useState(false);
 
+  // Run execution modal state
+  const [isRunModalOpen, setIsRunModalOpen] = useState(false);
+  const [runInputJson, setRunInputJson] = useState(
+    '{\n  "ticket_text": "I was charged $89 twice on my card. Please refund my statement."\n}'
+  );
+  const [running, setRunning] = useState(false);
+  const [recentRunId, setRecentRunId] = useState(null);
+
   // Load workflow from backend
   const loadWorkflow = useCallback(async () => {
     try {
@@ -244,6 +252,33 @@ export default function Builder() {
     }
   };
 
+  // Trigger live run
+  const handleTriggerRun = async () => {
+    try {
+      setRunning(true);
+      setStatusMessage(null);
+      let payload = {};
+      try {
+        payload = JSON.parse(runInputJson);
+      } catch (err) {
+        alert("Input payload must be valid JSON: " + err.message);
+        setRunning(false);
+        return;
+      }
+      const run = await api.triggerRun(id, { input_payload: payload });
+      setRecentRunId(run.id);
+      setIsRunModalOpen(false);
+      setStatusMessage({
+        type: "success",
+        text: `Run started: ${run.id.slice(0, 8)}... (Status: ${run.status})`,
+      });
+    } catch (err) {
+      setStatusMessage({ type: "error", text: `Run failed to trigger: ${err.message}` });
+    } finally {
+      setRunning(false);
+    }
+  };
+
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
 
   if (loading) {
@@ -302,9 +337,17 @@ export default function Builder() {
             <Save size={14} />
             <span>{saving ? "Saving..." : "Save Draft"}</span>
           </button>
-          <button onClick={handlePublish} disabled={publishing} className="btn btn-primary btn-sm">
+          <button onClick={handlePublish} disabled={publishing} className="btn btn-secondary btn-sm">
             <UploadCloud size={14} />
             <span>{publishing ? "Publishing..." : "Publish"}</span>
+          </button>
+          <button
+            onClick={() => setIsRunModalOpen(true)}
+            className="btn btn-primary btn-sm"
+            style={{ background: "#10b981", borderColor: "#10b981", color: "#fff" }}
+          >
+            <Play size={14} />
+            <span>Run</span>
           </button>
         </div>
       </div>
@@ -394,6 +437,74 @@ export default function Builder() {
               • [WARNING] {warn}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Run Modal */}
+      {isRunModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100,
+          }}
+        >
+          <div
+            className="card"
+            style={{ width: "480px", maxWidth: "90vw", padding: "24px", background: "var(--surface-card)" }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: 700 }}>Trigger Workflow Run</h3>
+              <button onClick={() => setIsRunModalOpen(false)} className="btn btn-ghost btn-sm" style={{ padding: "4px" }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "12px" }}>
+              Provide the JSON input payload to pass to the trigger node.
+            </p>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ fontSize: "12px", fontWeight: 600, display: "block", marginBottom: "6px" }}>
+                Input Payload (JSON)
+              </label>
+              <textarea
+                value={runInputJson}
+                onChange={(e) => setRunInputJson(e.target.value)}
+                rows={6}
+                className="input"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "12px",
+                  width: "100%",
+                  resize: "vertical",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <button onClick={() => setIsRunModalOpen(false)} className="btn btn-secondary btn-sm">
+                Cancel
+              </button>
+              <button
+                onClick={handleTriggerRun}
+                disabled={running}
+                className="btn btn-primary btn-sm"
+                style={{ background: "#10b981", borderColor: "#10b981", color: "#fff" }}
+              >
+                <Play size={14} />
+                <span>{running ? "Starting Run..." : "Execute Run"}</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

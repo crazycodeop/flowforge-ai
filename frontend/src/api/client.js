@@ -107,4 +107,97 @@ export const api = {
   async getWorkflowVersion(workflowId, versionNumber) {
     return request(`/workflows/${workflowId}/versions/${versionNumber}`);
   },
+
+  // --- Executions ---
+  async triggerRun(workflowId, payload = {}) {
+    return request(`/workflows/${workflowId}/runs`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async listRuns(workflowId = null) {
+    if (workflowId) {
+      return request(`/workflows/${workflowId}/runs`);
+    }
+    return request("/runs");
+  },
+
+  async getRun(runId) {
+    return request(`/runs/${runId}`);
+  },
+
+  async getRunSteps(runId) {
+    return request(`/runs/${runId}/steps`);
+  },
+
+  async getRunEvents(runId) {
+    return request(`/runs/${runId}/events`);
+  },
+
+  async cancelRun(runId) {
+    return request(`/runs/${runId}/cancel`, {
+      method: "POST",
+    });
+  },
+
+  // --- Human Approvals ---
+  async listPendingApprovals() {
+    return request("/approvals/pending");
+  },
+
+  async getApproval(approvalId) {
+    return request(`/approvals/${approvalId}`);
+  },
+
+  async decideApproval(approvalId, decision, comment = null) {
+    return request(`/approvals/${approvalId}/decision`, {
+      method: "POST",
+      body: JSON.stringify({ decision, comment }),
+    });
+  },
+
+  // --- Evaluations ---
+  async listEvaluationDatasets() {
+    return request("/evaluations/datasets");
+  },
+
+  async createEvaluationDataset(payload) {
+    return request("/evaluations/datasets", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async seedEvaluationBenchmark() {
+    return request("/evaluations/seed", {
+      method: "POST",
+    });
+  },
+
+  async listEvaluationRuns() {
+    return request("/evaluations/runs");
+  },
+
+  async triggerEvaluationRun(payload) {
+    return request("/evaluations/runs", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getEvaluationRun(runId) {
+    return request(`/evaluations/runs/${runId}`);
+  },
+
+  // --- Knowledge Collections ---
+  async listKnowledgeCollections() {
+    return request("/knowledge/collections");
+  },
+
+  async seedKnowledge() {
+    return request("/knowledge/seed", {
+      method: "POST",
+    });
+  },
 };

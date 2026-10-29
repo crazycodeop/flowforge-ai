@@ -154,16 +154,44 @@ def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
                 run_id=run.id,
                 node_id=node_id,
                 node_type=node["type"],
+                step_id=step.id,
                 node_config=node.get("config", {}),
                 run_input=run.input_payload or {},
                 upstream_outputs=upstream_outputs,
                 workflow_version=version.version_number,
+                db=db,
             )
 
             try:
                 executor = get_node_executor(node["type"])
                 output = executor.execute(ctx)
                 now_completed = datetime.now(UTC)
+
+                # Check if this node paused execution for human approval
+                if isinstance(output, dict) and output.get("requires_approval"):
+                    validate_step_transition(StepStatus.RUNNING, StepStatus.PAUSED)
+                    step.status = StepStatus.PAUSED.value
+                    step.output_data = output
+                    step.worker_lease_id = None
+                    step.lease_expires_at = None
+
+                    validate_run_transition(RunStatus.RUNNING, RunStatus.PAUSED)
+                    run.status = RunStatus.PAUSED.value
+
+                    emit_event(
+                        db,
+                        run.id,
+                        "APPROVAL_REQUESTED",
+                        step_run_id=step.id,
+                        payload={
+                            "node_id": node_id,
+                            "approval_id": output.get("approval_id"),
+                            "title": node.get("config", {}).get("title"),
+                        },
+                    )
+                    emit_event(db, run.id, "RUN_PAUSED", payload={"node_id": node_id})
+                    db.commit()
+                    return run
 
                 validate_step_transition(StepStatus.RUNNING, StepStatus.SUCCEEDED)
                 step.status = StepStatus.SUCCEEDED.value
@@ -332,8 +360,14 @@ def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
         run.status = RunStatus.SUCCEEDED.value
         run.completed_at = datetime.now(UTC)
 
-        if output_node_id and output_node_id in step_runs:
+        if output_node_id and output_node_id in step_runs and step_runs[output_node_id].output_data:
             run.output_payload = step_runs[output_node_id].output_data
+        else:
+            run.output_payload = {
+                s.node_id: s.output_data
+                for s in step_runs.values()
+                if s.status == StepStatus.SUCCEEDED.value and s.output_data
+            }
 
         emit_event(db, run.id, "RUN_COMPLETED", payload={"output_node_id": output_node_id})
         db.commit()

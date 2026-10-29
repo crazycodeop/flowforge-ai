@@ -68,8 +68,8 @@ def find_ready_nodes(definition: dict[str, Any], step_runs: dict[str, Any]) -> l
                 if parent_node.get("type") == "condition":
                     selected_branch = (parent_step.output_data or {}).get("selected_branch")
                     required_handle = edge.get("source_handle")
-                    # If this edge handle matches the branch selected by the condition node
-                    if required_handle == selected_branch:
+                    # If this edge handle matches the branch selected by the condition node, or is unconstrained
+                    if not required_handle or required_handle == selected_branch:
                         has_active_parent = True
                 else:
                     has_active_parent = True
@@ -95,7 +95,8 @@ def identify_skipped_nodes(
     skipped_target_ids: set[str] = set()
     for edge in outgoing:
         handle = edge.get("source_handle")
-        if handle != selected_branch:
+        # Only branch-specific handles that differ from the selected branch are skipped
+        if handle and handle != selected_branch:
             skipped_target_ids.add(edge["target_node_id"])
 
     # Traverse downstream to cascade skips if all paths to a node are skipped
@@ -118,7 +119,8 @@ def identify_skipped_nodes(
         for e in in_edges:
             src_id = e["source_node_id"]
             if src_id == condition_node_id:
-                if e.get("source_handle") == selected_branch:
+                handle = e.get("source_handle")
+                if not handle or handle == selected_branch:
                     all_incoming_inactive = False
                     break
                 else:

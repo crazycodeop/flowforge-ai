@@ -145,6 +145,21 @@ def trigger_workflow_run(
     return WorkflowRunResponse.model_validate(run)
 
 
+@router.get("/runs", response_model=list[WorkflowRunResponse])
+def list_all_runs(
+    status: str | None = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+) -> list[WorkflowRunResponse]:
+    """Lists recent workflow executions across the workspace."""
+    stmt = select(WorkflowRun).order_by(desc(WorkflowRun.created_at)).offset(skip).limit(limit)
+    if status:
+        stmt = stmt.where(WorkflowRun.status == status.upper())
+    runs = db.scalars(stmt).all()
+    return [WorkflowRunResponse.model_validate(r) for r in runs]
+
+
 @router.get("/workflows/{workflow_id}/runs", response_model=list[WorkflowRunResponse])
 def list_workflow_runs(
     workflow_id: str,

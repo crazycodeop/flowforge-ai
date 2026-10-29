@@ -12,10 +12,12 @@ class ExecutionContext(BaseModel):
     run_id: str
     node_id: str
     node_type: str
+    step_id: str | None = None
     node_config: dict[str, Any] = Field(default_factory=dict)
     run_input: dict[str, Any] = Field(default_factory=dict)
     upstream_outputs: dict[str, Any] = Field(default_factory=dict)
     workflow_version: int
+    db: Any | None = None
 
     def resolve_path(self, path: str) -> Any:
         """Resolves a dot-delimited path across run_input and upstream_outputs.

@@ -8,11 +8,112 @@
 - [x] **Milestone 3: Deterministic Execution Engine & State Machine**
 - [x] **Milestone 4: Reliability, Recovery, Retries & Idempotency**
 - [x] **Milestone 5: AI Runtime, Provider Abstraction & Structured Validation**
-- [ ] **Milestone 6: Knowledge Retrieval & Flagship Support Workflow**
-- [ ] **Milestone 7: Human Approval, Authentication & Application Security**
-- [ ] **Milestone 8: Visual Workflow Builder Frontend Polish (Connected to Runtime)**
-- [ ] **Milestone 9: Execution Inspector, Audit Timeline & Evaluation Benchmark**
-- [ ] **Milestone 10: Release Polish, Verification & Final Presentation**
+- [x] **Milestone 6: Knowledge Retrieval & Flagship Support Workflow**
+- [x] **Milestone 7: Human Approval, Authentication & Application Security**
+- [x] **Milestone 8: Visual Workflow Builder Frontend Polish (Connected to Runtime)**
+- [x] **Milestone 9: Execution Inspector, Audit Timeline & Evaluation Benchmark**
+- [x] **Milestone 10: Release Polish, Verification & Final Presentation**
+
+---
+
+### Milestone 10: Release Polish, Verification & Final Presentation
+- **Date**: 2026-10-29
+- **Status**: Completed
+- **Features Implemented**:
+  - Comprehensive End-to-End System Test suite in `backend/tests/test_full_system_e2e.py`:
+    - Full user authentication lifecycle (registration, PBKDF2 hashing, JWT access token issue, protected route enforcement).
+    - Knowledge base seeding and verified semantic search with relevance scoring.
+    - Flagship support triage workflow automated execution (AI classification, knowledge citation retrieval, structured ticket extraction, priority routing, response synthesis).
+    - Human-in-the-loop review workflow (execution pause at approval gate, review inbox inspection, reviewer authorization decision, run resumption, and successful completion).
+    - Full AI evaluation benchmarking run against golden dataset (accuracy scoring, token tracking, latency logging).
+    - Execution event audit trail verification.
+  - One-click Flagship Workflow seeding endpoint `POST /api/v1/workflows/seed-flagship`.
+  - Created portfolio-grade `README.md` with:
+    - Architecture Mermaid diagram
+    - Quickstart instructions for local setup and Docker Compose
+    - Flagship workflow walkthrough and cURL commands
+    - Comprehensive REST API catalog
+    - Test verification commands and metrics
+  - Updated `docs/architecture.md` detailing subsystems, security boundaries, and data models.
+- **Tests & Verification**:
+  - `pytest backend/tests`: **52 passed** in 3.44s.
+  - `ruff check backend && ruff format --check backend`: 0 lint errors, 70 files formatted.
+  - `npm --prefix frontend test`: 2 passed in 2.25s.
+  - `npm --prefix frontend run build`: Successful production Vite build in 2.88s.
+
+---
+
+### Milestone 8 & 9: Frontend Runtime Integration, Execution Inspector, Approvals & Evaluations
+- **Date**: 2026-10-29
+- **Status**: Completed
+- **Features Implemented**:
+  - AI Evaluation Benchmark Subsystem:
+    - Models `EvaluationDataset` and `EvaluationRun` in `app/models/evaluation.py`.
+    - Alembic migration `17364d7162b2` (`create_evaluations_tables`).
+    - Evaluation engine `run_evaluation_benchmark` in `app/evaluations/runner.py` calculating accuracy scores, average latency, total token cost, and individual test assertions.
+    - REST endpoints in `app/api/v1/evaluations.py` (`GET /datasets`, `POST /seed`, `POST /runs`, `GET /runs/{id}`).
+  - Workflow Execution Trigger & Payload Modal:
+    - Added "Run" action in `frontend/src/pages/Builder.jsx` opening an interactive JSON input payload modal.
+    - Submits execution to `POST /api/v1/workflows/{id}/runs` and routes to live execution drawer.
+  - Execution Inspector Drawer in `frontend/src/pages/Executions.jsx`:
+    - Added `GET /api/v1/runs` endpoint in backend to list all historical executions across workflows.
+    - Real-time execution status filters (All, Running, Paused, Succeeded, Failed).
+    - Interactive slide-over drawer displaying step-by-step progress cards, node types, token counts, and latency.
+    - Chronological audit event log viewer rendering state transitions (`RUN_STARTED`, `STEP_STARTED`, `STEP_SUCCEEDED`, etc.).
+  - Human Approvals Inbox in `frontend/src/pages/Approvals.jsx`:
+    - Live pending approvals list connected to `GET /api/v1/approvals/pending`.
+    - Review modal displaying workflow run context, requested parameters, and reviewer comment input.
+    - Direct Approve / Reject decision actions executing `POST /api/v1/approvals/{id}/decision` and refreshing the queue.
+  - AI Benchmark Dashboard in `frontend/src/pages/Evaluations.jsx`:
+    - Golden evaluation dataset selector and one-click "Seed Benchmark Dataset" button.
+    - "Run Benchmark" action triggering evaluation execution across versioned workflows.
+    - Historical runs table displaying accuracy percentages, average latency, and test case pass/fail badges.
+- **Tests & Verification**:
+  - `pytest backend/tests`: 51 passed in 3.24s (including `test_evaluations.py`).
+  - `npm --prefix frontend test`: 2 passed.
+  - `npm --prefix frontend run build`: Successful production Vite build.
+
+---
+
+### Milestone 7: Human Approval, Authentication & Application Security
+- **Date**: 2026-10-29
+- **Status**: Completed
+- **Features Implemented**:
+  - User Authentication & Role-Based Access Control (RBAC):
+    - `User` model in `app/models/user.py` with unique email constraint, active flag, and role (`admin`, `reviewer`, `operator`).
+    - Password hashing using PBKDF2-SHA256 with cryptographic salt in `app/core/security.py`.
+    - PyJWT access token generation and signature verification with configurable TTL.
+    - Dependency injection utilities in `app/api/deps.py` (`get_current_user`, `require_role`).
+    - REST endpoints in `app/api/v1/auth.py` (`/register`, `/login`, `/me`).
+  - Human Approval Governance Subsystem:
+    - `ApprovalRequest` model in `app/models/approval.py` with states `PENDING`, `APPROVED`, `REJECTED`, `EXPIRED`.
+    - Alembic migration `197e975381c1` (`create_users_and_approvals`).
+    - `HumanApprovalExecutor` node pausing workflow execution, transitioning step and workflow run to `PAUSED`, and creating a persistent approval request.
+    - State machine updated to allow valid transition from `PAUSED` to `SUCCEEDED` upon reviewer approval.
+    - REST endpoints in `app/api/v1/approvals.py` (`GET /pending`, `GET /{id}`, `POST /{id}/decision`).
+    - Resumption logic in `decide_approval`: approving resumes execution via Celery/Engine, rejecting marks step/run as rejected/halted.
+- **Tests & Verification**:
+  - `backend/tests/test_auth_and_approval.py`: 4 passed (password hashing, registration/login flow, token protection, approval pause and resume).
+
+---
+
+### Milestone 6: Knowledge Retrieval & Flagship Support Workflow
+- **Date**: 2026-10-29
+- **Status**: Completed
+- **Features Implemented**:
+  - Knowledge Base Subsystem:
+    - Database models `KnowledgeCollection` and `KnowledgeDocument` in `app/models/knowledge.py`.
+    - Alembic migration `351cab5f4f20` (`create_knowledge_tables`).
+    - Semantic scoring algorithm in `app/retrieval/engine.py` calculating normalized term frequency overlap and exact phrase proximity.
+    - Knowledge search routine `search_knowledge_base` returning citations, passages, and relevance scores.
+    - REST endpoints in `app/api/v1/knowledge.py` (`/collections`, `/documents`, `/seed`, `/search`).
+  - Retrieval Node Executor:
+    - Implemented `RetrievalExecutor` in `app/nodes/executors.py` querying indexed collections, filtering by `score_threshold`, and attaching top-k passages and citations to execution context.
+  - Flagship Customer Support Triage Workflow:
+    - Seed routine in `app/workflows/flagship.py` creating policy collection (`flowforge-customer-support-policies`) with refund policies, SLAs, and security standards.
+    - Pre-configured multi-node DAG: `trigger` -> `ai_classify` -> `retrieval` -> `structured_extract` -> `condition` -> `output`.
+- **Tests & Verification**:
+  - `backend/tests/test_retrieval_and_flagship.py`: 4 passed (scoring algorithm, seeding & search, API endpoints, and end-to-end multi-node flagship execution).
 
 ---
 

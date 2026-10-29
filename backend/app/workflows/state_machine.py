@@ -72,7 +72,12 @@ VALID_STEP_TRANSITIONS: dict[StepStatus, set[StepStatus]] = {
         StepStatus.CANCELLED,
         StepStatus.FAILED,
     },
-    StepStatus.PAUSED: {StepStatus.RUNNING, StepStatus.CANCELLED, StepStatus.FAILED},
+    StepStatus.PAUSED: {
+        StepStatus.RUNNING,
+        StepStatus.SUCCEEDED,
+        StepStatus.CANCELLED,
+        StepStatus.FAILED,
+    },
     StepStatus.SUCCEEDED: set(),  # Terminal state
     StepStatus.FAILED: set(),  # Terminal state
     StepStatus.CANCELLED: set(),  # Terminal state

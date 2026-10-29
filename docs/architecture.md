@@ -1,63 +1,102 @@
-# Architecture Overview — FlowForge AI
+# Architecture Reference — FlowForge AI
 
-FlowForge AI is an enterprise-grade AI workflow orchestration engine built on Python (FastAPI, SQLAlchemy, Celery) and React (Vite, React Flow).
+FlowForge AI is an enterprise-grade AI workflow orchestration platform engineered with Python (FastAPI, SQLAlchemy 2.x, Celery) and React (Vite, React Flow).
 
-## 1. System Architecture
+---
+
+## 1. High-Level Architecture
 
 ```mermaid
 flowchart TD
-    User["User / Developer"] -->|HTTP / JSON| Frontend["React + React Flow UI"]
-    Frontend -->|REST API| API["FastAPI Backend Service"]
-    API -->|Validate & Persist| PG[("PostgreSQL Database\n(Source of Truth)")]
-    API -->|Enqueue Task| Redis[("Redis Broker & Coordination")]
-    Worker["Celery Worker Engine"] -->|Consume Job| Redis
-    Worker -->|Fetch Snapshot & Lock| PG
-    Worker -->|Execute Nodes| Engine["Workflow Execution Engine"]
-    Engine -->|Deterministic Logic| DetNodes["Code / Branch / Transform"]
-    Engine -->|AI Inference| AIProv["AI Provider Abstraction\n(Groq/OpenAI/Ollama/Mock)"]
-    Engine -->|Vector Search| DocStore["Knowledge Document Store"]
-    Engine -->|Pause on Review| ApprovalGate["Human Approval Gate"]
-    Engine -->|Record Transitions & Outputs| PG
+    subgraph Client ["Frontend Client (React 18 + Vite)"]
+        UI["React Flow Visual Canvas & Node Inspector"]
+        RunsUI["Execution Traces & Timeline Drawer"]
+        ApprUI["Human Approvals Inbox"]
+        EvalUI["AI Evaluation Dashboard"]
+    end
+
+    subgraph Gateway ["API Gateway (FastAPI 0.115+)"]
+        AuthMid["JWT Auth & Role Enforcement"]
+        WfRoutes["Workflow & DAG Endpoints"]
+        RunRoutes["Run Dispatch & Recovery"]
+        ApprRoutes["Approval Decision Endpoints"]
+        EvalRoutes["Benchmark & Dataset Endpoints"]
+    end
+
+    subgraph DataPlane ["Persistence Layer (PostgreSQL 16)"]
+        WfStore[("Workflows & Versions\n(SHA-256 Checksums)")]
+        RunStore[("Runs, Step Runs & Events\n(State Machine Enforced)")]
+        ApprStore[("Approval Requests")]
+        KbStore[("Knowledge Documents & Collections")]
+        EvalStore[("Evaluation Datasets & Runs")]
+    end
+
+    subgraph QueuePlane ["Distributed Broker (Redis 7)"]
+        TaskQueue["Celery Background Queue"]
+        LeaseLock["Distributed Worker Leases"]
+    end
+
+    subgraph WorkerPlane ["Execution Worker (Celery Engine)"]
+        WorkerEngine["Deterministic Workflow Executor"]
+        StateMachine["State Machine & DAG Scheduler"]
+        AIRuntime["AI Runtime (Mock / Groq / OpenAI)"]
+        RetEngine["Semantic Retrieval Engine"]
+        RetryEngine["Exponential Backoff & Lease Heartbeat"]
+    end
+
+    UI -->|HTTP / JSON| Gateway
+    RunsUI -->|HTTP / JSON| Gateway
+    ApprUI -->|HTTP / JSON| Gateway
+    EvalUI -->|HTTP / JSON| Gateway
+
+    Gateway --> AuthMid
+    AuthMid --> WfStore
+    AuthMid --> RunStore
+    RunRoutes --> TaskQueue
+
+    TaskQueue --> WorkerEngine
+    WorkerEngine --> StateMachine
+    StateMachine --> AIRuntime
+    StateMachine --> RetEngine
+    StateMachine --> RetryEngine
+    StateMachine --> RunStore
+    StateMachine --> ApprStore
 ```
+
+---
 
 ## 2. Core Subsystems
 
-### A. API Layer (FastAPI)
-- Exposes versioned REST endpoints (`/api/v1/...`).
-- Validates requests and inputs using Pydantic schemas.
-- Handles authentication and per-user authorization checks.
-- Returns immediate responses with identifiers for background work.
-- Does not contain heavy business logic; delegates to service and engine layers.
+### A. API & Security Layer (`app/api/`, `app/core/security.py`)
+- **FastAPI 0.115+**: Async request handling, Pydantic v2 serialization, and custom OpenAPI schema generation.
+- **Authentication**: PBKDF2-SHA256 password hashing with salt; PyJWT HMAC-SHA256 bearer tokens with configurable expiration.
+- **RBAC Enforcement**: Granular role-based security (`admin`, `reviewer`, `operator`) injected as FastAPI route dependencies (`app/api/deps.py`).
+- **Idempotency Guard**: Client-supplied `Idempotency-Key` headers evaluated with canonical hashing to prevent double-execution of non-idempotent operations.
 
-### B. Persistence Layer (PostgreSQL & SQLAlchemy 2.x)
-- Single authoritative source of truth for:
-  - Users and credentials
-  - Workflow definitions and immutable versions
-  - Workflow runs and step runs
-  - Step execution attempts and outputs
-  - Append-only execution audit events
-  - Human approval requests and decisions
-  - Knowledge collections and documents
-  - Evaluation datasets and benchmark results
-- Enforces relational constraints, unique idempotency keys, and explicit status enums.
-- Database migrations managed via Alembic.
+### B. Durable State Machine (`app/workflows/state_machine.py`)
+- **Explicit Transitions**: Validated state machine for `WorkflowRun` (`PENDING` -> `QUEUED` -> `RUNNING` -> `PAUSED` / `SUCCEEDED` / `FAILED` / `CANCELLED`) and `StepRun` (`PENDING` -> `QUEUED` -> `RUNNING` -> `RETRY_WAIT` -> `SUCCEEDED` / `FAILED` / `PAUSED` / `SKIPPED`).
+- **PostgreSQL as Single Source of Truth**: All state transitions, output payloads, and step attempts are written atomically to PostgreSQL before notifying worker threads or HTTP clients.
+- **Audit Event Log**: Append-only `execution_events` records state transition timestamps, worker lease IDs, latency in milliseconds, and token consumption for compliance and debugging.
 
-### C. Execution Engine (`app/workflows/`)
-- **State Machine**: Pure, deterministic state machine validating step states (`PENDING`, `QUEUED`, `RUNNING`, `RETRY_WAIT`, `SUCCEEDED`, `FAILED`, `PAUSED`, `CANCELLED`, `SKIPPED`) and workflow run states.
-- **Scheduler**: Identifies ready nodes in the directed acyclic graph based on completed upstream dependencies and conditional branch outcomes.
-- **Executor**: Executes registered node implementations, validates outputs against node contracts, records latency and token metrics, and persists output references.
-- **Recovery & Leases**: Tracks step execution leases to recover orphaned running steps without executing non-idempotent operations blindly.
+### C. Graph Scheduling & Validation (`app/workflows/`)
+- **Topological Traversal**: Uses Kahn's algorithm for acyclic dependency scheduling.
+- **Branch Routing & Skip Cascading**: Identifies unselected branches from `condition` nodes and cascades `SKIPPED` statuses down the unchosen DAG path without triggering execution.
+- **Tamper-Evident Versioning**: Workflow definitions receive deterministic SHA-256 checksums upon publication. Once published, workflow versions are immutable.
 
-### D. AI Provider Abstraction (`app/ai/`)
-- Unified interface for multi-provider LLM calls (`generate_structured`, `classify`, `extract`).
-- Strict Pydantic validation of model output.
-- Normalized error handling (categorizing rate limits, timeouts, and non-retryable errors).
-- Built-in token, latency, and estimated cost tracking.
-- Zero-dependency Mock Provider for local testing and CI without external API keys.
+### D. AI Runtime & Validation (`app/ai/`)
+- **Provider Abstraction**: Abstract `BaseAIProvider` implemented by `MockAIProvider` (deterministic heuristics and offline testing) and `OpenAICompatibleProvider` (OpenAI, Groq, Ollama).
+- **Structured Validation**: Cleans markdown delimiters (` ```json `), validates classification categories against allowed lists, and validates JSON payloads against strict `jsonschema` definitions.
+- **Cost & Latency Accounting**: Per-step and per-run tracking of prompt tokens, completion tokens, latency (ms), and calculated cost in USD.
 
-### E. Frontend (`frontend/`)
-- Plain JavaScript with React 18+ and Vite.
-- Visual workflow editor powered by React Flow with custom node designs.
-- Step-by-step execution inspector with chronological timeline, status badges, and output viewers.
-- Human approval inbox with detailed diffs and decision actions.
-- Evaluation dashboard with accuracy, F1, latency, and cost visualizations.
+### E. Semantic Knowledge Retrieval (`app/retrieval/`)
+- **Scoring Engine**: Term frequency overlap and exact phrase proximity scoring with configurable `score_threshold` and `top_k` clipping.
+- **Policy Storage**: Relational document storage linked to versioned collections with extensible metadata tags.
+
+### F. Human-in-the-Loop Governance (`app/models/approval.py`, `app/api/v1/approvals.py`)
+- **Execution Pausing**: When a `human_approval` node executes, the step and workflow run transition to `PAUSED`. Celery worker cleanly exits without blocking.
+- **Review Inbox**: Dedicated queue of `PENDING` approval requests with diff preview, requested amount, and role requirements.
+- **Resumption**: Reviewer decisions (`APPROVED` / `REJECTED`) update the approval record, emit audit events, and resume the Celery execution task.
+
+### G. AI Evaluation Benchmarking (`app/evaluations/`)
+- **Evaluation Runner**: Benchmarks workflow versions against standardized golden datasets.
+- **Metrics Computation**: Tracks accuracy score, passed/failed test cases, execution latency, and aggregated token cost per model revision.

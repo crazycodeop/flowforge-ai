@@ -16,6 +16,7 @@ from app.schemas.workflow import (
     WorkflowUpdate,
     WorkflowVersionResponse,
 )
+from app.workflows.flagship import create_or_update_flagship_workflow
 from app.workflows.validation import validate_workflow_graph
 
 router = APIRouter(prefix="/workflows", tags=["Workflows"])
@@ -103,6 +104,26 @@ def list_workflows(
             )
         )
     return items
+
+
+@router.post("/seed-flagship", response_model=WorkflowResponse, summary="Seed flagship workflow")
+def seed_flagship(db: Session = Depends(get_db)) -> WorkflowResponse:
+    """Seeds or updates the flagship customer support triage workflow with immutable version 1."""
+    workflow = create_or_update_flagship_workflow(db)
+    stmt = select(func.max(WorkflowVersion.version_number)).where(
+        WorkflowVersion.workflow_id == workflow.id
+    )
+    latest_version = db.scalar(stmt)
+    return WorkflowResponse(
+        id=workflow.id,
+        name=workflow.name,
+        description=workflow.description,
+        is_active=workflow.is_active,
+        draft_definition=workflow.draft_definition,
+        latest_version=latest_version,
+        created_at=workflow.created_at,
+        updated_at=workflow.updated_at,
+    )
 
 
 @router.get("/{workflow_id}", response_model=WorkflowResponse)
