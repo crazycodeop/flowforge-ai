@@ -6,12 +6,16 @@ import { api } from "./api/client";
 
 vi.mock("./api/client", () => ({
   api: {
+    getHealth: vi.fn(),
     getReadiness: vi.fn(),
+    listWorkflows: vi.fn(),
+    listNodeTypes: vi.fn(),
   },
 }));
 
-describe("App Foundation Component", () => {
-  it("renders header and navigation elements", async () => {
+describe("FlowForge AI Modern UI & Shell", () => {
+  it("renders dark navigation shell and navigation items", async () => {
+    api.listWorkflows.mockResolvedValueOnce([]);
     api.getReadiness.mockResolvedValueOnce({
       status: "ready",
       database: { healthy: true, details: "PostgreSQL connection active" },
@@ -22,16 +26,30 @@ describe("App Foundation Component", () => {
     render(<App />);
 
     expect(screen.getByText("FlowForge AI")).toBeInTheDocument();
-    expect(screen.getByText("v0.1.0")).toBeInTheDocument();
-    expect(screen.getByText("Platform Foundation & Diagnostics")).toBeInTheDocument();
-    expect(screen.getByText("Workflows")).toBeInTheDocument();
+    expect(screen.getByText("Orchestration Platform")).toBeInTheDocument();
+    expect(screen.getByText("Production Workspace")).toBeInTheDocument();
+    expect(screen.getAllByText("Overview")[0]).toBeInTheDocument();
+    expect(screen.getAllByText("Workflows")[0]).toBeInTheDocument();
+    expect(screen.getByText("Executions")).toBeInTheDocument();
+    expect(screen.getByText("Approvals")).toBeInTheDocument();
+    expect(screen.getByText("Evaluations")).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText("PostgreSQL connection active")).toBeInTheDocument();
+      expect(screen.getByText("FlowForge Operational Control")).toBeInTheDocument();
     });
   });
 
-  it("displays service health status from API", async () => {
+  it("renders live operational metrics on Overview", async () => {
+    api.listWorkflows.mockResolvedValueOnce([
+      {
+        id: "wf-1",
+        name: "Customer Support Triage",
+        description: "Support ticket routing",
+        draft_definition: { nodes: [{}, {}] },
+        latest_version: 1,
+        updated_at: new Date().toISOString(),
+      },
+    ]);
     api.getReadiness.mockResolvedValueOnce({
       status: "ready",
       database: { healthy: true, details: "PostgreSQL connection active" },
@@ -42,19 +60,8 @@ describe("App Foundation Component", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText("PostgreSQL connection active")).toBeInTheDocument();
-      expect(screen.getByText("Redis connection active")).toBeInTheDocument();
-      expect(screen.getByText("Celery broker reachable")).toBeInTheDocument();
-    });
-  });
-
-  it("handles backend connectivity error gracefully", async () => {
-    api.getReadiness.mockRejectedValueOnce(new Error("Network Error"));
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to connect to backend: Network Error/i)).toBeInTheDocument();
+      expect(screen.getByText("Customer Support Triage")).toBeInTheDocument();
+      expect(screen.getByText("v1 Published")).toBeInTheDocument();
     });
   });
 });
