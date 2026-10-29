@@ -174,7 +174,7 @@ stateDiagram-v2
 2. **Distributed Worker Leases & Heartbeats**: Each step acquisition writes a `worker_lease_id` and `lease_expires_at` timestamp. Prevents duplicate concurrent workers from executing the same node.
 3. **Zombie Worker Recovery**: If a worker node crashes or runs out of memory, expired leases are automatically identified and re-enqueued for retry.
 4. **Bounded Exponential Backoff with Jitter**:
-   $$\text{delay} = \min\left(\text{max\_backoff}, \text{base} \times \text{factor}^{\text{attempt}} + \text{jitter}\right)$$
+   $$\text{Delay} = \min\left(\text{MaxBackoff}, \text{Base} \times \text{Factor}^{\text{Attempt}} + \text{Jitter}\right)$$
    Prevents thundering herds from overwhelming free-tier AI API rate limits (HTTP 429).
 5. **Immutable Workflow Versions**: Publishing produces an immutable version snapshot with a cryptographic SHA-256 checksum. In-flight runs execute strictly against their snapshot version, preventing mid-run contract drift.
 
