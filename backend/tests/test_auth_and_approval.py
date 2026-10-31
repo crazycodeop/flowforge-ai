@@ -66,6 +66,22 @@ def test_auth_registration_and_login_flow(client: TestClient):
     # 5. Unauthorized access rejected
     unauth_resp = client.get("/api/v1/auth/me")
     assert unauth_resp.status_code == 401
+    assert unauth_resp.status_code == 401
+
+
+def test_google_login_flow(client: TestClient):
+    # Test auto-registration and login with mock google token
+    resp = client.post("/api/v1/auth/google", json={"credential": "mock-google-token-xyz"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "access_token" in data
+    assert data["user"]["email"] == "google.user@flowforge.ai"
+    token = data["access_token"]
+
+    # Verify authenticated me endpoint works with the issued token
+    me_resp = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me_resp.status_code == 200
+    assert me_resp.json()["email"] == "google.user@flowforge.ai"
 
 
 def test_human_approval_pause_and_approve_resumption(

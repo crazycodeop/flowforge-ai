@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.main import app
 from app.models.execution import StepRun, WorkflowRun
 from app.models.knowledge import KnowledgeDocument
 from app.retrieval.engine import calculate_relevance_score, search_knowledge_base
@@ -56,8 +55,7 @@ def test_knowledge_base_seeding_and_search(db_session: Session):
     assert results["sources"][0]["score"] > 0.2
 
 
-def test_knowledge_api_endpoints(db_session: Session):
-    client = TestClient(app)
+def test_knowledge_api_endpoints(client: TestClient, db_session: Session):
 
     # 1. Seed knowledge via API
     resp = client.post("/api/v1/knowledge/seed")

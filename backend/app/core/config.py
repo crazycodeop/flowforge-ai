@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     AI_BASE_URL: str | None = None
     AI_REQUEST_TIMEOUT: int = 30
     AI_MAX_RETRIES: int = 3
+
+    # Google OAuth
+    GOOGLE_CLIENT_ID: str | None = (
+        "984331841923-mbs15eafro18p6tlr0ab4fm9ca6dfhj9.apps.googleusercontent.com"
+    )
+    GOOGLE_CLIENT_SECRET: str | None = None
 
     # Operational Limits
     MAX_WORKFLOW_NODES: int = 50

@@ -31,7 +31,9 @@ def list_user_organizations(
         select(
             Organization,
             OrganizationMember.role,
-            func.count(OrganizationMember.id).over(partition_by=Organization.id).label("total_members"),
+            func.count(OrganizationMember.id)
+            .over(partition_by=Organization.id)
+            .label("total_members"),
         )
         .join(OrganizationMember, Organization.id == OrganizationMember.organization_id)
         .where(OrganizationMember.user_id == user.id)
@@ -70,7 +72,12 @@ def list_user_organizations(
     return results
 
 
-@router.post("", response_model=OrgResponse, status_code=status.HTTP_201_CREATED, summary="Create an organization")
+@router.post(
+    "",
+    response_model=OrgResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create an organization",
+)
 def create_organization(
     payload: OrgCreate,
     user: Annotated[User, Depends(require_user)],
@@ -128,9 +135,14 @@ def get_organization(
         )
     org, user_role = row
 
-    member_count = db.scalar(
-        select(func.count(OrganizationMember.id)).where(OrganizationMember.organization_id == org.id)
-    ) or 1
+    member_count = (
+        db.scalar(
+            select(func.count(OrganizationMember.id)).where(
+                OrganizationMember.organization_id == org.id
+            )
+        )
+        or 1
+    )
 
     return OrgResponse(
         id=org.id,
@@ -170,9 +182,14 @@ def update_organization(
     db.commit()
     db.refresh(org)
 
-    member_count = db.scalar(
-        select(func.count(OrganizationMember.id)).where(OrganizationMember.organization_id == org.id)
-    ) or 1
+    member_count = (
+        db.scalar(
+            select(func.count(OrganizationMember.id)).where(
+                OrganizationMember.organization_id == org.id
+            )
+        )
+        or 1
+    )
 
     return OrgResponse(
         id=org.id,
@@ -185,7 +202,9 @@ def update_organization(
     )
 
 
-@router.get("/{org_id}/members", response_model=list[OrgMemberResponse], summary="List organization members")
+@router.get(
+    "/{org_id}/members", response_model=list[OrgMemberResponse], summary="List organization members"
+)
 def list_org_members(
     org_id: str,
     user: Annotated[User, Depends(require_user)],
@@ -223,7 +242,12 @@ def list_org_members(
     ]
 
 
-@router.post("/{org_id}/members", response_model=OrgMemberResponse, status_code=status.HTTP_201_CREATED, summary="Add member to organization")
+@router.post(
+    "/{org_id}/members",
+    response_model=OrgMemberResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add member to organization",
+)
 def add_org_member(
     org_id: str,
     payload: OrgMemberAdd,
@@ -237,7 +261,10 @@ def add_org_member(
             OrganizationMember.user_id == user.id,
         )
     )
-    if not user_mem or user_mem.role not in [OrganizationRole.OWNER.value, OrganizationRole.ADMIN.value]:
+    if not user_mem or user_mem.role not in [
+        OrganizationRole.OWNER.value,
+        OrganizationRole.ADMIN.value,
+    ]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Adding members requires Owner or Admin role in this organization.",
@@ -282,7 +309,11 @@ def add_org_member(
     )
 
 
-@router.delete("/{org_id}/members/{target_user_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Remove member")
+@router.delete(
+    "/{org_id}/members/{target_user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove member",
+)
 def remove_org_member(
     org_id: str,
     target_user_id: str,
@@ -296,7 +327,10 @@ def remove_org_member(
             OrganizationMember.user_id == user.id,
         )
     )
-    if not user_mem or user_mem.role not in [OrganizationRole.OWNER.value, OrganizationRole.ADMIN.value]:
+    if not user_mem or user_mem.role not in [
+        OrganizationRole.OWNER.value,
+        OrganizationRole.ADMIN.value,
+    ]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Removing members requires Owner or Admin role in this organization.",
@@ -309,10 +343,14 @@ def remove_org_member(
         )
     )
     if not target_mem:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found in organization.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Member not found in organization."
+        )
 
     if target_mem.role == OrganizationRole.OWNER.value and user_mem.user_id != target_user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot remove the organization Owner.")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Cannot remove the organization Owner."
+        )
 
     db.delete(target_mem)
     db.commit()

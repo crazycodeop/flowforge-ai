@@ -142,12 +142,17 @@ def get_optional_tenant_context(
     return get_tenant_context(user=user, x_organization_id=x_organization_id, db=db)
 
 
-def require_org_role(allowed_roles: list[OrganizationRole]) -> Callable[[TenantContext], TenantContext]:
+def require_org_role(
+    allowed_roles: list[OrganizationRole],
+) -> Callable[[TenantContext], TenantContext]:
     """Dependency verifying that the user holds an authorized role within the active organization."""
     allowed_values = [r.value for r in allowed_roles]
 
     def checker(tenant: Annotated[TenantContext, Depends(get_tenant_context)]) -> TenantContext:
-        if tenant.membership.role != OrganizationRole.OWNER.value and tenant.membership.role not in allowed_values:
+        if (
+            tenant.membership.role != OrganizationRole.OWNER.value
+            and tenant.membership.role not in allowed_values
+        ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Operation requires organization role in {allowed_values}. Your role is '{tenant.membership.role}'.",

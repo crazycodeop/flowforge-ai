@@ -75,7 +75,9 @@ def upgrade() -> None:
         ondelete="CASCADE",
     )
 
-    op.add_column("workflow_runs", sa.Column("organization_id", sa.String(length=36), nullable=True))
+    op.add_column(
+        "workflow_runs", sa.Column("organization_id", sa.String(length=36), nullable=True)
+    )
     op.create_index("ix_workflow_runs_organization_id", "workflow_runs", ["organization_id"])
     op.create_foreign_key(
         "fk_workflow_runs_organization_id",
@@ -86,8 +88,12 @@ def upgrade() -> None:
         ondelete="CASCADE",
     )
 
-    op.add_column("approval_requests", sa.Column("organization_id", sa.String(length=36), nullable=True))
-    op.create_index("ix_approval_requests_organization_id", "approval_requests", ["organization_id"])
+    op.add_column(
+        "approval_requests", sa.Column("organization_id", sa.String(length=36), nullable=True)
+    )
+    op.create_index(
+        "ix_approval_requests_organization_id", "approval_requests", ["organization_id"]
+    )
     op.create_foreign_key(
         "fk_approval_requests_organization_id",
         "approval_requests",
@@ -97,8 +103,12 @@ def upgrade() -> None:
         ondelete="CASCADE",
     )
 
-    op.add_column("knowledge_collections", sa.Column("organization_id", sa.String(length=36), nullable=True))
-    op.create_index("ix_knowledge_collections_organization_id", "knowledge_collections", ["organization_id"])
+    op.add_column(
+        "knowledge_collections", sa.Column("organization_id", sa.String(length=36), nullable=True)
+    )
+    op.create_index(
+        "ix_knowledge_collections_organization_id", "knowledge_collections", ["organization_id"]
+    )
     op.create_foreign_key(
         "fk_knowledge_collections_organization_id",
         "knowledge_collections",
@@ -108,8 +118,12 @@ def upgrade() -> None:
         ondelete="CASCADE",
     )
 
-    op.add_column("evaluation_datasets", sa.Column("organization_id", sa.String(length=36), nullable=True))
-    op.create_index("ix_evaluation_datasets_organization_id", "evaluation_datasets", ["organization_id"])
+    op.add_column(
+        "evaluation_datasets", sa.Column("organization_id", sa.String(length=36), nullable=True)
+    )
+    op.create_index(
+        "ix_evaluation_datasets_organization_id", "evaluation_datasets", ["organization_id"]
+    )
     op.create_foreign_key(
         "fk_evaluation_datasets_organization_id",
         "evaluation_datasets",
@@ -121,15 +135,21 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_constraint("fk_evaluation_datasets_organization_id", "evaluation_datasets", type_="foreignkey")
+    op.drop_constraint(
+        "fk_evaluation_datasets_organization_id", "evaluation_datasets", type_="foreignkey"
+    )
     op.drop_index("ix_evaluation_datasets_organization_id", table_name="evaluation_datasets")
     op.drop_column("evaluation_datasets", "organization_id")
 
-    op.drop_constraint("fk_knowledge_collections_organization_id", "knowledge_collections", type_="foreignkey")
+    op.drop_constraint(
+        "fk_knowledge_collections_organization_id", "knowledge_collections", type_="foreignkey"
+    )
     op.drop_index("ix_knowledge_collections_organization_id", table_name="knowledge_collections")
     op.drop_column("knowledge_collections", "organization_id")
 
-    op.drop_constraint("fk_approval_requests_organization_id", "approval_requests", type_="foreignkey")
+    op.drop_constraint(
+        "fk_approval_requests_organization_id", "approval_requests", type_="foreignkey"
+    )
     op.drop_index("ix_approval_requests_organization_id", table_name="approval_requests")
     op.drop_column("approval_requests", "organization_id")
 

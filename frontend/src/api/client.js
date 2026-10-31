@@ -76,6 +76,13 @@ export const api = {
     });
   },
 
+  async loginWithGoogle(credential) {
+    return request("/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ credential }),
+    });
+  },
+
   async register(email, password, full_name = "", role = "developer") {
     return request("/auth/register", {
       method: "POST",

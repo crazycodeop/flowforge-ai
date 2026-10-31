@@ -26,6 +26,14 @@ from app.workflows.state_machine import (
 logger = logging.getLogger("flowforge.executor")
 
 
+def _to_utc(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt
+
+
 def emit_event(
     db: Session,
     workflow_run_id: str,
@@ -203,7 +211,7 @@ def execute_workflow_run(run_id: str, db: Session) -> WorkflowRun:
                 # Calculate execution latency
                 if step.started_at:
                     step.latency_ms = round(
-                        (now_completed - step.started_at).total_seconds() * 1000.0, 2
+                        (now_completed - _to_utc(step.started_at)).total_seconds() * 1000.0, 2
                     )
 
                 # Process AI token consumption and cost metrics if present

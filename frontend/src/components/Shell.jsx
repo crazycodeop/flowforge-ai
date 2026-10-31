@@ -18,7 +18,9 @@ import {
   Check,
   PanelLeftClose,
   PanelLeftOpen,
+  ChevronLeft,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { api } from "../api/client";
 
@@ -156,6 +158,15 @@ export default function Shell({ children }) {
     } catch {
       // Fallback
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("org_id");
+    localStorage.removeItem("org_name");
+    localStorage.removeItem("org_role");
+    navigate("/login");
   };
 
   const handleToggleCollapse = () => {
@@ -698,6 +709,36 @@ export default function Shell({ children }) {
           >
             {userInitials.charAt(0)}
           </div>
+
+          {/* Quick Sign Out Header Button */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#737373",
+              cursor: "pointer",
+              padding: "4px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "4px",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#ef4444";
+              e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "#737373";
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+            title="Sign Out"
+            aria-label="Sign Out"
+          >
+            <LogOut size={15} />
+          </button>
         </div>
       </header>
 
@@ -725,68 +766,146 @@ export default function Shell({ children }) {
         >
           {renderNavLinks(false)}
 
-          {/* Footer Controls: NO "Collapse" TEXT! */}
+          {/* Refined Sidebar Footer: Perfectly aligned navigation link & operational bar */}
           <div
             style={{
               borderTop: "1px solid #1f1f1f",
-              paddingTop: "8px",
+              paddingTop: "6px",
               marginTop: "auto",
               display: "flex",
               flexDirection: "column",
-              gap: "4px",
+              gap: "2px",
             }}
           >
-            {/* Status Indicator */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: collapsed ? "6px 0" : "6px 10px",
-                justifyContent: collapsed ? "center" : "flex-start",
-                fontSize: "12px",
-                color: "#737373",
-              }}
-              title="All workflow engine services operational"
-            >
-              <span className="status-dot status-dot-active" />
-              {!collapsed && <span>Engine Operational</span>}
-            </div>
-
-            {/* Clean Sidebar Toggle Button: Clean icon button without any "Collapse" text */}
+            {/* Sign Out (Styled identically to sidebar-nav-link for seamless alignment) */}
             <button
               type="button"
-              onClick={handleToggleCollapse}
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              onClick={handleLogout}
+              className="sidebar-nav-link"
+              title={collapsed ? "Sign Out" : undefined}
               style={{
                 width: collapsed ? "36px" : "100%",
-                height: "30px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: collapsed ? "center" : "space-between",
-                padding: collapsed ? "0" : "0 10px",
-                background: "transparent",
                 border: "none",
-                borderRadius: "4px",
-                color: "#737373",
                 cursor: "pointer",
+                justifyContent: collapsed ? "center" : "flex-start",
+                padding: collapsed ? "0" : "6px 10px",
                 margin: collapsed ? "0 auto" : "0",
-                transition: "all 0.1s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#ffffff";
-                e.currentTarget.style.backgroundColor = "#161616";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "#737373";
-                e.currentTarget.style.backgroundColor = "transparent";
+                fontSize: "13px",
+                textAlign: "left",
               }}
             >
-              <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                {collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
-              </span>
+              <LogOut size={14} style={{ flexShrink: 0 }} />
+              {!collapsed && <span>Sign Out</span>}
             </button>
+
+            {/* Bottom Status & Collapse Bar */}
+            {collapsed ? (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginTop: "4px",
+                  paddingTop: "6px",
+                  borderTop: "1px solid #161616",
+                }}
+              >
+                <div
+                  title="All workflow engine services operational"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "4px" }}
+                >
+                  <span className="status-dot status-dot-active" />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleCollapse}
+                  aria-label="Expand sidebar"
+                  title="Expand sidebar"
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#161616",
+                    border: "1px solid #262626",
+                    borderRadius: "4px",
+                    color: "#858585",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "#ffffff";
+                    e.currentTarget.style.backgroundColor = "#262626";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "#858585";
+                    e.currentTarget.style.backgroundColor = "#161616";
+                  }}
+                >
+                  <ChevronRight size={13} />
+                </button>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "6px 10px",
+                  marginTop: "4px",
+                  borderTop: "1px solid #161616",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    fontSize: "12px",
+                    color: "#737373",
+                  }}
+                  title="All workflow engine services operational"
+                >
+                  <span className="status-dot status-dot-active" />
+                  <span>Engine Operational</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleToggleCollapse}
+                  aria-label="Collapse sidebar"
+                  title="Collapse sidebar"
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#161616",
+                    border: "1px solid #262626",
+                    borderRadius: "4px",
+                    color: "#858585",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "#ffffff";
+                    e.currentTarget.style.backgroundColor = "#262626";
+                    e.currentTarget.style.borderColor = "#383838";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "#858585";
+                    e.currentTarget.style.backgroundColor = "#161616";
+                    e.currentTarget.style.borderColor = "#262626";
+                  }}
+                >
+                  <ChevronLeft size={13} />
+                </button>
+              </div>
+            )}
           </div>
         </aside>
 

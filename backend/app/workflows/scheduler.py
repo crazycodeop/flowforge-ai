@@ -5,6 +5,14 @@ from typing import Any
 from app.workflows.state_machine import StepStatus
 
 
+def _to_utc(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt
+
+
 def find_ready_nodes(definition: dict[str, Any], step_runs: dict[str, Any]) -> list[str]:
     """Identifies nodes in the DAG that are currently eligible for execution.
 
@@ -34,7 +42,7 @@ def find_ready_nodes(definition: dict[str, Any], step_runs: dict[str, Any]) -> l
             continue
 
         if step.status == StepStatus.RETRY_WAIT.value:
-            if step.lease_expires_at and datetime.now(UTC) < step.lease_expires_at:
+            if step.lease_expires_at and datetime.now(UTC) < _to_utc(step.lease_expires_at):
                 continue
         elif step.status != StepStatus.PENDING.value:
             continue

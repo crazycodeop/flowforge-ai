@@ -83,23 +83,15 @@ def list_workflows(
     tenant: TenantContext | None = Depends(get_optional_tenant_context),
 ) -> list[WorkflowResponse]:
     """Lists workflows scoped to tenant or global templates."""
-    stmt = (
-        select(
-            Workflow,
-            func.max(WorkflowVersion.version_number).label("latest_version"),
-        )
-        .outerjoin(WorkflowVersion, Workflow.id == WorkflowVersion.workflow_id)
-    )
+    stmt = select(
+        Workflow,
+        func.max(WorkflowVersion.version_number).label("latest_version"),
+    ).outerjoin(WorkflowVersion, Workflow.id == WorkflowVersion.workflow_id)
     if tenant:
         stmt = stmt.where(
             (Workflow.organization_id == tenant.org.id) | (Workflow.organization_id.is_(None))
         )
-    stmt = (
-        stmt.group_by(Workflow.id)
-        .order_by(desc(Workflow.updated_at))
-        .offset(skip)
-        .limit(limit)
-    )
+    stmt = stmt.group_by(Workflow.id).order_by(desc(Workflow.updated_at)).offset(skip).limit(limit)
     results = db.execute(stmt).all()
 
     items = []

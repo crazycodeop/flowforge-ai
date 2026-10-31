@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Lock, Mail, ArrowRight, ShieldCheck, Cpu, Sparkles, AlertCircle } from "lucide-react";
+import { Lock, Mail, ArrowRight, ShieldCheck, Sparkles, AlertCircle } from "lucide-react";
 import { api } from "../api/client";
 
 export default function Login() {
@@ -9,6 +9,89 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const completeLoginSession = async (data) => {
+    localStorage.setItem("token", data.access_token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    // Resolve user's active organization
+    try {
+      const orgs = await api.listOrganizations();
+      if (orgs && orgs.length > 0) {
+        localStorage.setItem("org_id", orgs[0].id);
+        localStorage.setItem("org_name", orgs[0].name);
+        localStorage.setItem("org_role", orgs[0].role || "owner");
+      }
+    } catch {
+      // Fallback default
+    }
+
+    navigate("/");
+  };
+
+  const handleGoogleCredentialResponse = async (response) => {
+    if (!response || !response.credential) {
+      setError("Failed to retrieve Google credentials. Please try again.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await api.loginWithGoogle(response.credential);
+      await completeLoginSession(data);
+    } catch (err) {
+      setError(err.message || "Google authentication failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const clientId =
+      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+      "984331841923-mbs15eafro18p6tlr0ab4fm9ca6dfhj9.apps.googleusercontent.com";
+
+    const setupGoogle = () => {
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleGoogleCredentialResponse,
+            auto_select: false,
+          });
+
+          const btnEl = document.getElementById("googleSignInDiv");
+          if (btnEl) {
+            btnEl.innerHTML = "";
+            window.google.accounts.id.renderButton(btnEl, {
+              theme: "filled_black",
+              size: "large",
+              text: "continue_with",
+              shape: "rectangular",
+              width: 356,
+              logo_alignment: "left",
+            });
+          }
+        } catch (e) {
+          console.error("Error initializing Google Identity Services:", e);
+        }
+      }
+    };
+
+    if (window.google?.accounts?.id) {
+      setupGoogle();
+    } else {
+      const timer = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          setupGoogle();
+          clearInterval(timer);
+        }
+      }, 250);
+      return () => clearInterval(timer);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -38,22 +121,7 @@ export default function Login() {
         }
       }
 
-      localStorage.setItem("token", data.access_token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Resolve user's active organization
-      try {
-        const orgs = await api.listOrganizations();
-        if (orgs && orgs.length > 0) {
-          localStorage.setItem("org_id", orgs[0].id);
-          localStorage.setItem("org_name", orgs[0].name);
-          localStorage.setItem("org_role", orgs[0].role || "owner");
-        }
-      } catch {
-        // Fallback default
-      }
-
-      navigate("/");
+      await completeLoginSession(data);
     } catch (err) {
       setError(err.message || "Invalid email or password.");
     } finally {
@@ -92,37 +160,41 @@ export default function Login() {
         }}
       >
         {/* Brand Header */}
-        <div style={{ textAlign: "center", marginBottom: "28px" }}>
+        <div style={{ textAlign: "center", marginBottom: "24px" }}>
           <div
             style={{
               width: "44px",
               height: "44px",
               borderRadius: "8px",
-              background: "#8B5CF6",
-              display: "flex",
+              background: "linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)",
+              display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              margin: "0 auto 16px auto",
+              marginBottom: "14px",
+              boxShadow: "0 4px 14px rgba(139, 92, 246, 0.35)",
             }}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
+            <ShieldCheck size={24} color="#ffffff" />
           </div>
-          <h1 style={{ fontSize: "20px", fontWeight: 700, margin: "0 0 6px 0", letterSpacing: "-0.01em", color: "#F5F5F5" }}>
-            Sign in to FlowForge AI
+          <h1
+            style={{
+              fontSize: "20px",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              margin: "0 0 6px 0",
+              color: "#F5F5F5",
+            }}
+          >
+            Sign in to FlowForge
           </h1>
-          <p style={{ fontSize: "13px", color: "#A3A3A3", margin: 0 }}>
-            Visual AI Workflow Orchestration & Evaluation
+          <p
+            style={{
+              fontSize: "13px",
+              color: "#737373",
+              margin: 0,
+            }}
+          >
+            Enterprise AI workflow orchestration engine
           </p>
         </div>
 
@@ -147,7 +219,37 @@ export default function Login() {
           </div>
         )}
 
-        {/* Form */}
+        {/* Google One-Click Login Container */}
+        <div style={{ marginBottom: "18px" }}>
+          <div
+            id="googleSignInDiv"
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              minHeight: "44px",
+              borderRadius: "6px",
+              overflow: "hidden",
+            }}
+          />
+        </div>
+
+        {/* Divider */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "18px",
+          }}
+        >
+          <div style={{ flex: 1, height: "1px", background: "#262626" }} />
+          <span style={{ fontSize: "11px", color: "#525252", fontWeight: 600, letterSpacing: "0.04em" }}>
+            OR CONTINUE WITH EMAIL
+          </span>
+          <div style={{ flex: 1, height: "1px", background: "#262626" }} />
+        </div>
+
+        {/* Email / Password Form */}
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
             <label
