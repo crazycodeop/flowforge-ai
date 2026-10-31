@@ -10,6 +10,7 @@ import {
   Shuffle,
   ShieldAlert,
   CheckCircle2,
+  Trash2,
 } from "lucide-react";
 
 const NODE_ICONS = {
@@ -41,7 +42,7 @@ const NODE_TAGS = {
  * Neutral dark surface `#161616`, thin border `#262626`,
  * restrained violet selection ring `#8b5cf6`, compact typography.
  */
-export default function CustomNode({ data, selected }) {
+export default function CustomNode({ id, data, selected }) {
   const nodeType = data.type || "transform";
   const Icon = NODE_ICONS[nodeType] || Shuffle;
   const tag = NODE_TAGS[nodeType] || "Node";
@@ -99,20 +100,55 @@ export default function CustomNode({ data, selected }) {
             {data.label || data.name || "Node"}
           </span>
         </div>
-        <span
-          style={{
-            fontSize: "9px",
-            fontWeight: 600,
-            padding: "1px 5px",
-            borderRadius: "3px",
-            background: "#222222",
-            color: "#a3a3a3",
-            textTransform: "uppercase",
-            letterSpacing: "0.03em",
-          }}
-        >
-          {tag}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span
+            style={{
+              fontSize: "9px",
+              fontWeight: 600,
+              padding: "1px 5px",
+              borderRadius: "3px",
+              background: "#222222",
+              color: "#a3a3a3",
+              textTransform: "uppercase",
+              letterSpacing: "0.03em",
+            }}
+          >
+            {tag}
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (data?.onDelete) {
+                data.onDelete(id);
+              }
+            }}
+            title="Delete this node"
+            aria-label="Delete this node"
+            style={{
+              background: "transparent",
+              border: "none",
+              color: selected ? "#ef4444" : "#666666",
+              cursor: "pointer",
+              padding: "2px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "3px",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#ef4444";
+              e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.18)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = selected ? "#ef4444" : "#666666";
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <Trash2 size={12} />
+          </button>
+        </div>
       </div>
 
       {/* Node Body Details */}

@@ -72,23 +72,56 @@ export default function NodeInspector({
             Configure Node
           </span>
         </div>
-        <button
-          onClick={onClose}
-          type="button"
-          aria-label="Close configuration"
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "#737373",
-            cursor: "pointer",
-            padding: "4px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <X size={15} />
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <button
+            type="button"
+            onClick={() => onDeleteNode(node.id)}
+            title="Delete this node"
+            aria-label="Delete this node"
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#737373",
+              cursor: "pointer",
+              padding: "4px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "4px",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#ef4444";
+              e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "#737373";
+              e.currentTarget.style.backgroundColor = "transparent";
+            }}
+          >
+            <Trash2 size={14} />
+          </button>
+          <button
+            onClick={onClose}
+            type="button"
+            aria-label="Close configuration"
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#737373",
+              cursor: "pointer",
+              padding: "4px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "4px",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#f5f5f5")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#737373")}
+          >
+            <X size={15} />
+          </button>
+        </div>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "14px", flex: 1 }}>

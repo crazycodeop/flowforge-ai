@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ReactFlow,
@@ -9,6 +9,8 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
   BackgroundVariant,
+  ReactFlowProvider,
+  useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
@@ -31,7 +33,7 @@ const nodeTypes = {
   custom: CustomNode,
 };
 
-export default function Builder() {
+function BuilderCanvas() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [workflow, setWorkflow] = useState(null);
@@ -67,6 +69,63 @@ export default function Builder() {
     '{\n  "ticket_text": "I was charged $89 twice on my card. Please refund my statement."\n}'
   );
   const [running, setRunning] = useState(false);
+
+  const { screenToFlowPosition } = useReactFlow();
+
+  // Drag over handler for canvas
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
+
+  // Drop handler: drop a node from the catalog palette onto canvas
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+
+      const type = event.dataTransfer.getData("application/reactflow/type");
+      const name = event.dataTransfer.getData("application/reactflow/name");
+
+      if (!type) return;
+
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const newId = `node_${Date.now()}`;
+      const newNode = {
+        id: newId,
+        type: "custom",
+        position,
+        data: {
+          id: newId,
+          type,
+          name: name || "Node",
+          description: "",
+          config: {},
+          retry_policy: { max_retries: 3, backoff_base_seconds: 1.0 },
+          timeout_seconds: 60,
+        },
+      };
+
+      setNodes((nds) => [...nds, newNode]);
+      setSelectedNodeId(newId);
+    },
+    [screenToFlowPosition]
+  );
+
+  // Keyboard / native deletion handler
+  const onNodesDelete = useCallback(
+    (deletedNodes) => {
+      const deletedIds = new Set(deletedNodes.map((n) => n.id));
+      setEdges((eds) => eds.filter((e) => !deletedIds.has(e.source) && !deletedIds.has(e.target)));
+      if (selectedNodeId && deletedIds.has(selectedNodeId)) {
+        setSelectedNodeId(null);
+      }
+    },
+    [selectedNodeId]
+  );
 
   // Load workflow from backend
   const loadWorkflow = useCallback(async () => {
@@ -183,11 +242,22 @@ export default function Builder() {
     );
   };
 
-  const handleDeleteNode = (nodeId) => {
+  const handleDeleteNode = useCallback((nodeId) => {
     setNodes((nds) => nds.filter((n) => n.id !== nodeId));
     setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
     if (selectedNodeId === nodeId) setSelectedNodeId(null);
-  };
+  }, [selectedNodeId]);
+
+  // Inject onDelete callback into all nodes for direct header deletion
+  const nodesWithHandlers = useMemo(() => {
+    return nodes.map((node) => ({
+      ...node,
+      data: {
+        ...node.data,
+        onDelete: handleDeleteNode,
+      },
+    }));
+  }, [nodes, handleDeleteNode]);
 
   // Convert React Flow graph to backend WorkflowDefinition
   const buildDefinitionPayload = () => {
@@ -439,16 +509,22 @@ export default function Builder() {
         {/* Left Node Palette: In-flow on desktop */}
         {isDesktop && <NodePalette onAddNode={handleAddNode} />}
 
-        {/* Central React Flow Canvas */}
-        <div style={{ flex: 1, height: "100%", background: "#0b0b0b", position: "relative" }}>
+        {/* Central React Flow Canvas with Drag & Drop and Keyboard Deletion */}
+        <div
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+          style={{ flex: 1, height: "100%", background: "#0b0b0b", position: "relative" }}
+        >
           <ReactFlow
-            nodes={nodes}
+            nodes={nodesWithHandlers}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
+            onNodesDelete={onNodesDelete}
+            deleteKeyCode={["Backspace", "Delete"]}
             nodeTypes={nodeTypes}
             colorMode="dark"
             fitView
@@ -655,5 +731,14 @@ export default function Builder() {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function Builder() {
+  return (
+    <ReactFlowProvider>
+      <BuilderCanvas />
+    </ReactFlowProvider>
   );
 }
