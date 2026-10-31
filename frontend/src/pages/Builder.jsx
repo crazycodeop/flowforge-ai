@@ -450,16 +450,12 @@ export default function Builder() {
             onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
+            colorMode="dark"
             fitView
           >
-            <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="#262626" />
+            <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#383838" bgColor="#0b0b0b" />
             <Controls
               style={{
-                boxShadow: "none",
-                borderRadius: "6px",
-                border: "1px solid #262626",
-                background: "#161616",
-                color: "#f5f5f5",
                 bottom: isMobile ? 12 : 20,
                 left: isMobile ? 12 : 20,
               }}

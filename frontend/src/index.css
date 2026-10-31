@@ -427,3 +427,64 @@ body {
     display: none !important;
   }
 }
+
+
+/* ========================================================================== */
+/* React Flow Dark Canvas & Controls Theme                                    */
+/* ========================================================================== */
+.react-flow__controls {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid #262626 !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  background: #141414 !important;
+}
+
+.react-flow__controls-button {
+  background: #161616 !important;
+  border: none !important;
+  border-bottom: 1px solid #262626 !important;
+  box-sizing: border-box !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  color: #a3a3a3 !important;
+  fill: #a3a3a3 !important;
+  transition: all 0.15s ease !important;
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #242424 !important;
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.react-flow__controls-button svg {
+  width: 13px !important;
+  height: 13px !important;
+  max-width: 13px !important;
+  max-height: 13px !important;
+  fill: currentColor !important;
+}
+
+.react-flow__controls-button:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+}
+
+.react-flow__attribution {
+  background: rgba(11, 11, 11, 0.7) !important;
+  color: #555555 !important;
+}
+
+.react-flow__attribution a {
+  color: #737373 !important;
+}
