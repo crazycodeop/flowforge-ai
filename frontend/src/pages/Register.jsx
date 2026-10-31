@@ -112,7 +112,7 @@ export default function Register() {
             </svg>
           </div>
           <h1 style={{ fontSize: "20px", fontWeight: 700, margin: "0 0 6px 0", letterSpacing: "-0.01em", color: "#F5F5F5" }}>
-            Create your FlowForge Workspace
+            Create your FlowForge AI Workspace
           </h1>
           <p style={{ fontSize: "13px", color: "#A3A3A3", margin: 0 }}>
             Production AI orchestration with multi-tenant team governance

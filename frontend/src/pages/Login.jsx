@@ -185,7 +185,7 @@ export default function Login() {
               color: "#F5F5F5",
             }}
           >
-            Sign in to FlowForge
+            Sign in to FlowForge AI
           </h1>
           <p
             style={{
