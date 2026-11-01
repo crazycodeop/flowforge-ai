@@ -186,7 +186,8 @@ export default function Settings() {
       const res = await api.updateAISettings(payload);
       setAiStatus(res);
       setApiKeyInput("");
-      const provName = currentProvDetail?.name || providerInput.toUpperCase();
+      const provDetail = res?.providers?.find((p) => p.id === providerInput) || aiStatus?.providers?.find((p) => p.id === providerInput);
+      const provName = provDetail?.name || providerInput.toUpperCase();
       setAiSaveMessage({
         type: "success",
         text: `${provName} saved! It is now active and available for workflow creation.`,
