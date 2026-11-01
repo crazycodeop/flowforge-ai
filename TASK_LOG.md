@@ -298,3 +298,12 @@
   - `pytest backend/tests`: **54 passed, 2 warnings** in 12.32s.
   - `cd frontend && npm test`: **2 passed** in 6.13s.
   - `cd frontend && npm run build`: **1770 modules transformed, build succeeded** in 5.46s.
+
+- **Live GitHub Actions CI Verification**:
+  - Run ID: `41278028748`
+  - Trigger: Commit `1ada0a2`
+  - Status: **`completed`**
+  - Conclusion: **`success`**
+  - Jobs:
+    - `frontend-checks`: **Passed (100% green)** — Node 24, dependencies, Vitest unit tests, Vite bundle build.
+    - `backend-checks`: **Passed (100% green)** — Python 3.12, container init (Postgres 16 + Redis 7), pip editable install, Ruff lint & format, Alembic migrations, Pytest suite (54 tests passed).
