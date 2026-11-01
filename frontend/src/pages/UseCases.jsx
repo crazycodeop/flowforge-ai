@@ -49,8 +49,10 @@ export default function UseCases() {
 
       if (flagship) {
         const runRes = await api.triggerRun(flagship.id, {
-          ticket_text: demoTicket,
-          customer_email: "jane.doe@enterprise-client.com",
+          input_payload: {
+            ticket_text: demoTicket,
+            customer_email: "jane.doe@enterprise-client.com",
+          },
         });
         navigate("/executions");
       } else {

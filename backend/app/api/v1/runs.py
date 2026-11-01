@@ -218,7 +218,11 @@ def list_run_steps(run_id: str, db: Session = Depends(get_db)) -> list[StepRunRe
     if not run:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found")
 
-    stmt = select(StepRun).where(StepRun.workflow_run_id == run_id).order_by(StepRun.created_at)
+    stmt = (
+        select(StepRun)
+        .where(StepRun.workflow_run_id == run_id)
+        .order_by(StepRun.started_at.asc().nulls_last(), StepRun.created_at.asc())
+    )
     steps = db.scalars(stmt).all()
     return [StepRunResponse.model_validate(s) for s in steps]
 

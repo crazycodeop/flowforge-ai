@@ -220,9 +220,13 @@ export const api = {
 
   // --- Executions ---
   async triggerRun(workflowId, payload = {}) {
+    const body =
+      payload && typeof payload === "object" && payload.input_payload !== undefined
+        ? payload
+        : { input_payload: payload };
     return request(`/workflows/${workflowId}/runs`, {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
   },
 

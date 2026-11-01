@@ -72,6 +72,17 @@ export default function Executions() {
     }
   };
 
+  const sortedRunSteps = useMemo(() => {
+    return [...runSteps].sort((a, b) => {
+      if (a.started_at && b.started_at) {
+        return new Date(a.started_at) - new Date(b.started_at);
+      }
+      if (a.started_at && !b.started_at) return -1;
+      if (!a.started_at && b.started_at) return 1;
+      return new Date(a.created_at) - new Date(b.created_at);
+    });
+  }, [runSteps]);
+
   const filteredRuns = runs.filter((r) => {
     if (statusFilter !== "ALL" && r.status !== statusFilter) return false;
     if (searchQuery.trim()) {
@@ -359,7 +370,7 @@ export default function Executions() {
                 <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>No steps recorded yet.</div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {runSteps.map((s, idx) => (
+                  {sortedRunSteps.map((s, idx) => (
                     <div
                       key={s.id}
                       style={{
