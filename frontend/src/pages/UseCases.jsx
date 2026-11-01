@@ -14,8 +14,10 @@ import {
   Zap,
 } from "lucide-react";
 import { api } from "../api/client";
+import { useModal } from "../context/ModalContext";
 
 export default function UseCases() {
+  const modal = useModal();
   const navigate = useNavigate();
   const [runningDemo, setRunningDemo] = useState(false);
   const [demoTicket, setDemoTicket] = useState(
@@ -56,10 +58,10 @@ export default function UseCases() {
         });
         navigate("/executions");
       } else {
-        alert("Please create or publish a workflow in the Workflows tab before triggering live demo.");
+        await modal.alert({ title: "Workflow Required", message: "Please create or publish a workflow in the Workflows tab before triggering live demo.", variant: "warning" });
       }
     } catch (err) {
-      alert("Error starting demo workflow: " + (err.message || "Failed"));
+      await modal.alert({ title: "Demo Launch Error", message: err.message || "Failed to start demo workflow.", variant: "danger" });
     } finally {
       setRunningDemo(false);
     }

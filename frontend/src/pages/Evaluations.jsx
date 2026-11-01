@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Gauge, Sparkles, CheckCircle2, XCircle, Play, RefreshCw, Layers } from "lucide-react";
 import { api } from "../api/client";
+import { useModal } from "../context/ModalContext";
 
 export default function Evaluations() {
+  const modal = useModal();
   const [datasets, setDatasets] = useState([]);
   const [runs, setRuns] = useState([]);
   const [workflows, setWorkflows] = useState([]);
@@ -40,13 +42,13 @@ export default function Evaluations() {
       await api.seedEvaluationBenchmark();
       await fetchData();
     } catch (err) {
-      alert(`Failed to seed benchmark: ${err.message}`);
+      await modal.alert({ title: "Benchmark Seeding Failed", message: err.message, variant: "danger" });
     }
   };
 
   const handleRunBenchmark = async (datasetId) => {
     if (workflows.length === 0) {
-      alert("No workflows found. Create or publish a workflow first.");
+      await modal.alert({ title: "Workflow Required", message: "No workflows found. Please create or publish a workflow first.", variant: "warning" });
       return;
     }
     try {
@@ -59,7 +61,7 @@ export default function Evaluations() {
       setSelectedRun(result);
       await fetchData();
     } catch (err) {
-      alert(`Benchmark execution failed: ${err.message}`);
+      await modal.alert({ title: "Benchmark Execution Failed", message: err.message, variant: "danger" });
     } finally {
       setRunningBenchmark(false);
     }

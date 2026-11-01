@@ -13,8 +13,10 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { api } from "../api/client";
+import { useModal } from "../context/ModalContext";
 
 export default function Workflows() {
+  const modal = useModal();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [workflows, setWorkflows] = useState([]);
@@ -76,14 +78,23 @@ export default function Workflows() {
 
   const handleDelete = async (id, name, e) => {
     e.stopPropagation();
-    if (!window.confirm(`Are you sure you want to delete workflow "${name}"? This action cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await modal.confirm({
+      title: "Delete Workflow",
+      message: `Are you sure you want to delete workflow "${name}"? This action cannot be undone.`,
+      confirmText: "Delete Workflow",
+      variant: "danger",
+    });
+    if (!confirmed) return;
+
     try {
       await api.deleteWorkflow(id);
       await loadWorkflows();
     } catch (err) {
-      alert(`Error deleting workflow: ${err.message}`);
+      await modal.alert({
+        title: "Delete Failed",
+        message: `Error deleting workflow: ${err.message}`,
+        variant: "danger",
+      });
     }
   };
 

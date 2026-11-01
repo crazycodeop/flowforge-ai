@@ -25,6 +25,7 @@ import {
   Sliders,
 } from "lucide-react";
 import { api } from "../api/client";
+import { useModal } from "../context/ModalContext";
 import CustomNode from "../components/builder/CustomNode";
 import NodePalette from "../components/builder/NodePalette";
 import NodeInspector from "../components/builder/NodeInspector";
@@ -34,6 +35,7 @@ const nodeTypes = {
 };
 
 function BuilderCanvas() {
+  const modal = useModal();
   const { id } = useParams();
   const navigate = useNavigate();
   const [workflow, setWorkflow] = useState(null);
@@ -325,7 +327,17 @@ function BuilderCanvas() {
       const definition = buildDefinitionPayload();
       await api.updateWorkflow(id, { definition });
 
-      const changelog = prompt("Enter an optional changelog for this published version:", "Published update") || null;
+      const changelog = await modal.prompt({
+        title: "Publish Immutable Version",
+        message: "Enter an optional changelog description for this published version snapshot:",
+        defaultValue: "Published update",
+        placeholder: "e.g. Added compliance review gate",
+        confirmText: "Publish Version",
+      });
+      if (changelog === null) {
+        setPublishing(false);
+        return;
+      }
       const published = await api.publishWorkflow(id, changelog);
       setWorkflow((prev) => ({ ...prev, latest_version: published.version_number }));
       setStatusMessage({
@@ -350,7 +362,7 @@ function BuilderCanvas() {
       try {
         payload = JSON.parse(runInputJson);
       } catch (err) {
-        alert("Input payload must be valid JSON: " + err.message);
+        await modal.alert({ title: "Invalid Input JSON", message: "Input payload must be valid JSON: " + err.message, variant: "warning" });
         setRunning(false);
         return;
       }

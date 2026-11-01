@@ -16,6 +16,7 @@ import {
   Sliders,
 } from "lucide-react";
 import { api } from "../api/client";
+import { useModal } from "../context/ModalContext";
 
 /**
  * FlowForge AI Workspace Settings page.
@@ -23,6 +24,7 @@ import { api } from "../api/client";
  * actual multi-tenant organization, profile, AI provider runtime, and security settings.
  */
 export default function Settings() {
+  const modal = useModal();
   const [activeTab, setActiveTab] = useState("profile");
 
   // Profile State
@@ -162,7 +164,13 @@ export default function Settings() {
 
   const handleRemoveMember = async (userId) => {
     if (!org) return;
-    if (!window.confirm("Remove this member from the organization?")) return;
+    const confirmed = await modal.confirm({
+      title: "Remove Team Member",
+      message: "Are you sure you want to remove this member from the organization? They will immediately lose access to workspace workflows.",
+      confirmText: "Remove Member",
+      variant: "danger",
+    });
+    if (!confirmed) return;
     try {
       await api.removeOrganizationMember(org.id, userId);
       const updatedMembers = await api.listOrganizationMembers(org.id);

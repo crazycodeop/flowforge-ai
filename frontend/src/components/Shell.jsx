@@ -23,6 +23,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { api } from "../api/client";
+import { useModal } from "../context/ModalContext";
 
 /**
  * FlowForge AI application shell featuring Render's flat visual styling:
@@ -199,7 +200,7 @@ export default function Shell({ children }) {
       await loadOrganizations();
       handleSelectOrg(created);
     } catch (err) {
-      alert("Failed to create workspace: " + (err.message || "Error"));
+      await modal.alert({ title: "Workspace Creation Failed", message: err.message || "Failed to create workspace.", variant: "danger" });
     } finally {
       setCreatingOrg(false);
     }

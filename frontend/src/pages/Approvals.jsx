@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { ShieldCheck, CheckCircle2, XCircle, RefreshCw, Clock } from "lucide-react";
 import { api } from "../api/client";
+import { useModal } from "../context/ModalContext";
 
 export default function Approvals() {
+  const modal = useModal();
   const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState({});
@@ -33,7 +35,7 @@ export default function Approvals() {
       await api.decideApproval(approvalId, decision, comment);
       await fetchApprovals();
     } catch (err) {
-      alert(`Decision failed: ${err.message}`);
+      await modal.alert({ title: "Decision Failed", message: `Decision submission failed: ${err.message}`, variant: "danger" });
     } finally {
       setActionInProgress(null);
     }
