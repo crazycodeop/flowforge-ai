@@ -26,6 +26,7 @@
 - [x] **Milestone 21: Streamlined Multi-Provider Status & Cleaned AI Settings UI**
 - [x] **Milestone 22: Knowledge Collections Center & 1-Click Interactive Test Scenarios**
 - [x] **Milestone 23: Multilingual Document OCR, Extraction & Auto-Translation to English**
+- **Document Deletion Support**: Implemented `DELETE /api/v1/knowledge/collections/{coll_id}/documents/{doc_id}` and added a red-accented `<Trash2 />` delete action to each document card in `Knowledge.jsx` with confirmation dialog and automatic collection count refresh. Commit `710b72e`.
 - **Dependency & Scanned PDF Fix**: Installed `pillow` (`pypdf[image]`) to support image extraction from scanned PDF files. Added error resilience and fallback in `knowledge.py:257`. Verified with pytest. Commit `ff46745`.
 
 ---
