@@ -227,7 +227,11 @@ export default function Settings() {
     setAiTesting(true);
     setAiTestResult(null);
     try {
-      const res = await api.testAIConnection();
+      const res = await api.testAIConnection({
+        provider: providerInput,
+        model: modelInput,
+        api_key: apiKeyInput.trim() || undefined,
+      });
       setAiTestResult({ success: true, data: res });
     } catch (err) {
       setAiTestResult({ success: false, error: err.message || "Connection failed" });
@@ -557,243 +561,318 @@ export default function Settings() {
       )}
 
       {/* TAB 3: AI PROVIDER */}
-      {activeTab === "ai" && (
-        <div className="card" style={{ padding: "24px" }}>
-          <h2 style={{ fontSize: "16px", fontWeight: 600, margin: "0 0 4px 0", color: "var(--text-main)" }}>
-            AI Provider & Model Runtime
-          </h2>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "20px" }}>
-            Select your inference provider, configure API keys, and test your live model connection.
-          </p>
+      {activeTab === "ai" && (() => {
+        const currentProvDetail = aiStatus?.providers?.find((p) => p.id === providerInput) || {
+          id: providerInput,
+          name: providerInput.toUpperCase(),
+          is_active: aiStatus?.provider === providerInput,
+          has_key: aiStatus?.provider === providerInput ? aiStatus?.api_key_configured : false,
+          masked_key: aiStatus?.provider === providerInput ? aiStatus?.api_key_masked : null,
+          requires_key: providerInput !== "mock",
+        };
 
-          {aiSaveMessage && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 12px",
-                borderRadius: "4px",
-                fontSize: "12px",
-                marginBottom: "16px",
-                background: aiSaveMessage.type === "success" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                color: aiSaveMessage.type === "success" ? "#34d399" : "#f87171",
-                border: aiSaveMessage.type === "success" ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(239, 68, 68, 0.25)",
-              }}
-            >
-              {aiSaveMessage.type === "success" ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
-              <span>{aiSaveMessage.text}</span>
-            </div>
-          )}
+        return (
+          <div className="card" style={{ padding: "24px" }}>
+            <h2 style={{ fontSize: "16px", fontWeight: 600, margin: "0 0 4px 0", color: "var(--text-main)" }}>
+              AI Provider & Model Runtime
+            </h2>
+            <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "20px" }}>
+              Configure and test inference providers. Green badges indicate the currently active runtime and saved credentials.
+            </p>
 
-          {/* Provider Selection Cards */}
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#a3a3a3", marginBottom: "8px" }}>
-              Select Active AI Provider
-            </label>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px" }}>
-              {[
-                { id: "groq", name: "Groq Cloud LPU", desc: "Ultra-low latency inference", badge: "Fastest" },
-                { id: "gemini", name: "Google Gemini", desc: "Gemini 1.5 Flash & Pro", badge: "Multimodal" },
-                { id: "openai", name: "OpenAI", desc: "GPT-4o & GPT-4o-mini", badge: "Standard" },
-                { id: "mock", name: "Mock Sandbox", desc: "No API key required", badge: "Local Test" },
-              ].map((prov) => {
-                const isSelected = providerInput === prov.id;
-                return (
-                  <div
-                    key={prov.id}
-                    onClick={() => handleProviderSelect(prov.id)}
-                    style={{
-                      padding: "12px 14px",
-                      borderRadius: "6px",
-                      background: isSelected ? "rgba(139, 92, 246, 0.12)" : "#161616",
-                      border: isSelected ? "1px solid #8b5cf6" : "1px solid #262626",
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                      <span style={{ fontSize: "13px", fontWeight: 600, color: isSelected ? "#ffffff" : "#d4d4d4" }}>
-                        {prov.name}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "9px",
-                          fontWeight: 600,
-                          padding: "1px 5px",
-                          borderRadius: "3px",
-                          background: isSelected ? "#8b5cf6" : "#222222",
-                          color: isSelected ? "#ffffff" : "#a3a3a3",
-                        }}
-                      >
-                        {prov.badge}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: "11px", color: "#888888" }}>{prov.desc}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Configuration Form */}
-          <form onSubmit={handleSaveAISettings} style={{ display: "flex", flexDirection: "column", gap: "14px", maxWidth: "560px", marginBottom: "24px" }}>
-            {/* Model Selection */}
-            <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                Default Model
-              </label>
-              {providerInput === "groq" && (
-                <select
-                  value={modelInput}
-                  onChange={(e) => setModelInput(e.target.value)}
-                  className="input"
-                  style={{ fontSize: "12px" }}
-                >
-                  <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b (Groq LPU - Recommended)</option>
-                  <option value="openai/gpt-oss-120b">openai/gpt-oss-120b</option>
-                  <option value="openai/gpt-oss-20b">openai/gpt-oss-20b</option>
-                </select>
-              )}
-              {providerInput === "openai" && (
-                <select
-                  value={modelInput}
-                  onChange={(e) => setModelInput(e.target.value)}
-                  className="input"
-                  style={{ fontSize: "12px" }}
-                >
-                  <option value="gpt-4o-mini">gpt-4o-mini (Fast & Cost-Efficient)</option>
-                  <option value="gpt-4o">gpt-4o (High Intelligence)</option>
-                  <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                </select>
-              )}
-              {providerInput === "gemini" && (
-                <select
-                  value={modelInput}
-                  onChange={(e) => setModelInput(e.target.value)}
-                  className="input"
-                  style={{ fontSize: "12px" }}
-                >
-                  <option value="gemini-1.5-flash">gemini-1.5-flash (Fast & Cost-Efficient)</option>
-                  <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Reasoning)</option>
-                </select>
-              )}
-              {providerInput === "mock" && (
-                <input
-                  type="text"
-                  value="mock-model-v1"
-                  disabled
-                  className="input"
-                  style={{ fontSize: "12px", color: "#888888" }}
-                />
-              )}
-            </div>
-
-            {/* API Key */}
-            {providerInput !== "mock" && (
-              <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  API Key {aiStatus?.api_key_configured && !apiKeyInput ? `(Configured: ${aiStatus.api_key_masked})` : ""}
-                </label>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type={showApiKey ? "text" : "password"}
-                    value={apiKeyInput}
-                    onChange={(e) => setApiKeyInput(e.target.value)}
-                    placeholder={
-                      aiStatus?.api_key_configured
-                        ? "Enter new key to update, or leave blank to keep current"
-                        : providerInput === "groq"
-                        ? "gsk_..."
-                        : providerInput === "gemini"
-                        ? "AIza..."
-                        : "sk-..."
-                    }
-                    className="input"
-                    style={{ fontSize: "12px", paddingRight: "36px" }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                    style={{
-                      position: "absolute",
-                      right: "8px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none",
-                      border: "none",
-                      color: "#737373",
-                      cursor: "pointer",
-                      padding: "4px",
-                    }}
-                    title={showApiKey ? "Hide key" : "Show key"}
-                  >
-                    {showApiKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
-                </div>
-                <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                  Your API keys are encrypted and stored securely on your backend environment.
-                </span>
+            {aiSaveMessage && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "8px 12px",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                  marginBottom: "16px",
+                  background: aiSaveMessage.type === "success" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                  color: aiSaveMessage.type === "success" ? "#34d399" : "#f87171",
+                  border: aiSaveMessage.type === "success" ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(239, 68, 68, 0.25)",
+                }}
+              >
+                {aiSaveMessage.type === "success" ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                <span>{aiSaveMessage.text}</span>
               </div>
             )}
 
-            <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "6px" }}>
-              <button
-                type="submit"
-                disabled={aiSaving}
-                className="btn btn-primary btn-sm"
-                style={{ padding: "7px 16px" }}
-              >
-                <Save size={13} />
-                <span>{aiSaving ? "Saving..." : "Save AI Configuration"}</span>
-              </button>
+            {/* Provider Selection Cards with Active / Key Badges */}
+            <div style={{ marginBottom: "22px" }}>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#a3a3a3", marginBottom: "8px" }}>
+                AI Providers & Credential Status
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "12px" }}>
+                {[
+                  { id: "groq", name: "Groq Cloud LPU", desc: "Ultra-low latency inference", badge: "Fastest" },
+                  { id: "gemini", name: "Google Gemini", desc: "Gemini 1.5 Flash & Pro", badge: "Multimodal" },
+                  { id: "openai", name: "OpenAI", desc: "GPT-4o & GPT-4o-mini", badge: "Standard" },
+                  { id: "mock", name: "Mock Sandbox", desc: "Simulated token execution", badge: "Zero Cost" },
+                ].map((prov) => {
+                  const isSelected = providerInput === prov.id;
+                  const detail = aiStatus?.providers?.find((p) => p.id === prov.id);
+                  const isActiveRuntime = detail ? detail.is_active : (aiStatus?.provider === prov.id);
+                  const hasKey = detail ? detail.has_key : false;
+                  const requiresKey = detail ? detail.requires_key : (prov.id !== "mock");
 
-              <button
-                type="button"
-                onClick={handleTestAI}
-                disabled={aiTesting}
-                className="btn btn-secondary btn-sm"
-                style={{ padding: "7px 14px" }}
-              >
-                <RefreshCw size={13} className={aiTesting ? "spin" : ""} />
-                <span>{aiTesting ? "Testing Ping..." : "Test AI Model Connection"}</span>
-              </button>
-            </div>
-          </form>
+                  return (
+                    <div
+                      key={prov.id}
+                      onClick={() => handleProviderSelect(prov.id)}
+                      style={{
+                        padding: "14px",
+                        borderRadius: "6px",
+                        background: isSelected ? "rgba(139, 92, 246, 0.12)" : "#161616",
+                        border: isSelected ? "1px solid #8b5cf6" : "1px solid #262626",
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                          <span style={{ fontSize: "13px", fontWeight: 600, color: isSelected ? "#ffffff" : "#d4d4d4" }}>
+                            {prov.name}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "9px",
+                              fontWeight: 600,
+                              padding: "1px 5px",
+                              borderRadius: "3px",
+                              background: isSelected ? "#8b5cf6" : "#222222",
+                              color: isSelected ? "#ffffff" : "#a3a3a3",
+                            }}
+                          >
+                            {prov.badge}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#888888", marginBottom: "10px" }}>{prov.desc}</div>
+                      </div>
 
-          {/* Test Results Banner */}
-          {aiTestResult && (
-            <div
-              style={{
-                padding: "12px 16px",
-                borderRadius: "6px",
-                fontSize: "12px",
-                maxWidth: "560px",
-                background: aiTestResult.success ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                color: aiTestResult.success ? "#34d399" : "#f87171",
-                border: aiTestResult.success ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(239, 68, 68, 0.25)",
-              }}
-            >
-              {aiTestResult.success ? (
-                <div>
-                  <div style={{ fontWeight: 600, marginBottom: "4px" }}>✓ AI Connection Verified Successfully</div>
-                  <div style={{ fontFamily: "var(--font-mono)", color: "#d4d4d4", fontSize: "11px" }}>
-                    Provider: {aiTestResult.data?.provider} • Model: {aiTestResult.data?.model} • Latency: {aiTestResult.data?.latency_ms}ms • Tokens: {aiTestResult.data?.tokens}
-                  </div>
-                  <div style={{ marginTop: "4px", fontSize: "11px", color: "#a3a3a3" }}>
-                    Response: <span style={{ color: "#34d399", fontWeight: 600 }}>"{aiTestResult.data?.response}"</span>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ fontWeight: 600, marginBottom: "2px" }}>✕ Connection Failed</div>
-                  <div style={{ fontSize: "11px", lineHeight: "1.4" }}>{aiTestResult.error}</div>
-                </div>
-              )}
+                      {/* Status Tags */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          {isActiveRuntime ? (
+                            <span style={{ fontSize: "10px", fontWeight: 700, padding: "1px 6px", borderRadius: "3px", background: "rgba(16, 185, 129, 0.2)", color: "#34d399", border: "1px solid rgba(16, 185, 129, 0.4)" }}>
+                              ✓ ACTIVE RUNTIME
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "#222222", color: "#737373" }}>
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          {!requiresKey ? (
+                            <span style={{ fontSize: "10px", color: "#38bdf8", fontWeight: 500 }}>
+                              ✓ No Key Needed
+                            </span>
+                          ) : hasKey ? (
+                            <span style={{ fontSize: "10px", color: "#34d399", fontWeight: 500 }}>
+                              ✓ Key Configured ({detail?.masked_key})
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: "10px", color: "#f87171", fontWeight: 600 }}>
+                              ⚠ Key Required
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Provider Configuration Form */}
+            <form onSubmit={handleSaveAISettings} style={{ display: "flex", flexDirection: "column", gap: "14px", maxWidth: "560px", marginBottom: "20px" }}>
+              <div style={{ padding: "12px", background: "#161616", border: "1px solid #262626", borderRadius: "6px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5", marginBottom: "12px" }}>
+                  Configuring: <span style={{ color: "#8b5cf6" }}>{currentProvDetail.name}</span>
+                </div>
+
+                {/* Default Model */}
+                <div style={{ marginBottom: "12px" }}>
+                  <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
+                    Default Model
+                  </label>
+                  {providerInput === "groq" && (
+                    <select
+                      value={modelInput}
+                      onChange={(e) => setModelInput(e.target.value)}
+                      className="input"
+                      style={{ fontSize: "12px" }}
+                    >
+                      <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b (Groq LPU - Recommended)</option>
+                      <option value="openai/gpt-oss-120b">openai/gpt-oss-120b</option>
+                      <option value="openai/gpt-oss-20b">openai/gpt-oss-20b</option>
+                    </select>
+                  )}
+                  {providerInput === "openai" && (
+                    <select
+                      value={modelInput}
+                      onChange={(e) => setModelInput(e.target.value)}
+                      className="input"
+                      style={{ fontSize: "12px" }}
+                    >
+                      <option value="gpt-4o-mini">gpt-4o-mini (Fast & Cost-Efficient)</option>
+                      <option value="gpt-4o">gpt-4o (High Intelligence)</option>
+                    </select>
+                  )}
+                  {providerInput === "gemini" && (
+                    <select
+                      value={modelInput}
+                      onChange={(e) => setModelInput(e.target.value)}
+                      className="input"
+                      style={{ fontSize: "12px" }}
+                    >
+                      <option value="gemini-1.5-flash">gemini-1.5-flash (Fast & Cost-Efficient)</option>
+                      <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Reasoning)</option>
+                    </select>
+                  )}
+                  {providerInput === "mock" && (
+                    <input
+                      type="text"
+                      value="mock-model-v1"
+                      disabled
+                      className="input"
+                      style={{ fontSize: "12px", color: "#888888" }}
+                    />
+                  )}
+                </div>
+
+                {/* API Key Input */}
+                {providerInput !== "mock" && (
+                  <div>
+                    <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
+                      API Key{" "}
+                      {currentProvDetail.has_key ? (
+                        <span style={{ color: "#34d399", fontWeight: 400 }}>
+                          (Configured: {currentProvDetail.masked_key})
+                        </span>
+                      ) : (
+                        <span style={{ color: "#ef4444", fontWeight: 600 }}>
+                          (Missing — Required to use {currentProvDetail.name})
+                        </span>
+                      )}
+                    </label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        type={showApiKey ? "text" : "password"}
+                        value={apiKeyInput}
+                        onChange={(e) => setApiKeyInput(e.target.value)}
+                        placeholder={
+                          currentProvDetail.has_key
+                            ? "Enter new key to replace, or leave blank to keep current"
+                            : providerInput === "openai"
+                            ? "sk-..."
+                            : providerInput === "gemini"
+                            ? "AIza..."
+                            : "gsk_..."
+                        }
+                        className="input"
+                        style={{ fontSize: "12px", paddingRight: "36px" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        style={{
+                          position: "absolute",
+                          right: "8px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          background: "none",
+                          border: "none",
+                          color: "#737373",
+                          cursor: "pointer",
+                          padding: "4px",
+                        }}
+                        title={showApiKey ? "Hide key" : "Show key"}
+                      >
+                        {showApiKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+                    <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
+                      {providerInput === "groq"
+                        ? "Groq keys start with 'gsk_' (console.groq.com/keys)"
+                        : providerInput === "gemini"
+                        ? "Google AI Studio keys start with 'AIza' (aistudio.google.com/apikey)"
+                        : "OpenAI keys start with 'sk-' (platform.openai.com/api-keys)"}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <button
+                  type="submit"
+                  disabled={aiSaving}
+                  className="btn btn-primary btn-sm"
+                  style={{ padding: "7px 16px" }}
+                >
+                  <Save size={13} />
+                  <span>{aiSaving ? "Saving..." : "Set as Active Runtime & Save"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleTestAI}
+                  disabled={aiTesting}
+                  className="btn btn-secondary btn-sm"
+                  style={{ padding: "7px 14px" }}
+                >
+                  <RefreshCw size={13} className={aiTesting ? "spin" : ""} />
+                  <span>{aiTesting ? "Testing Ping..." : `Test ${currentProvDetail.name} Connection`}</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Test Results Output Banner */}
+            {aiTestResult && (
+              <div
+                style={{
+                  padding: "12px 16px",
+                  borderRadius: "6px",
+                  fontSize: "12px",
+                  maxWidth: "560px",
+                  background: aiTestResult.success ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                  color: aiTestResult.success ? "#34d399" : "#f87171",
+                  border: aiTestResult.success ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(239, 68, 68, 0.25)",
+                }}
+              >
+                {aiTestResult.success ? (
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: "4px" }}>
+                      ✓ {aiTestResult.data?.provider?.toUpperCase()} Verified Successfully
+                    </div>
+                    <div style={{ fontFamily: "var(--font-mono)", color: "#d4d4d4", fontSize: "11px" }}>
+                      Provider: {aiTestResult.data?.provider} • Model: {aiTestResult.data?.model} • Latency: {aiTestResult.data?.latency_ms}ms • Tokens: {aiTestResult.data?.tokens}
+                    </div>
+                    <div style={{ marginTop: "4px", fontSize: "11px", color: "#a3a3a3" }}>
+                      Response: <span style={{ color: "#34d399", fontWeight: 600 }}>"{aiTestResult.data?.response}"</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: "2px" }}>
+                      ✕ {providerInput.toUpperCase()} Connection Test Failed
+                    </div>
+                    <div style={{ fontSize: "11px", lineHeight: "1.4" }}>{aiTestResult.error}</div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* TAB 4: CANVAS PREFERENCES */}
       {activeTab === "appearance" && (

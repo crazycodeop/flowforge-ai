@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     AI_REQUEST_TIMEOUT: int = 30
     AI_MAX_RETRIES: int = 3
 
+    # Provider-Specific API Keys
+    GROQ_API_KEY: str | None = None
+    OPENAI_API_KEY: str | None = None
+    GEMINI_API_KEY: str | None = None
+
     # Google OAuth
     GOOGLE_CLIENT_ID: str | None = (
         "984331841923-mbs15eafro18p6tlr0ab4fm9ca6dfhj9.apps.googleusercontent.com"

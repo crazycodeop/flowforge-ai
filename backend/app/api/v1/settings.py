@@ -1,4 +1,6 @@
+import os
 import time
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -32,12 +34,15 @@ class UserProfileResponse(BaseModel):
     created_at: str
 
 
+class ProviderDetail(BaseModel):
+    id: str
+    name: str
+    is_active: bool
+    has_key: bool
+    masked_key: str | None = None
+    default_model: str
+    requires_key: bool
 
-class AIProviderUpdateRequest(BaseModel):
-    provider: str = Field(..., description="Provider name: 'groq', 'openai', 'gemini', or 'mock'")
-    model: str = Field(..., description="Default model name")
-    api_key: str | None = Field(default=None, description="API Key")
-    base_url: str | None = Field(default=None, description="Optional Base URL")
 
 class AIProviderStatusResponse(BaseModel):
     provider: str
@@ -47,6 +52,75 @@ class AIProviderStatusResponse(BaseModel):
     api_key_masked: str | None = None
     request_timeout: int
     max_retries: int
+    providers: list[ProviderDetail] = Field(default_factory=list)
+
+
+class AIProviderUpdateRequest(BaseModel):
+    provider: str = Field(..., description="Provider name: 'groq', 'gemini', 'openai', or 'mock'")
+    model: str = Field(..., description="Default model name")
+    api_key: str | None = Field(default=None, description="API Key")
+    base_url: str | None = Field(default=None, description="Optional Base URL")
+
+
+class AIConnectionTestRequest(BaseModel):
+    provider: str | None = Field(default=None, description="Provider to test")
+    model: str | None = Field(default=None, description="Model to test")
+    api_key: str | None = Field(default=None, description="Optional test API key")
+
+
+def _mask_key(key: str | None) -> str | None:
+    if not key:
+        return None
+    if len(key) > 8:
+        return f"{key[:4]}...{key[-4:]}"
+    return "****"
+
+
+def _build_provider_details(settings) -> list[ProviderDetail]:
+    active_prov = settings.AI_PROVIDER.lower().strip()
+
+    groq_key = getattr(settings, "GROQ_API_KEY", None) or (settings.AI_API_KEY if active_prov == "groq" else None)
+    openai_key = getattr(settings, "OPENAI_API_KEY", None) or (settings.AI_API_KEY if active_prov == "openai" else None)
+    gemini_key = getattr(settings, "GEMINI_API_KEY", None) or (settings.AI_API_KEY if active_prov == "gemini" else None)
+
+    return [
+        ProviderDetail(
+            id="groq",
+            name="Groq Cloud LPU",
+            is_active=(active_prov == "groq"),
+            has_key=bool(groq_key),
+            masked_key=_mask_key(groq_key),
+            default_model=settings.AI_MODEL if active_prov == "groq" else "qwen/qwen3.8-27b",
+            requires_key=True,
+        ),
+        ProviderDetail(
+            id="gemini",
+            name="Google Gemini",
+            is_active=(active_prov == "gemini"),
+            has_key=bool(gemini_key),
+            masked_key=_mask_key(gemini_key),
+            default_model=settings.AI_MODEL if active_prov == "gemini" else "gemini-1.5-flash",
+            requires_key=True,
+        ),
+        ProviderDetail(
+            id="openai",
+            name="OpenAI",
+            is_active=(active_prov == "openai"),
+            has_key=bool(openai_key),
+            masked_key=_mask_key(openai_key),
+            default_model=settings.AI_MODEL if active_prov == "openai" else "gpt-4o-mini",
+            requires_key=True,
+        ),
+        ProviderDetail(
+            id="mock",
+            name="Mock Sandbox",
+            is_active=(active_prov == "mock"),
+            has_key=True,
+            masked_key="No Key Needed",
+            default_model="mock-model-v1",
+            requires_key=False,
+        ),
+    ]
 
 
 @router.get("/profile", response_model=UserProfileResponse)
@@ -97,29 +171,65 @@ def change_password(
 @router.get("/ai", response_model=AIProviderStatusResponse)
 def get_ai_status(user: Annotated[User, Depends(require_user)]) -> AIProviderStatusResponse:
     settings = get_settings()
-    raw_key = settings.AI_API_KEY
-    masked = None
-    if raw_key and len(raw_key) > 8:
-        masked = f"{raw_key[:4]}...{raw_key[-4:]}"
-    elif raw_key:
-        masked = "****"
+    active_prov = settings.AI_PROVIDER.lower().strip()
+
+    active_key = None
+    if active_prov == "groq":
+        active_key = getattr(settings, "GROQ_API_KEY", None) or settings.AI_API_KEY
+    elif active_prov == "openai":
+        active_key = getattr(settings, "OPENAI_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "openai" else None)
+    elif active_prov == "gemini":
+        active_key = getattr(settings, "GEMINI_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None)
+    elif active_prov == "mock":
+        active_key = "mock"
 
     return AIProviderStatusResponse(
         provider=settings.AI_PROVIDER,
         model=settings.AI_MODEL,
         base_url=settings.AI_BASE_URL,
-        api_key_configured=bool(raw_key),
-        api_key_masked=masked,
+        api_key_configured=bool(active_key),
+        api_key_masked=_mask_key(active_key) if active_prov != "mock" else "No Key Needed",
         request_timeout=settings.AI_REQUEST_TIMEOUT,
         max_retries=settings.AI_MAX_RETRIES,
+        providers=_build_provider_details(settings),
     )
 
 
 @router.post("/ai/test")
-def test_ai_connection(user: Annotated[User, Depends(require_user)]):
-    """Executes a live test ping against the active AI provider."""
+def test_ai_connection(
+    payload: AIConnectionTestRequest | None = None,
+    user: Annotated[User, Depends(require_user)] = None,
+):
+    """Executes a live test ping against the specified or active AI provider."""
+    settings = get_settings()
+    target_prov = (payload.provider if payload and payload.provider else settings.AI_PROVIDER).lower().strip()
+    target_model = payload.model if payload and payload.model else None
+    target_key = payload.api_key if payload and payload.api_key else None
+
+    # Check key requirements
+    if target_prov != "mock":
+        resolved_key = target_key
+        if not resolved_key:
+            if target_prov == "groq":
+                resolved_key = getattr(settings, "GROQ_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "groq" else None)
+            elif target_prov == "openai":
+                resolved_key = getattr(settings, "OPENAI_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "openai" else None)
+            elif target_prov == "gemini":
+                resolved_key = getattr(settings, "GEMINI_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None)
+
+        if not resolved_key:
+            prefix_hint = "sk-..." if target_prov == "openai" else "AIza..." if target_prov == "gemini" else "gsk_..."
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{target_prov.upper()} API key is missing. Please enter your API key ({prefix_hint}) and save configuration before testing.",
+            )
+
     try:
-        provider = get_ai_provider()
+        provider = get_ai_provider(
+            provider_name=target_prov,
+            model=target_model,
+            api_key=target_key,
+        )
         start = time.perf_counter()
         resp = provider.complete("Respond with only: PONG")
         latency = round((time.perf_counter() - start) * 1000, 2)
@@ -134,7 +244,7 @@ def test_ai_connection(user: Annotated[User, Depends(require_user)]):
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"AI connection test failed: {str(e)}",
+            detail=f"{target_prov.upper()} connection test failed: {str(e)}",
         ) from e
 
 
@@ -143,10 +253,7 @@ def update_ai_settings(
     payload: AIProviderUpdateRequest,
     user: Annotated[User, Depends(require_user)],
 ) -> AIProviderStatusResponse:
-    import os
-    from pathlib import Path
-
-    valid_providers = {"groq", "openai", "gemini", "mock", "ollama"}
+    valid_providers = {"groq", "gemini", "openai", "mock", "ollama"}
     prov = payload.provider.lower().strip()
     if prov not in valid_providers:
         raise HTTPException(
@@ -156,8 +263,13 @@ def update_ai_settings(
 
     os.environ["AI_PROVIDER"] = prov
     os.environ["AI_MODEL"] = payload.model
-    if payload.api_key is not None:
-        os.environ["AI_API_KEY"] = payload.api_key
+
+    key_var_name = "GROQ_API_KEY" if prov == "groq" else "OPENAI_API_KEY" if prov == "openai" else "GEMINI_API_KEY" if prov == "gemini" else None
+
+    if payload.api_key is not None and payload.api_key.strip():
+        os.environ["AI_API_KEY"] = payload.api_key.strip()
+        if key_var_name:
+            os.environ[key_var_name] = payload.api_key.strip()
     if payload.base_url is not None:
         os.environ["AI_BASE_URL"] = payload.base_url
 
@@ -169,17 +281,36 @@ def update_ai_settings(
         if env_path.exists():
             lines = env_path.read_text(encoding="utf-8").splitlines()
             new_lines = []
+            seen_prov = False
+            seen_model = False
+            seen_key = False
+            seen_specific = False
+
             for line in lines:
                 if line.startswith("AI_PROVIDER="):
                     new_lines.append(f"AI_PROVIDER={prov}")
+                    seen_prov = True
                 elif line.startswith("AI_MODEL="):
                     new_lines.append(f"AI_MODEL={payload.model}")
-                elif line.startswith("AI_API_KEY=") and payload.api_key is not None:
-                    new_lines.append(f"AI_API_KEY={payload.api_key}")
-                elif line.startswith("AI_BASE_URL=") and payload.base_url is not None:
-                    new_lines.append(f"AI_BASE_URL={payload.base_url}")
+                    seen_model = True
+                elif line.startswith("AI_API_KEY=") and payload.api_key and payload.api_key.strip():
+                    new_lines.append(f"AI_API_KEY={payload.api_key.strip()}")
+                    seen_key = True
+                elif key_var_name and line.startswith(f"{key_var_name}=") and payload.api_key and payload.api_key.strip():
+                    new_lines.append(f"{key_var_name}={payload.api_key.strip()}")
+                    seen_specific = True
                 else:
                     new_lines.append(line)
+
+            if not seen_prov:
+                new_lines.append(f"AI_PROVIDER={prov}")
+            if not seen_model:
+                new_lines.append(f"AI_MODEL={payload.model}")
+            if not seen_key and payload.api_key and payload.api_key.strip():
+                new_lines.append(f"AI_API_KEY={payload.api_key.strip()}")
+            if key_var_name and not seen_specific and payload.api_key and payload.api_key.strip():
+                new_lines.append(f"{key_var_name}={payload.api_key.strip()}")
+
             env_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
     except Exception:
         pass
@@ -187,19 +318,23 @@ def update_ai_settings(
     get_settings.cache_clear()
     refreshed = get_settings()
 
-    raw_key = refreshed.AI_API_KEY
-    masked = None
-    if raw_key and len(raw_key) > 8:
-        masked = f"{raw_key[:4]}...{raw_key[-4:]}"
-    elif raw_key:
-        masked = "****"
+    active_key = None
+    if prov == "groq":
+        active_key = getattr(refreshed, "GROQ_API_KEY", None) or refreshed.AI_API_KEY
+    elif prov == "openai":
+        active_key = getattr(refreshed, "OPENAI_API_KEY", None) or (refreshed.AI_API_KEY if refreshed.AI_PROVIDER == "openai" else None)
+    elif prov == "gemini":
+        active_key = getattr(refreshed, "GEMINI_API_KEY", None) or (refreshed.AI_API_KEY if refreshed.AI_PROVIDER == "gemini" else None)
+    elif prov == "mock":
+        active_key = "mock"
 
     return AIProviderStatusResponse(
         provider=refreshed.AI_PROVIDER,
         model=refreshed.AI_MODEL,
         base_url=refreshed.AI_BASE_URL,
-        api_key_configured=bool(raw_key),
-        api_key_masked=masked,
+        api_key_configured=bool(active_key),
+        api_key_masked=_mask_key(active_key) if prov != "mock" else "No Key Needed",
         request_timeout=refreshed.AI_REQUEST_TIMEOUT,
         max_retries=refreshed.AI_MAX_RETRIES,
+        providers=_build_provider_details(refreshed),
     )

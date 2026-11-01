@@ -164,9 +164,10 @@ export const api = {
     });
   },
 
-  async testAIConnection() {
+  async testAIConnection(payload) {
     return request("/settings/ai/test", {
       method: "POST",
+      body: payload ? JSON.stringify(payload) : undefined,
     });
   },
 
