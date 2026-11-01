@@ -265,3 +265,36 @@
   - `cd frontend && npm test`: **2 passed** in 2.48s.
   - `cd frontend && npm run build`: **Successful production Vite build** in 33.8s.
   - `ruff check backend`: 0 lint errors.
+
+## Milestone 19: GitHub Actions CI Pipeline Resolution & Clean Inspector Overhaul
+- **Status**: Completed
+- **Date**: 2026-11-01
+- **Directives & Objectives Addressed**:
+  1. Fix the GitHub Actions CI pipeline failure on `backend-checks` (`pip install -e "./backend[dev]"`).
+  2. Format all backend code according to `ruff format --check backend`.
+  3. Clean up the Node Inspector across all workflow nodes, eliminating visual clutter, paragraph text, and multi-line helper notes.
+- **Root Cause Analysis (CI Failure)**:
+  - `setuptools` package discovery error: `Multiple top-level packages discovered in a flat-layout: ['app', 'alembic']`. Setuptools required explicit package discovery directives in `pyproject.toml`.
+  - `backend/README.md` missing: Setuptools warned about missing README referenced in `backend/pyproject.toml`.
+  - `ruff format --check backend` failure: Unformatted lines in `factory.py`, `runs.py`, and `settings.py`.
+- **Key Changes**:
+  1. **Backend Package Discovery & Build Spec (`backend/pyproject.toml`)**:
+     - Added `[tool.setuptools.packages.find]` directive with `include = ["app*"]` and `where = ["."]`.
+     - Relaxed `requires-python` from strict `3.12` to `>=3.11` to allow cross-environment consistency across dev environments and GitHub Actions runners.
+     - Added `backend/README.md` to satisfy setuptools packaging requirements.
+  2. **CI Workflow Enhancement (`.github/workflows/ci.yml`)**:
+     - Added `PYTHONPATH: backend` environment variable to `Run Pytest Test Suite` to ensure consistent imports in CI.
+  3. **Code Formatting**:
+     - Executed `ruff format backend`, bringing all 77 files into 100% compliance with `ruff format --check`.
+  4. **Minimal Clean Node Inspector (`frontend/src/components/builder/NodeInspector.jsx`)**:
+     - Replaced verbose inline paragraph descriptions and explanatory notes across all node types with compact, clean input labels.
+     - Implemented native hover tooltips (`<HelpCircle size={11} />` with `title="..."`) so guidance is available on hover without cluttering the canvas UI.
+     - Streamlined the Condition Branch node with an inline rule preview badge.
+     - Compacted inspector width to 290px for high-density workflow editing.
+- **Tests & Verification**:
+  - `pip install -e "./backend[dev]"`: Succeeded with 0 errors.
+  - `ruff check backend`: All checks passed!
+  - `ruff format --check backend`: 77 files passed format check.
+  - `pytest backend/tests`: **54 passed, 2 warnings** in 12.32s.
+  - `cd frontend && npm test`: **2 passed** in 6.13s.
+  - `cd frontend && npm run build`: **1770 modules transformed, build succeeded** in 5.46s.

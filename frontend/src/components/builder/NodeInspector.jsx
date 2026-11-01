@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { api } from "../../api/client";
 import {
   X,
   Trash2,
@@ -13,7 +12,9 @@ import {
   Shuffle,
   ShieldAlert,
   CheckCircle2,
+  HelpCircle,
 } from "lucide-react";
+import { api } from "../../api/client";
 
 const NODE_ICONS = {
   trigger: Zap,
@@ -39,12 +40,9 @@ const NODE_TAGS = {
   output: "Workflow Result",
 };
 
-/**
- * Reusable guided model dropdown to prevent typos.
- */
 const PROVIDER_MODELS = {
   groq: [
-    { label: "qwen/qwen3.8-27b (Groq LPU - Recommended)", value: "qwen/qwen3.8-27b" },
+    { label: "qwen/qwen3.8-27b (Groq LPU)", value: "qwen/qwen3.8-27b" },
     { label: "openai/gpt-oss-120b (Groq LPU)", value: "openai/gpt-oss-120b" },
     { label: "openai/gpt-oss-20b (Groq LPU)", value: "openai/gpt-oss-20b" },
   ],
@@ -60,6 +58,40 @@ const PROVIDER_MODELS = {
     { label: "mock-model-v1 (Simulated)", value: "mock-model-v1" },
   ],
 };
+
+/**
+ * Clean field label with optional native hover tooltip.
+ */
+function FieldLabel({ label, tooltip }) {
+  return (
+    <label
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+        fontSize: "11px",
+        fontWeight: 600,
+        color: "#888888",
+        marginBottom: "4px",
+      }}
+    >
+      <span>{label}</span>
+      {tooltip && (
+        <span
+          title={tooltip}
+          style={{
+            cursor: "help",
+            color: "#666666",
+            display: "inline-flex",
+            alignItems: "center",
+          }}
+        >
+          <HelpCircle size={11} />
+        </span>
+      )}
+    </label>
+  );
+}
 
 /**
  * Filtered model dropdown displaying ONLY models with active/saved API keys.
@@ -79,23 +111,20 @@ function ModelSelector({ value, onChange }) {
     };
   }, []);
 
-  // Filter available models to ONLY providers that have a configured key
   const availableModels = useMemo(() => {
     const list = [
       {
-        label: `Default (Workspace Default${aiSettings?.model ? ` - ${aiSettings.model}` : ""})`,
+        label: `Default (${aiSettings?.model || "Workspace Settings"})`,
         value: "",
       },
     ];
 
     if (!aiSettings) {
-      // Default to groq models since groq is the default configured provider
       return [...list, ...(PROVIDER_MODELS.groq || [])];
     }
 
     const providers = aiSettings.providers || [];
     providers.forEach((prov) => {
-      // Only include models if provider has a configured key or is mock
       if (prov.has_key) {
         const models = PROVIDER_MODELS[prov.id] || [];
         list.push(...models);
@@ -105,22 +134,15 @@ function ModelSelector({ value, onChange }) {
     return list;
   }, [aiSettings]);
 
-  // Check if current value belongs to an unkeyed provider (e.g. legacy gemini)
   const isUnkeyedCurrent = useMemo(() => {
     if (!value || !aiSettings?.providers) return false;
-    // Check if value is from a provider without key
-    if (value.startsWith("gemini") && !aiSettings.providers.find(p => p.id === "gemini")?.has_key) return true;
-    if (value.startsWith("gpt") && !aiSettings.providers.find(p => p.id === "openai")?.has_key) return true;
+    if (value.startsWith("gemini") && !aiSettings.providers.find((p) => p.id === "gemini")?.has_key) return true;
+    if (value.startsWith("gpt") && !aiSettings.providers.find((p) => p.id === "openai")?.has_key) return true;
     return false;
   }, [value, aiSettings]);
 
   const isCustom = Boolean(value && !availableModels.some((m) => m.value === value) && !isUnkeyedCurrent);
   const [showCustom, setShowCustom] = useState(isCustom);
-
-  const missingKeyProviders = useMemo(() => {
-    if (!aiSettings?.providers) return [];
-    return aiSettings.providers.filter((p) => p.requires_key && !p.has_key).map((p) => p.name);
-  }, [aiSettings]);
 
   return (
     <div>
@@ -145,7 +167,7 @@ function ModelSelector({ value, onChange }) {
       >
         {isUnkeyedCurrent && (
           <option value="unkeyed" style={{ color: "#f87171" }}>
-            ⚠ {value} (Missing API Key — Select a valid model below)
+            ⚠ {value} (Missing Key)
           </option>
         )}
         {availableModels.map((m) => (
@@ -161,25 +183,11 @@ function ModelSelector({ value, onChange }) {
           type="text"
           value={value || ""}
           onChange={(e) => onChange(e.target.value || null)}
-          placeholder="Enter custom model ID (e.g. meta-llama/llama-3.1)..."
+          placeholder="e.g. meta-llama/llama-3.1"
           className="input"
           style={{ fontSize: "11px", marginTop: "4px" }}
           autoFocus
         />
-      )}
-
-      {isUnkeyedCurrent && (
-        <div style={{ marginTop: "4px", padding: "6px 8px", background: "rgba(239, 68, 68, 0.12)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "4px" }}>
-          <span style={{ fontSize: "10px", color: "#f87171", display: "block", lineHeight: 1.3 }}>
-            ⚠ <strong>{value}</strong> requires an API key that is not configured. Please switch to <strong>Default</strong> or add the key in Settings.
-          </span>
-        </div>
-      )}
-
-      {missingKeyProviders.length > 0 && !isUnkeyedCurrent && (
-        <span style={{ fontSize: "10px", color: "#737373", marginTop: "4px", display: "block", lineHeight: 1.3 }}>
-          Showing only models with saved keys. Add {missingKeyProviders.join(", ")} keys in <a href="/settings" style={{ color: "#a78bfa", textDecoration: "underline" }}>Settings</a> to unlock more.
-        </span>
       )}
     </div>
   );
@@ -187,6 +195,7 @@ function ModelSelector({ value, onChange }) {
 
 /**
  * Render-inspired dark inspector panel for configuring selected nodes.
+ * Streamlined, clean, and minimal without noisy helper paragraphs.
  * @param {{
  *   node: any,
  *   onClose: () => void,
@@ -209,32 +218,20 @@ export default function NodeInspector({
   const Icon = NODE_ICONS[nodeType] || Sliders;
   const tag = NODE_TAGS[nodeType] || nodeType;
 
-  // Local state for raw JSON text inputs to allow smooth editing without parsing errors on every keystroke
   const [jsonTextState, setJsonTextState] = useState({});
   const [jsonErrorState, setJsonErrorState] = useState({});
 
   useEffect(() => {
-    // Sync local JSON text buffers when node changes
     if (nodeType === "trigger") {
-      setJsonTextState({
-        input_schema: JSON.stringify(config.input_schema || {}, null, 2),
-      });
+      setJsonTextState({ input_schema: JSON.stringify(config.input_schema || {}, null, 2) });
     } else if (nodeType === "input_data") {
-      setJsonTextState({
-        default_payload: JSON.stringify(config.default_payload || {}, null, 2),
-      });
+      setJsonTextState({ default_payload: JSON.stringify(config.default_payload || {}, null, 2) });
     } else if (nodeType === "structured_extract") {
-      setJsonTextState({
-        schema_definition: JSON.stringify(config.schema_definition || {}, null, 2),
-      });
+      setJsonTextState({ schema_definition: JSON.stringify(config.schema_definition || {}, null, 2) });
     } else if (nodeType === "transform") {
-      setJsonTextState({
-        mapping_rules: JSON.stringify(config.mapping_rules || {}, null, 2),
-      });
+      setJsonTextState({ mapping_rules: JSON.stringify(config.mapping_rules || {}, null, 2) });
     } else if (nodeType === "output") {
-      setJsonTextState({
-        response_template: JSON.stringify(config.response_template || {}, null, 2),
-      });
+      setJsonTextState({ response_template: JSON.stringify(config.response_template || {}, null, 2) });
     }
     setJsonErrorState({});
   }, [node.id, nodeType]);
@@ -262,21 +259,21 @@ export default function NodeInspector({
       const parsed = JSON.parse(text);
       setJsonErrorState((prev) => ({ ...prev, [key]: null }));
       handleConfigChange(key, parsed);
-    } catch (err) {
-      setJsonErrorState((prev) => ({ ...prev, [key]: "Invalid JSON format" }));
+    } catch {
+      setJsonErrorState((prev) => ({ ...prev, [key]: "Invalid JSON" }));
     }
   };
 
   return (
     <aside
       style={{
-        width: isOverlay ? "min(360px, 92vw)" : "320px",
+        width: isOverlay ? "min(340px, 92vw)" : "290px",
         background: "#111111",
         borderLeft: "1px solid #222222",
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
-        padding: "16px",
+        padding: "14px 16px",
         flexShrink: 0,
         height: "100%",
         zIndex: isOverlay ? 40 : "auto",
@@ -289,16 +286,16 @@ export default function NodeInspector({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "16px",
-          paddingBottom: "10px",
+          marginBottom: "14px",
+          paddingBottom: "8px",
           borderBottom: "1px solid #222222",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <div
             style={{
-              width: "24px",
-              height: "24px",
+              width: "22px",
+              height: "22px",
               borderRadius: "4px",
               background: "rgba(139, 92, 246, 0.15)",
               display: "flex",
@@ -306,7 +303,7 @@ export default function NodeInspector({
               justifyContent: "center",
             }}
           >
-            <Icon size={14} color="#a78bfa" />
+            <Icon size={13} color="#a78bfa" />
           </div>
           <div>
             <div style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5", lineHeight: 1.2 }}>
@@ -317,7 +314,7 @@ export default function NodeInspector({
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           <button
             type="button"
             onClick={() => onDeleteNode(node.id)}
@@ -344,7 +341,7 @@ export default function NodeInspector({
               e.currentTarget.style.backgroundColor = "transparent";
             }}
           >
-            <Trash2 size={14} />
+            <Trash2 size={13} />
           </button>
           <button
             onClick={onClose}
@@ -364,49 +361,43 @@ export default function NodeInspector({
             onMouseEnter={(e) => (e.currentTarget.style.color = "#f5f5f5")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "#737373")}
           >
-            <X size={15} />
+            <X size={14} />
           </button>
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "14px", flex: 1 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
         {/* Node Label */}
         <div>
-          <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-            Node Label
-          </label>
+          <FieldLabel label="Label" />
           <input
             type="text"
             value={node.data.name || ""}
             onChange={(e) => handleFieldChange("name", e.target.value)}
             className="input"
             style={{ fontSize: "12px" }}
-            placeholder="e.g. Triage Customer Ticket"
+            placeholder="e.g. AI Intent Classifier"
           />
         </div>
 
         {/* Node Description */}
         <div>
-          <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-            Description
-          </label>
+          <FieldLabel label="Description" />
           <input
             type="text"
             value={node.data.description || ""}
             onChange={(e) => handleFieldChange("description", e.target.value)}
             className="input"
             style={{ fontSize: "12px" }}
-            placeholder="Brief explanation of what this step does"
+            placeholder="Optional step notes"
           />
         </div>
 
-        {/* 1. API TRIGGER CONFIG */}
+        {/* 1. API TRIGGER */}
         {nodeType === "trigger" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <>
             <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                Trigger Type
-              </label>
+              <FieldLabel label="Trigger Type" />
               <select
                 value={config.trigger_type || "api"}
                 onChange={(e) => handleConfigChange("trigger_type", e.target.value)}
@@ -417,16 +408,11 @@ export default function NodeInspector({
                 <option value="manual">Manual Trigger</option>
                 <option value="scheduled">Scheduled Cron</option>
               </select>
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                How this workflow is initiated.
-              </span>
             </div>
 
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                <label style={{ fontSize: "11px", fontWeight: 600, color: "#888888" }}>
-                  Input Schema (JSON Schema)
-                </label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <FieldLabel label="Input Schema" tooltip="JSON Schema validating incoming payload structure" />
                 {jsonErrorState.input_schema && (
                   <span style={{ fontSize: "10px", color: "#ef4444" }}>Invalid JSON</span>
                 )}
@@ -439,81 +425,47 @@ export default function NodeInspector({
                 style={{ fontFamily: "var(--font-mono)", fontSize: "11px", resize: "vertical" }}
                 placeholder='{\n  "type": "object",\n  "properties": {\n    "ticket_text": { "type": "string" }\n  }\n}'
               />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                Defines the expected payload structure for incoming triggers.
-              </span>
             </div>
-
-            <div
-              style={{
-                padding: "8px 10px",
-                background: "#161616",
-                border: "1px solid #262626",
-                borderRadius: "6px",
-                fontSize: "11px",
-              }}
-            >
-              <div style={{ color: "#34d399", fontWeight: 600, marginBottom: "2px" }}>
-                Webhook Endpoint:
-              </div>
-              <div style={{ color: "#a3a3a3", fontFamily: "var(--font-mono)", fontSize: "10px" }}>
-                POST /api/v1/workflows/&#123;id&#125;/run
-              </div>
-            </div>
-          </div>
+          </>
         )}
 
-        {/* 2. INPUT DATA CONFIG */}
+        {/* 2. INPUT DATA */}
         {nodeType === "input_data" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                <label style={{ fontSize: "11px", fontWeight: 600, color: "#888888" }}>
-                  Default / Fallback Payload (JSON)
-                </label>
-                {jsonErrorState.default_payload && (
-                  <span style={{ fontSize: "10px", color: "#ef4444" }}>Invalid JSON</span>
-                )}
-              </div>
-              <textarea
-                rows={6}
-                value={jsonTextState.default_payload ?? JSON.stringify(config.default_payload || {}, null, 2)}
-                onChange={(e) => handleJsonFieldChange("default_payload", e.target.value)}
-                className="input"
-                style={{ fontFamily: "var(--font-mono)", fontSize: "11px", resize: "vertical" }}
-                placeholder='{\n  "ticket_text": "Sample inquiry text...",\n  "user_id": "usr_100"\n}'
-              />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                Used if no external payload is provided when executing the workflow.
-              </span>
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <FieldLabel label="Default Payload (JSON)" tooltip="Fallback mock data if none is provided at runtime" />
+              {jsonErrorState.default_payload && (
+                <span style={{ fontSize: "10px", color: "#ef4444" }}>Invalid JSON</span>
+              )}
             </div>
+            <textarea
+              rows={6}
+              value={jsonTextState.default_payload ?? JSON.stringify(config.default_payload || {}, null, 2)}
+              onChange={(e) => handleJsonFieldChange("default_payload", e.target.value)}
+              className="input"
+              style={{ fontFamily: "var(--font-mono)", fontSize: "11px", resize: "vertical" }}
+              placeholder='{\n  "ticket_text": "Sample inquiry..."\n}'
+            />
           </div>
         )}
 
-        {/* 3. AI CLASSIFY CONFIG */}
+        {/* 3. AI CLASSIFY */}
         {nodeType === "ai_classify" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <>
             <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                Prompt Template
-              </label>
+              <FieldLabel label="Prompt Template" tooltip="Supports {variable} interpolation from upstream steps" />
               <textarea
                 rows={3}
                 value={config.prompt_template || ""}
                 onChange={(e) => handleConfigChange("prompt_template", e.target.value)}
                 className="input"
                 style={{ fontSize: "12px", resize: "vertical" }}
-                placeholder="Classify the incoming ticket intent: {run_input.ticket_text}"
+                placeholder="Classify customer request: {ticket_text}"
               />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                Interpolate upstream fields using &#123;field_name&#125;.
-              </span>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                Categories (comma-separated, at least 2)
-              </label>
+              <FieldLabel label="Categories" tooltip="Comma-separated target classification classes" />
               <input
                 type="text"
                 value={(config.categories || []).join(", ")}
@@ -527,79 +479,54 @@ export default function NodeInspector({
                 style={{ fontSize: "12px" }}
                 placeholder="billing, technical, general"
               />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                The AI will choose the single best matching category.
-              </span>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Model Override (Select to Prevent Typos)
-                </label>
-                <ModelSelector
-                  value={config.model || ""}
-                  onChange={(val) => handleConfigChange("model", val)}
-                />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Temperature ({config.temperature ?? 0.0})
-                </label>
-                <input
-                  type="range"
-                  min="0.0"
-                  max="1.0"
-                  step="0.1"
-                  value={config.temperature ?? 0.0}
-                  onChange={(e) => handleConfigChange("temperature", parseFloat(e.target.value))}
-                  style={{ width: "100%", accentColor: "#8b5cf6" }}
-                />
-                <span style={{ fontSize: "10px", color: "#666666" }}>0.0 = deterministic & consistent</span>
-              </div>
+            <div>
+              <FieldLabel label="Model" tooltip="Override system default model for this step" />
+              <ModelSelector
+                value={config.model || ""}
+                onChange={(val) => handleConfigChange("model", val)}
+              />
             </div>
 
-            <div
-              style={{
-                padding: "8px 10px",
-                background: "#161616",
-                border: "1px solid #262626",
-                borderRadius: "6px",
-                fontSize: "11px",
-              }}
-            >
-              <div style={{ color: "#a78bfa", fontWeight: 600, marginBottom: "2px" }}>
-                Output Provided to Downstream Nodes:
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <FieldLabel label="Temperature" tooltip="0.0 = deterministic & consistent, 1.0 = creative" />
+                <span style={{ fontSize: "10px", color: "#a3a3a3", fontFamily: "var(--font-mono)" }}>
+                  {config.temperature ?? 0.0}
+                </span>
               </div>
-              <div style={{ color: "#a3a3a3", fontFamily: "var(--font-mono)", fontSize: "10px" }}>
-                &#123; category, confidence, reasoning &#125;
-              </div>
+              <input
+                type="range"
+                min="0.0"
+                max="1.0"
+                step="0.1"
+                value={config.temperature ?? 0.0}
+                onChange={(e) => handleConfigChange("temperature", parseFloat(e.target.value))}
+                style={{ width: "100%", accentColor: "#8b5cf6" }}
+              />
             </div>
-          </div>
+          </>
         )}
 
-        {/* 4. STRUCTURED EXTRACT CONFIG */}
+        {/* 4. STRUCTURED EXTRACT */}
         {nodeType === "structured_extract" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <>
             <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                Prompt Instruction
-              </label>
+              <FieldLabel label="Prompt Instruction" tooltip="Instruction guiding what fields to extract" />
               <textarea
                 rows={3}
                 value={config.prompt_template || ""}
                 onChange={(e) => handleConfigChange("prompt_template", e.target.value)}
                 className="input"
                 style={{ fontSize: "12px", resize: "vertical" }}
-                placeholder="Extract customer email, issue summary, and priority from: {run_input.ticket_text}"
+                placeholder="Extract customer email, amount, and priority from: {ticket_text}"
               />
             </div>
 
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                <label style={{ fontSize: "11px", fontWeight: 600, color: "#888888" }}>
-                  Schema Definition (JSON Schema)
-                </label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <FieldLabel label="Schema Definition" tooltip="Pydantic validated JSON Schema for extracted entities" />
                 {jsonErrorState.schema_definition && (
                   <span style={{ fontSize: "10px", color: "#ef4444" }}>Invalid JSON</span>
                 )}
@@ -610,48 +537,43 @@ export default function NodeInspector({
                 onChange={(e) => handleJsonFieldChange("schema_definition", e.target.value)}
                 className="input"
                 style={{ fontFamily: "var(--font-mono)", fontSize: "11px", resize: "vertical" }}
-                placeholder='{\n  "type": "object",\n  "properties": {\n    "amount": { "type": "number" },\n    "priority": { "type": "string" }\n  },\n  "required": ["priority"]\n}'
+                placeholder='{\n  "type": "object",\n  "properties": {\n    "amount": { "type": "number" }\n  }\n}'
               />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                Model output is strictly validated against this JSON schema via Pydantic.
-              </span>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Model Override (Select to Prevent Typos)
-                </label>
-                <ModelSelector
-                  value={config.model || ""}
-                  onChange={(val) => handleConfigChange("model", val)}
-                />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Temperature ({config.temperature ?? 0.0})
-                </label>
-                <input
-                  type="range"
-                  min="0.0"
-                  max="1.0"
-                  step="0.1"
-                  value={config.temperature ?? 0.0}
-                  onChange={(e) => handleConfigChange("temperature", parseFloat(e.target.value))}
-                  style={{ width: "100%", accentColor: "#8b5cf6" }}
-                />
-              </div>
+            <div>
+              <FieldLabel label="Model" tooltip="Override system default model for this step" />
+              <ModelSelector
+                value={config.model || ""}
+                onChange={(val) => handleConfigChange("model", val)}
+              />
             </div>
-          </div>
+
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <FieldLabel label="Temperature" />
+                <span style={{ fontSize: "10px", color: "#a3a3a3", fontFamily: "var(--font-mono)" }}>
+                  {config.temperature ?? 0.0}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0.0"
+                max="1.0"
+                step="0.1"
+                value={config.temperature ?? 0.0}
+                onChange={(e) => handleConfigChange("temperature", parseFloat(e.target.value))}
+                style={{ width: "100%", accentColor: "#8b5cf6" }}
+              />
+            </div>
+          </>
         )}
 
-        {/* 5. KNOWLEDGE RETRIEVAL CONFIG */}
+        {/* 5. KNOWLEDGE RETRIEVAL */}
         {nodeType === "retrieval" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <>
             <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                Collection Name
-              </label>
+              <FieldLabel label="Collection" tooltip="Vector knowledge base collection to query" />
               <input
                 type="text"
                 value={config.collection_name || "support_policies"}
@@ -660,33 +582,23 @@ export default function NodeInspector({
                 style={{ fontSize: "12px" }}
                 placeholder="support_policies"
               />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                Target knowledge base collection to search against.
-              </span>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                Query Template
-              </label>
+              <FieldLabel label="Query Template" tooltip="Supports {variable} interpolation before vector search" />
               <textarea
                 rows={2}
                 value={config.query_template || ""}
                 onChange={(e) => handleConfigChange("query_template", e.target.value)}
                 className="input"
                 style={{ fontSize: "12px", resize: "vertical" }}
-                placeholder="{node_classify_ticket.category} policy: {run_input.ticket_text}"
+                placeholder="{node_classify.category} policy: {ticket_text}"
               />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                Dynamic search query rendered before vector retrieval.
-              </span>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Top K Documents ({config.top_k || 3})
-                </label>
+                <FieldLabel label="Top K" tooltip="Maximum relevant passages to retrieve (1-20)" />
                 <input
                   type="number"
                   min={1}
@@ -698,9 +610,7 @@ export default function NodeInspector({
                 />
               </div>
               <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Min Score ({config.score_threshold ?? 0.6})
-                </label>
+                <FieldLabel label="Min Score" tooltip="Vector similarity cut-off filter (0.0 to 1.0)" />
                 <input
                   type="number"
                   min={0.0}
@@ -713,27 +623,10 @@ export default function NodeInspector({
                 />
               </div>
             </div>
-
-            <div
-              style={{
-                padding: "8px 10px",
-                background: "#161616",
-                border: "1px solid #262626",
-                borderRadius: "6px",
-                fontSize: "11px",
-              }}
-            >
-              <div style={{ color: "#67e8f9", fontWeight: 600, marginBottom: "2px" }}>
-                Output Provided to Downstream Nodes:
-              </div>
-              <div style={{ color: "#a3a3a3", fontFamily: "var(--font-mono)", fontSize: "10px" }}>
-                &#123; passages, sources, count &#125;
-              </div>
-            </div>
-          </div>
+          </>
         )}
 
-        {/* 6. CONDITION BRANCH CONFIG */}
+        {/* 6. CONDITION BRANCH */}
         {nodeType === "condition" && (() => {
           const activeField = config.field_path || config.branches?.[0]?.field_path || "amount";
           const activeOp = config.operator || config.branches?.[0]?.operator || "greater_than";
@@ -775,28 +668,21 @@ export default function NodeInspector({
           const hideValInput = activeOp === "is_empty" || activeOp === "is_not_empty";
 
           return (
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <>
               <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Field / Variable to Check
-                </label>
+                <FieldLabel label="Field Path" tooltip="Path in context, e.g. amount or node_extract.extracted.priority" />
                 <input
                   type="text"
-                  placeholder="e.g. amount, category, or extract.priority"
+                  placeholder="amount, category, or extract.priority"
                   value={activeField}
                   onChange={(e) => updateCondition("field_path", e.target.value)}
                   className="input"
                   style={{ fontSize: "12px" }}
                 />
-                <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                  Path in input payload or upstream node output (e.g. <code style={{ color: "#a78bfa" }}>node_extract_fields.extracted.priority</code>)
-                </span>
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Condition Operator
-                </label>
+                <FieldLabel label="Operator" />
                 <select
                   value={activeOp}
                   onChange={(e) => updateCondition("operator", e.target.value)}
@@ -807,147 +693,98 @@ export default function NodeInspector({
                   <option value="less_than">Less than (&lt;)</option>
                   <option value="equals">Equals (==)</option>
                   <option value="not_equals">Not equals (!=)</option>
-                  <option value="contains">Contains text</option>
-                  <option value="is_empty">Is Empty / Null</option>
+                  <option value="contains">Contains</option>
+                  <option value="is_empty">Is Empty</option>
                   <option value="is_not_empty">Is Not Empty</option>
                 </select>
               </div>
 
               {!hideValInput && (
                 <div>
-                  <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                    Comparison Value (Threshold)
-                  </label>
+                  <FieldLabel label="Threshold Value" tooltip="Value or number to compare against" />
                   <input
                     type="text"
-                    placeholder="e.g. 100, high, billing"
+                    placeholder="100, high, billing"
                     value={activeVal}
                     onChange={(e) => updateCondition("value", e.target.value)}
                     className="input"
                     style={{ fontSize: "12px" }}
                   />
-                  <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                    The target value or threshold number to compare against.
-                  </span>
                 </div>
               )}
 
-              {/* Human-Readable Rule Preview Box */}
+              {/* Compact Logic Rule Preview */}
               <div
                 style={{
-                  padding: "10px 12px",
+                  padding: "8px 10px",
                   background: "#161616",
-                  border: "1px solid #262626",
-                  borderRadius: "6px",
+                  border: "1px solid #242424",
+                  borderRadius: "5px",
                   fontSize: "11px",
-                  lineHeight: "1.4",
                 }}
               >
-                <div style={{ fontWeight: 600, color: "#f5f5f5", marginBottom: "4px" }}>
-                  Rule Logic Preview:
+                <div style={{ color: "#d4d4d4", marginBottom: "4px" }}>
+                  Rule: <span style={{ color: "#fbbf24", fontFamily: "var(--font-mono)" }}>If {activeField || "field"} {opSymbol} {!hideValInput ? (activeVal || '""') : ""}</span>
                 </div>
-                <div style={{ color: "#fbbf24", fontFamily: "var(--font-mono)", marginBottom: "6px" }}>
-                  If {activeField || "field"} {opSymbol} {!hideValInput ? (activeVal || '""') : ""}
-                </div>
-                <div style={{ color: "#a3a3a3", display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <div>
-                    <span style={{ color: "#10b981", fontWeight: 600 }}>• TRUE</span> ➔ routes to green handle
-                  </div>
-                  <div>
-                    <span style={{ color: "#ef4444", fontWeight: 600 }}>• FALSE</span> ➔ routes to red handle
-                  </div>
+                <div style={{ display: "flex", gap: "10px", fontSize: "10px" }}>
+                  <span style={{ color: "#10b981", fontWeight: 600 }}>• TRUE ➔ green</span>
+                  <span style={{ color: "#ef4444", fontWeight: 600 }}>• FALSE ➔ red</span>
                 </div>
               </div>
-            </div>
+            </>
           );
         })()}
 
-        {/* 7. DATA TRANSFORM CONFIG */}
+        {/* 7. DATA TRANSFORM */}
         {nodeType === "transform" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                <label style={{ fontSize: "11px", fontWeight: 600, color: "#888888" }}>
-                  Field Mapping Rules (JSON)
-                </label>
-                {jsonErrorState.mapping_rules && (
-                  <span style={{ fontSize: "10px", color: "#ef4444" }}>Invalid JSON</span>
-                )}
-              </div>
-              <textarea
-                rows={6}
-                value={jsonTextState.mapping_rules ?? JSON.stringify(config.mapping_rules || {}, null, 2)}
-                onChange={(e) => handleJsonFieldChange("mapping_rules", e.target.value)}
-                className="input"
-                style={{ fontFamily: "var(--font-mono)", fontSize: "11px", resize: "vertical" }}
-                placeholder='{\n  "status": "processed",\n  "ticket_category": "{node_classify_ticket.category}",\n  "escalated": true\n}'
-              />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                Maps and reshapes upstream data deterministically. Values inside &#123;curly_braces&#125; are resolved from upstream outputs.
-              </span>
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <FieldLabel label="Mapping Rules (JSON)" tooltip="Maps and projects fields deterministically" />
+              {jsonErrorState.mapping_rules && (
+                <span style={{ fontSize: "10px", color: "#ef4444" }}>Invalid JSON</span>
+              )}
             </div>
-
-            <div
-              style={{
-                padding: "8px 10px",
-                background: "#161616",
-                border: "1px solid #262626",
-                borderRadius: "6px",
-                fontSize: "11px",
-              }}
-            >
-              <div style={{ color: "#818cf8", fontWeight: 600, marginBottom: "2px" }}>
-                Transformed Output Format:
-              </div>
-              <div style={{ color: "#a3a3a3", fontFamily: "var(--font-mono)", fontSize: "10px" }}>
-                &#123; transformed: &#123; ...your_rules &#125; &#125;
-              </div>
-            </div>
+            <textarea
+              rows={6}
+              value={jsonTextState.mapping_rules ?? JSON.stringify(config.mapping_rules || {}, null, 2)}
+              onChange={(e) => handleJsonFieldChange("mapping_rules", e.target.value)}
+              className="input"
+              style={{ fontFamily: "var(--font-mono)", fontSize: "11px", resize: "vertical" }}
+              placeholder='{\n  "status": "processed",\n  "category": "{node_classify.category}"\n}'
+            />
           </div>
         )}
 
-        {/* 8. HUMAN REVIEW / APPROVAL GATE CONFIG */}
+        {/* 8. HUMAN REVIEW */}
         {nodeType === "human_approval" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <>
             <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                Approval Action Title
-              </label>
+              <FieldLabel label="Action Title" tooltip="Headline shown in the Approvals queue" />
               <input
                 type="text"
                 value={config.title || ""}
                 onChange={(e) => handleConfigChange("title", e.target.value)}
                 className="input"
                 style={{ fontSize: "12px" }}
-                placeholder="e.g. Review High-Value Refund"
+                placeholder="Review High-Value Refund"
               />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                The headline displayed on the Approvals inbox page.
-              </span>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                Summary / Instruction Template
-              </label>
+              <FieldLabel label="Instruction Template" tooltip="Context shown to the human reviewer" />
               <textarea
                 rows={3}
                 value={config.description_template || ""}
                 onChange={(e) => handleConfigChange("description_template", e.target.value)}
                 className="input"
                 style={{ fontSize: "12px", resize: "vertical" }}
-                placeholder="Please review ticket {run_input.ticket_text}. Verified refund eligibility required."
+                placeholder="Review refund request: {ticket_text}"
               />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                Detailed context shown to the human reviewer.
-              </span>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Required Role
-                </label>
+                <FieldLabel label="Required Role" tooltip="Minimum permission required to approve" />
                 <select
                   value={config.required_role || "reviewer"}
                   onChange={(e) => handleConfigChange("required_role", e.target.value)}
@@ -957,14 +794,12 @@ export default function NodeInspector({
                   <option value="reviewer">Reviewer</option>
                   <option value="manager">Manager</option>
                   <option value="admin">Administrator</option>
-                  <option value="finance">Finance Specialist</option>
+                  <option value="finance">Finance</option>
                 </select>
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Timeout (Hours)
-                </label>
+                <FieldLabel label="Timeout (hrs)" tooltip="Hours before approval expires" />
                 <input
                   type="number"
                   min={1}
@@ -976,72 +811,31 @@ export default function NodeInspector({
                 />
               </div>
             </div>
-
-            <div
-              style={{
-                padding: "8px 10px",
-                background: "#161616",
-                border: "1px solid #262626",
-                borderRadius: "6px",
-                fontSize: "11px",
-              }}
-            >
-              <div style={{ color: "#f87171", fontWeight: 600, marginBottom: "2px" }}>
-                Workflow Behavior:
-              </div>
-              <div style={{ color: "#a3a3a3", fontSize: "10px", lineHeight: "1.4" }}>
-                Pauses run execution with status <code style={{ color: "#fbbf24" }}>WAITING_FOR_APPROVAL</code> until approved or rejected via the Approvals portal.
-              </div>
-            </div>
-          </div>
+          </>
         )}
 
-        {/* 9. WORKFLOW RESULT / OUTPUT CONFIG */}
+        {/* 9. WORKFLOW RESULT */}
         {nodeType === "output" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                <label style={{ fontSize: "11px", fontWeight: 600, color: "#888888" }}>
-                  Response Template (JSON)
-                </label>
-                {jsonErrorState.response_template && (
-                  <span style={{ fontSize: "10px", color: "#ef4444" }}>Invalid JSON</span>
-                )}
-              </div>
-              <textarea
-                rows={6}
-                value={jsonTextState.response_template ?? JSON.stringify(config.response_template || {}, null, 2)}
-                onChange={(e) => handleJsonFieldChange("response_template", e.target.value)}
-                className="input"
-                style={{ fontFamily: "var(--font-mono)", fontSize: "11px", resize: "vertical" }}
-                placeholder='{\n  "status": "triaged",\n  "category": "{node_classify_ticket.category}",\n  "details": "{node_extract_fields.extracted}"\n}'
-              />
-              <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                The final response dictionary returned by the workflow execution to client callers.
-              </span>
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <FieldLabel label="Response Template (JSON)" tooltip="Final response payload assembled and returned to the API caller" />
+              {jsonErrorState.response_template && (
+                <span style={{ fontSize: "10px", color: "#ef4444" }}>Invalid JSON</span>
+              )}
             </div>
-
-            <div
-              style={{
-                padding: "8px 10px",
-                background: "#161616",
-                border: "1px solid #262626",
-                borderRadius: "6px",
-                fontSize: "11px",
-              }}
-            >
-              <div style={{ color: "#4ade80", fontWeight: 600, marginBottom: "2px" }}>
-                Workflow Result:
-              </div>
-              <div style={{ color: "#a3a3a3", fontSize: "10px" }}>
-                Terminal node. Assembles final response object from all upstream steps.
-              </div>
-            </div>
+            <textarea
+              rows={6}
+              value={jsonTextState.response_template ?? JSON.stringify(config.response_template || {}, null, 2)}
+              onChange={(e) => handleJsonFieldChange("response_template", e.target.value)}
+              className="input"
+              style={{ fontFamily: "var(--font-mono)", fontSize: "11px", resize: "vertical" }}
+              placeholder='{\n  "status": "success",\n  "category": "{node_classify.category}"\n}'
+            />
           </div>
         )}
 
         {/* Danger Zone: Delete Node */}
-        <div style={{ marginTop: "auto", paddingTop: "16px", borderTop: "1px solid #222222" }}>
+        <div style={{ marginTop: "auto", paddingTop: "12px", borderTop: "1px solid #222222" }}>
           <button
             type="button"
             onClick={() => onDeleteNode(node.id)}
@@ -1051,17 +845,17 @@ export default function NodeInspector({
               alignItems: "center",
               justifyContent: "center",
               gap: "6px",
-              padding: "8px 10px",
-              background: "rgba(239, 68, 68, 0.1)",
-              border: "1px solid rgba(239, 68, 68, 0.25)",
-              borderRadius: "6px",
+              padding: "7px 10px",
+              background: "rgba(239, 68, 68, 0.08)",
+              border: "1px solid rgba(239, 68, 68, 0.2)",
+              borderRadius: "5px",
               color: "#f87171",
-              fontSize: "12px",
+              fontSize: "11px",
               fontWeight: 500,
               cursor: "pointer",
             }}
           >
-            <Trash2 size={13} />
+            <Trash2 size={12} />
             <span>Delete Node</span>
           </button>
         </div>

@@ -2,12 +2,16 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
 [project]
 name = "flowforge-backend"
 version = "0.1.0"
 description = "FlowForge AI - Resilient Workflow Orchestration Engine"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.28.0",

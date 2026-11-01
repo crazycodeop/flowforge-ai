@@ -14,7 +14,9 @@ def get_ai_provider(
     """Factory creating configured AI provider instances."""
     settings = get_settings()
     selected_provider = (provider_name or settings.AI_PROVIDER).lower().strip()
-    selected_model = model or (settings.AI_MODEL if (not provider_name or provider_name == settings.AI_PROVIDER) else None)
+    selected_model = model or (
+        settings.AI_MODEL if (not provider_name or provider_name == settings.AI_PROVIDER) else None
+    )
     req_timeout = timeout or float(settings.AI_REQUEST_TIMEOUT)
 
     if selected_provider == "mock":
@@ -31,7 +33,11 @@ def get_ai_provider(
         )
 
     if selected_provider == "openai":
-        key = api_key or getattr(settings, "OPENAI_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "openai" else None)
+        key = (
+            api_key
+            or getattr(settings, "OPENAI_API_KEY", None)
+            or (settings.AI_API_KEY if settings.AI_PROVIDER == "openai" else None)
+        )
         return OpenAICompatibleProvider(
             default_model=selected_model or "gpt-4o-mini",
             api_key=key,
@@ -41,7 +47,11 @@ def get_ai_provider(
         )
 
     if selected_provider == "gemini":
-        key = api_key or getattr(settings, "GEMINI_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None)
+        key = (
+            api_key
+            or getattr(settings, "GEMINI_API_KEY", None)
+            or (settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None)
+        )
         return OpenAICompatibleProvider(
             default_model=selected_model or "gemini-1.5-flash",
             api_key=key,

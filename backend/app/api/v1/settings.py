@@ -79,9 +79,15 @@ def _mask_key(key: str | None) -> str | None:
 def _build_provider_details(settings) -> list[ProviderDetail]:
     active_prov = settings.AI_PROVIDER.lower().strip()
 
-    groq_key = getattr(settings, "GROQ_API_KEY", None) or (settings.AI_API_KEY if active_prov == "groq" else None)
-    openai_key = getattr(settings, "OPENAI_API_KEY", None) or (settings.AI_API_KEY if active_prov == "openai" else None)
-    gemini_key = getattr(settings, "GEMINI_API_KEY", None) or (settings.AI_API_KEY if active_prov == "gemini" else None)
+    groq_key = getattr(settings, "GROQ_API_KEY", None) or (
+        settings.AI_API_KEY if active_prov == "groq" else None
+    )
+    openai_key = getattr(settings, "OPENAI_API_KEY", None) or (
+        settings.AI_API_KEY if active_prov == "openai" else None
+    )
+    gemini_key = getattr(settings, "GEMINI_API_KEY", None) or (
+        settings.AI_API_KEY if active_prov == "gemini" else None
+    )
 
     return [
         ProviderDetail(
@@ -177,9 +183,13 @@ def get_ai_status(user: Annotated[User, Depends(require_user)]) -> AIProviderSta
     if active_prov == "groq":
         active_key = getattr(settings, "GROQ_API_KEY", None) or settings.AI_API_KEY
     elif active_prov == "openai":
-        active_key = getattr(settings, "OPENAI_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "openai" else None)
+        active_key = getattr(settings, "OPENAI_API_KEY", None) or (
+            settings.AI_API_KEY if settings.AI_PROVIDER == "openai" else None
+        )
     elif active_prov == "gemini":
-        active_key = getattr(settings, "GEMINI_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None)
+        active_key = getattr(settings, "GEMINI_API_KEY", None) or (
+            settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None
+        )
     elif active_prov == "mock":
         active_key = "mock"
 
@@ -202,7 +212,9 @@ def test_ai_connection(
 ):
     """Executes a live test ping against the specified or active AI provider."""
     settings = get_settings()
-    target_prov = (payload.provider if payload and payload.provider else settings.AI_PROVIDER).lower().strip()
+    target_prov = (
+        (payload.provider if payload and payload.provider else settings.AI_PROVIDER).lower().strip()
+    )
     target_model = payload.model if payload and payload.model else None
     target_key = payload.api_key if payload and payload.api_key else None
 
@@ -211,14 +223,26 @@ def test_ai_connection(
         resolved_key = target_key
         if not resolved_key:
             if target_prov == "groq":
-                resolved_key = getattr(settings, "GROQ_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "groq" else None)
+                resolved_key = getattr(settings, "GROQ_API_KEY", None) or (
+                    settings.AI_API_KEY if settings.AI_PROVIDER == "groq" else None
+                )
             elif target_prov == "openai":
-                resolved_key = getattr(settings, "OPENAI_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "openai" else None)
+                resolved_key = getattr(settings, "OPENAI_API_KEY", None) or (
+                    settings.AI_API_KEY if settings.AI_PROVIDER == "openai" else None
+                )
             elif target_prov == "gemini":
-                resolved_key = getattr(settings, "GEMINI_API_KEY", None) or (settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None)
+                resolved_key = getattr(settings, "GEMINI_API_KEY", None) or (
+                    settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None
+                )
 
         if not resolved_key:
-            prefix_hint = "sk-..." if target_prov == "openai" else "AIza..." if target_prov == "gemini" else "gsk_..."
+            prefix_hint = (
+                "sk-..."
+                if target_prov == "openai"
+                else "AIza..."
+                if target_prov == "gemini"
+                else "gsk_..."
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"{target_prov.upper()} API key is missing. Please enter your API key ({prefix_hint}) and save configuration before testing.",
@@ -264,7 +288,15 @@ def update_ai_settings(
     os.environ["AI_PROVIDER"] = prov
     os.environ["AI_MODEL"] = payload.model
 
-    key_var_name = "GROQ_API_KEY" if prov == "groq" else "OPENAI_API_KEY" if prov == "openai" else "GEMINI_API_KEY" if prov == "gemini" else None
+    key_var_name = (
+        "GROQ_API_KEY"
+        if prov == "groq"
+        else "OPENAI_API_KEY"
+        if prov == "openai"
+        else "GEMINI_API_KEY"
+        if prov == "gemini"
+        else None
+    )
 
     if payload.api_key is not None and payload.api_key.strip():
         os.environ["AI_API_KEY"] = payload.api_key.strip()
@@ -296,7 +328,12 @@ def update_ai_settings(
                 elif line.startswith("AI_API_KEY=") and payload.api_key and payload.api_key.strip():
                     new_lines.append(f"AI_API_KEY={payload.api_key.strip()}")
                     seen_key = True
-                elif key_var_name and line.startswith(f"{key_var_name}=") and payload.api_key and payload.api_key.strip():
+                elif (
+                    key_var_name
+                    and line.startswith(f"{key_var_name}=")
+                    and payload.api_key
+                    and payload.api_key.strip()
+                ):
                     new_lines.append(f"{key_var_name}={payload.api_key.strip()}")
                     seen_specific = True
                 else:
@@ -322,9 +359,13 @@ def update_ai_settings(
     if prov == "groq":
         active_key = getattr(refreshed, "GROQ_API_KEY", None) or refreshed.AI_API_KEY
     elif prov == "openai":
-        active_key = getattr(refreshed, "OPENAI_API_KEY", None) or (refreshed.AI_API_KEY if refreshed.AI_PROVIDER == "openai" else None)
+        active_key = getattr(refreshed, "OPENAI_API_KEY", None) or (
+            refreshed.AI_API_KEY if refreshed.AI_PROVIDER == "openai" else None
+        )
     elif prov == "gemini":
-        active_key = getattr(refreshed, "GEMINI_API_KEY", None) or (refreshed.AI_API_KEY if refreshed.AI_PROVIDER == "gemini" else None)
+        active_key = getattr(refreshed, "GEMINI_API_KEY", None) or (
+            refreshed.AI_API_KEY if refreshed.AI_PROVIDER == "gemini" else None
+        )
     elif prov == "mock":
         active_key = "mock"
 
