@@ -20,6 +20,27 @@
 - [x] **Milestone 15: Node Catalog & Inspector Complete Configuration Suite (All 9 Node Types)**
 - [x] **Milestone 16: Automated Workflow Building, Debounced Auto-Save & Interactive AI Provider Suite**
 - [x] **Milestone 17: Multi-Provider Credential Isolation, Real-Time Key Audit & Targeted Health Diagnostics**
+- [x] **Milestone 18: Dynamic Key-Gated Model Filtering in Node Inspector**
+
+---
+
+### Milestone 18: Dynamic Key-Gated Model Filtering in Node Inspector
+- **Date**: 2026-11-01
+- **Status**: Completed
+- **Features Implemented**:
+  1. **Dynamic Key-Gated Model Dropdown (`NodeInspector.jsx`)**:
+     - Connected `ModelSelector` to live `api.getAISettings()`.
+     - Filtered candidate models dynamically: only models belonging to providers with verified, saved API keys (or Mock sandbox) are displayed in the dropdown.
+     - Automatically hides unconfigured models (OpenAI/Gemini models when keys are absent).
+     - Displays helpful indicator text linking directly to `/settings` when other providers have missing keys.
+  2. **Unkeyed Model Detection & Warning Banner**:
+     - If a node previously had a model configured whose key is missing (e.g. legacy `gemini-1.5-flash`), the dropdown highlights with a red warning badge (`⚠ gemini-1.5-flash (Missing API Key)`) and banner prompting the user to switch to Default or configure the key.
+  3. **Builder Default Config Fix (`Builder.jsx`)**:
+     - Set default node configs for `ai_classify` and `structured_extract` to `model: null` (Use Workspace Default) instead of hardcoding `gemini-1.5-flash`, preventing invalid defaults on new nodes.
+- **Verification**:
+  - `vitest` frontend tests: 2/2 passed.
+  - `vite build` production build: 0 errors in 4.84s.
+  - `pytest backend/tests`: 54/54 passed in 8.53s.
 
 ---
 
