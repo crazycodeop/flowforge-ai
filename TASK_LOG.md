@@ -21,6 +21,54 @@
 - [x] **Milestone 16: Automated Workflow Building, Debounced Auto-Save & Interactive AI Provider Suite**
 - [x] **Milestone 17: Multi-Provider Credential Isolation, Real-Time Key Audit & Targeted Health Diagnostics**
 - [x] **Milestone 18: Dynamic Key-Gated Model Filtering in Node Inspector**
+- [x] **Milestone 19: Per-Node Multi-Provider Orchestration & Dynamic Model Grouping**
+- [x] **Milestone 20: Decoupled Multi-Provider Credential Saving & Granular Runtime Promotion**
+
+---
+
+### Milestone 20: Decoupled Multi-Provider Credential Saving & Granular Runtime Promotion
+- **Date**: 2026-11-01
+- **Status**: Completed
+- **Features Implemented**:
+  1. **Decoupled API Endpoint (`PUT /api/v1/settings/ai`)**:
+     - Added `set_as_active: bool = True` field to `AIProviderUpdateRequest`.
+     - When `set_as_active=False`, FlowForge persists that specific provider's credential (`GEMINI_API_KEY`, `OPENAI_API_KEY`, etc.) without modifying the workspace's primary active default runtime (`AI_PROVIDER`).
+  2. **Split UI Actions in Settings (`Settings.jsx`)**:
+     - When inspecting a non-active provider (e.g. Google Gemini when Groq is active):
+       - **Save Credentials** button: Saves the API key & chosen model without changing the active workspace default runtime.
+       - **Set as Active Runtime** button: Promotes this provider to be the active default runtime.
+     - When inspecting the currently active provider:
+       - Displays **Save Settings** button.
+  3. **Verification**:
+     - Vitest: 2/2 passed.
+     - Vite build: 0 errors in 5.77s.
+     - Pytest backend tests: 54/54 passed in 8.86s.
+     - Git commit: `927ae24` pushed to `main`.
+
+---
+
+### Milestone 19: Per-Node Multi-Provider Orchestration & Dynamic Model Grouping
+- **Date**: 2026-11-01
+- **Status**: Completed
+- **Features Implemented**:
+  1. **Per-Node Provider Routing (`backend/app/nodes/executors.py`)**:
+     - Introduced `resolve_provider_for_model(provider_name, model_name)` which inspects the node configuration or model prefix (`gemini` -> Gemini, `openai` / `gpt` -> OpenAI, `qwen` / `llama` -> Groq, `mock` -> Mock sandbox).
+     - Allows Workflow A to execute on Groq, Workflow B to execute on Google Gemini, or Step 1 in a single workflow to classify with Groq while Step 2 extracts with Gemini.
+     - The backend dynamically instantiates `get_ai_provider(provider_name=target_prov, model=target_model)` using each provider's isolated API key (`GROQ_API_KEY`, `GEMINI_API_KEY`, `OPENAI_API_KEY`).
+  2. **Categorized Provider `<optgroup>` in Node Inspector (`frontend/src/components/builder/NodeInspector.jsx`)**:
+     - Upgraded the node model override selector to group models by provider:
+       - `Google Gemini (GEMINI)`
+       - `Groq Cloud LPU (GROQ)`
+       - `OpenAI (OPENAI)`
+     - Dynamically filters out optgroups whose provider keys are not yet configured in Settings.
+  3. **Live Gemini 3.5 & 3.1 Flash Support & Tier Badging (`backend/app/api/v1/settings.py`)**:
+     - Upgraded Gemini integration to support `gemini-3.5-flash` and `gemini-3.1-flash-lite`.
+     - Added `[Free Tier]` and `[Billing Required]` discovery tags to prevent unbilled keys from running into Google 429 quota exhaustion on Pro models.
+- **Verification**:
+  - `vitest`: 2 passed (326ms).
+  - `vite build`: 0 errors.
+  - Live Gemini API verification: `PONG` response with 124 tokens.
+  - Git commit: `0318a7f` pushed to `main`.
 
 ---
 
