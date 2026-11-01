@@ -13,7 +13,9 @@ import {
   Cpu,
   Search,
   Activity,
+  Trash2,
 } from "lucide-react";
+import { useModal } from "../context/ModalContext";
 import { api } from "../api/client";
 
 export default function Executions() {
@@ -25,6 +27,8 @@ export default function Executions() {
   const [runEvents, setRunEvents] = useState([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const modal = useModal();
 
   const fetchRuns = async () => {
     try {
@@ -82,6 +86,54 @@ export default function Executions() {
       return new Date(a.created_at) - new Date(b.created_at);
     });
   }, [runSteps]);
+
+  const handleDeleteAllRuns = () => {
+    modal.showConfirm({
+      title: "Delete All Executions",
+      message: `Are you sure you want to permanently delete all ${runs.length} execution traces, step logs, and audit records? This action cannot be undone.`,
+      confirmText: "Delete All",
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          setDeleting(true);
+          await api.deleteAllRuns();
+          setSelectedRun(null);
+          await fetchRuns();
+        } catch (err) {
+          modal.showAlert({
+            title: "Error Deleting Executions",
+            message: err.message || "Failed to delete executions.",
+            type: "error",
+          });
+        } finally {
+          setDeleting(false);
+        }
+      },
+    });
+  };
+
+  const handleDeleteRun = (runId, e) => {
+    if (e) e.stopPropagation();
+    modal.showConfirm({
+      title: "Delete Execution Run",
+      message: `Are you sure you want to permanently delete execution run ${runId.slice(0, 8)}?`,
+      confirmText: "Delete",
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await api.deleteRun(runId);
+          if (selectedRun?.id === runId) setSelectedRun(null);
+          await fetchRuns();
+        } catch (err) {
+          modal.showAlert({
+            title: "Error Deleting Run",
+            message: err.message || "Failed to delete run.",
+            type: "error",
+          });
+        }
+      },
+    });
+  };
 
   const filteredRuns = runs.filter((r) => {
     if (statusFilter !== "ALL" && r.status !== statusFilter) return false;
@@ -141,10 +193,24 @@ export default function Executions() {
             Observability traces, DAG step latencies, token consumption, and audit events.
           </p>
         </div>
-        <button onClick={fetchRuns} className="btn btn-secondary btn-sm" disabled={loading}>
-          <RefreshCw size={13} className={loading ? "spin" : ""} />
-          <span>Refresh</span>
-        </button>
+        <div style={{ display: "flex", gap: "8px" }}>
+          {runs.length > 0 && (
+            <button
+              onClick={handleDeleteAllRuns}
+              className="btn btn-secondary btn-sm"
+              disabled={deleting}
+              style={{ color: "#f87171", borderColor: "rgba(239, 68, 68, 0.3)" }}
+              title="Delete all execution traces and history"
+            >
+              <Trash2 size={13} />
+              <span>{deleting ? "Deleting..." : "Clear All Executions"}</span>
+            </button>
+          )}
+          <button onClick={fetchRuns} className="btn btn-secondary btn-sm" disabled={loading}>
+            <RefreshCw size={13} className={loading ? "spin" : ""} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -260,14 +326,27 @@ export default function Executions() {
                       {r.started_at ? new Date(r.started_at).toLocaleTimeString() : "Pending"}
                     </td>
                     <td style={{ textAlign: "right" }}>
-                      <button
-                        type="button"
-                        className="btn btn-secondary btn-sm"
-                        style={{ padding: "3px 8px", fontSize: "11px" }}
-                      >
-                        <span>Details</span>
-                        <ChevronRight size={12} />
-                      </button>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteRun(r.id, e)}
+                          className="btn btn-ghost btn-sm"
+                          style={{ padding: "4px 6px", color: "#737373" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = "#737373")}
+                          title="Delete execution"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          style={{ padding: "3px 8px", fontSize: "11px" }}
+                        >
+                          <span>Details</span>
+                          <ChevronRight size={12} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -326,13 +405,26 @@ export default function Executions() {
                   {selectedRun.id}
                 </p>
               </div>
-              <button
-                onClick={() => setSelectedRun(null)}
-                style={{ background: "transparent", border: "none", color: "#737373", cursor: "pointer", padding: "4px" }}
-                aria-label="Close drawer"
-              >
-                <X size={16} />
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <button
+                  type="button"
+                  onClick={(e) => handleDeleteRun(selectedRun.id, e)}
+                  className="btn btn-ghost btn-sm"
+                  style={{ padding: "4px", color: "#737373" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#737373")}
+                  title="Delete execution run"
+                >
+                  <Trash2 size={14} />
+                </button>
+                <button
+                  onClick={() => setSelectedRun(null)}
+                  style={{ background: "transparent", border: "none", color: "#737373", cursor: "pointer", padding: "4px" }}
+                  aria-label="Close drawer"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Body */}

@@ -151,3 +151,40 @@ def test_workflow_lifecycle_and_version_immutability(client: TestClient):
     # 12. Confirm deletion cascades
     res = client.get(f"/api/v1/workflows/{workflow_id}")
     assert res.status_code == 404
+
+
+def test_delete_execution_endpoints(client: TestClient, db_session):
+    # 1. Trigger a workflow run on flagship
+    from app.workflows.flagship import create_or_update_flagship_workflow
+
+    wf = create_or_update_flagship_workflow(db_session)
+    res = client.post(
+        f"/api/v1/workflows/{wf.id}/runs",
+        json={"input_payload": {"ticket_text": "Sample test ticket"}},
+    )
+    assert res.status_code == 202
+    run_id = res.json()["id"]
+
+    # 2. Delete single run
+    del_res = client.delete(f"/api/v1/runs/{run_id}")
+    assert del_res.status_code == 200
+    assert del_res.json()["id"] == run_id
+
+    # 3. Confirm 404
+    get_res = client.get(f"/api/v1/runs/{run_id}")
+    assert get_res.status_code == 404
+
+    # 4. Trigger another run and delete all
+    res2 = client.post(
+        f"/api/v1/workflows/{wf.id}/runs",
+        json={"input_payload": {"ticket_text": "Another ticket"}},
+    )
+    assert res2.status_code == 202
+
+    del_all = client.delete("/api/v1/runs")
+    assert del_all.status_code == 200
+    assert del_all.json()["deleted_count"] >= 1
+
+    list_res = client.get("/api/v1/runs")
+    assert list_res.status_code == 200
+    assert len(list_res.json()) == 0

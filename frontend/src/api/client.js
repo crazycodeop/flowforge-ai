@@ -270,6 +270,18 @@ export const api = {
     });
   },
 
+  async deleteRun(runId) {
+    return request(`/runs/${runId}`, {
+      method: "DELETE",
+    });
+  },
+
+  async deleteAllRuns() {
+    return request("/runs", {
+      method: "DELETE",
+    });
+  },
+
   // --- Human Approvals ---
   async listPendingApprovals() {
     return request("/approvals/pending");

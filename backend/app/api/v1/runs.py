@@ -4,11 +4,12 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
-from sqlalchemy import desc, select
+from sqlalchemy import delete, desc, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import TenantContext, get_optional_tenant_context
 from app.core.database import get_db
+from app.models.approval import ApprovalRequest
 from app.models.execution import ExecutionEvent, StepRun, WorkflowRun
 from app.models.workflow import Workflow, WorkflowVersion
 from app.schemas.execution import (
@@ -285,3 +286,48 @@ def recover_stale_executions(
     from app.workflows.recovery import recover_stale_runs
 
     return recover_stale_runs(db, stale_grace_seconds=grace_seconds, auto_resume=auto_resume)
+
+
+@router.delete("/runs/{run_id}", status_code=status.HTTP_200_OK, summary="Delete an execution run")
+def delete_workflow_run(
+    run_id: str,
+    db: Session = Depends(get_db),
+    tenant: TenantContext | None = Depends(get_optional_tenant_context),
+) -> dict[str, Any]:
+    """Permanently deletes a workflow execution run and its associated steps and events."""
+    run = db.get(WorkflowRun, run_id)
+    if not run:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Run not found")
+    if tenant and run.organization_id and run.organization_id != tenant.org.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Execution run belongs to another organization.",
+        )
+
+    db.delete(run)
+    db.commit()
+    return {"message": f"Execution run '{run_id}' deleted successfully.", "id": run_id}
+
+
+@router.delete("/runs", status_code=status.HTTP_200_OK, summary="Delete all execution runs")
+def delete_all_workflow_runs(
+    db: Session = Depends(get_db),
+    tenant: TenantContext | None = Depends(get_optional_tenant_context),
+) -> dict[str, Any]:
+    """Permanently deletes all workflow execution runs and their audit records."""
+    stmt = select(WorkflowRun.id)
+    if tenant and tenant.org:
+        stmt = stmt.where(WorkflowRun.organization_id == tenant.org.id)
+    run_ids = db.scalars(stmt).all()
+
+    if run_ids:
+        db.execute(delete(ApprovalRequest).where(ApprovalRequest.workflow_run_id.in_(run_ids)))
+        db.execute(delete(ExecutionEvent).where(ExecutionEvent.workflow_run_id.in_(run_ids)))
+        db.execute(delete(StepRun).where(StepRun.workflow_run_id.in_(run_ids)))
+        db.execute(delete(WorkflowRun).where(WorkflowRun.id.in_(run_ids)))
+        db.commit()
+
+    return {
+        "message": f"Successfully deleted {len(run_ids)} execution run(s).",
+        "deleted_count": len(run_ids),
+    }
