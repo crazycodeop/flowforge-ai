@@ -61,6 +61,9 @@ class AIProviderUpdateRequest(BaseModel):
     model: str = Field(..., description="Default model name")
     api_key: str | None = Field(default=None, description="API Key")
     base_url: str | None = Field(default=None, description="Optional Base URL")
+    set_as_active: bool = Field(
+        default=True, description="Whether to set as active default workspace runtime"
+    )
 
 
 class AIModelItem(BaseModel):
@@ -493,8 +496,9 @@ def update_ai_settings(
             detail=f"Invalid provider '{payload.provider}'. Must be one of: {', '.join(valid_providers)}",
         )
 
-    os.environ["AI_PROVIDER"] = prov
-    os.environ["AI_MODEL"] = payload.model
+    if payload.set_as_active:
+        os.environ["AI_PROVIDER"] = prov
+        os.environ["AI_MODEL"] = payload.model
 
     key_var_name = (
         "GROQ_API_KEY"
@@ -507,10 +511,11 @@ def update_ai_settings(
     )
 
     if payload.api_key is not None and payload.api_key.strip():
-        os.environ["AI_API_KEY"] = payload.api_key.strip()
+        if payload.set_as_active:
+            os.environ["AI_API_KEY"] = payload.api_key.strip()
         if key_var_name:
             os.environ[key_var_name] = payload.api_key.strip()
-    if payload.base_url is not None:
+    if payload.base_url is not None and payload.set_as_active:
         os.environ["AI_BASE_URL"] = payload.base_url
 
     # Persist to .env file
@@ -528,13 +533,22 @@ def update_ai_settings(
 
             for line in lines:
                 if line.startswith("AI_PROVIDER="):
-                    new_lines.append(f"AI_PROVIDER={prov}")
+                    if payload.set_as_active:
+                        new_lines.append(f"AI_PROVIDER={prov}")
+                    else:
+                        new_lines.append(line)
                     seen_prov = True
                 elif line.startswith("AI_MODEL="):
-                    new_lines.append(f"AI_MODEL={payload.model}")
+                    if payload.set_as_active:
+                        new_lines.append(f"AI_MODEL={payload.model}")
+                    else:
+                        new_lines.append(line)
                     seen_model = True
                 elif line.startswith("AI_API_KEY=") and payload.api_key and payload.api_key.strip():
-                    new_lines.append(f"AI_API_KEY={payload.api_key.strip()}")
+                    if payload.set_as_active:
+                        new_lines.append(f"AI_API_KEY={payload.api_key.strip()}")
+                    else:
+                        new_lines.append(line)
                     seen_key = True
                 elif (
                     key_var_name
@@ -547,11 +561,11 @@ def update_ai_settings(
                 else:
                     new_lines.append(line)
 
-            if not seen_prov:
+            if payload.set_as_active and not seen_prov:
                 new_lines.append(f"AI_PROVIDER={prov}")
-            if not seen_model:
+            if payload.set_as_active and not seen_model:
                 new_lines.append(f"AI_MODEL={payload.model}")
-            if not seen_key and payload.api_key and payload.api_key.strip():
+            if payload.set_as_active and not seen_key and payload.api_key and payload.api_key.strip():
                 new_lines.append(f"AI_API_KEY={payload.api_key.strip()}")
             if key_var_name and not seen_specific and payload.api_key and payload.api_key.strip():
                 new_lines.append(f"{key_var_name}={payload.api_key.strip()}")

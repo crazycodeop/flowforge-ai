@@ -170,14 +170,15 @@ export default function Settings() {
     loadAvailableModels(newProv, "");
   };
 
-  const handleSaveAISettings = async (e) => {
-    e.preventDefault();
+  const handleSaveAISettings = async (e, setAsActive = true) => {
+    if (e && e.preventDefault) e.preventDefault();
     setAiSaving(true);
     setAiSaveMessage(null);
     try {
       const payload = {
         provider: providerInput,
         model: modelInput,
+        set_as_active: setAsActive,
       };
       if (apiKeyInput.trim()) {
         payload.api_key = apiKeyInput.trim();
@@ -185,7 +186,13 @@ export default function Settings() {
       const res = await api.updateAISettings(payload);
       setAiStatus(res);
       setApiKeyInput("");
-      setAiSaveMessage({ type: "success", text: "AI provider runtime settings saved successfully!" });
+      const provName = currentProvDetail?.name || providerInput.toUpperCase();
+      setAiSaveMessage({
+        type: "success",
+        text: setAsActive
+          ? `${provName} set as active default runtime and credentials saved!`
+          : `${provName} credentials saved! Active default runtime remains unchanged.`,
+      });
     } catch (err) {
       setAiSaveMessage({ type: "error", text: err.message || "Failed to save AI settings." });
     } finally {
@@ -868,27 +875,64 @@ export default function Settings() {
               </div>
 
               {/* Action Buttons */}
-              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                <button
-                  type="submit"
-                  disabled={aiSaving}
-                  className="btn btn-primary btn-sm"
-                  style={{ padding: "7px 16px" }}
-                >
-                  <Save size={13} />
-                  <span>{aiSaving ? "Saving..." : "Set as Active Runtime & Save"}</span>
-                </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                  {currentProvDetail.is_active ? (
+                    <button
+                      type="button"
+                      onClick={(e) => handleSaveAISettings(e, true)}
+                      disabled={aiSaving}
+                      className="btn btn-primary btn-sm"
+                      style={{ padding: "7px 16px" }}
+                    >
+                      <Save size={13} />
+                      <span>{aiSaving ? "Saving..." : "Save Settings"}</span>
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => handleSaveAISettings(e, false)}
+                        disabled={aiSaving}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: "7px 14px", border: "1px solid #3b82f6", color: "#60a5fa" }}
+                        title="Save credentials to unlock models in workflows without changing the active default runtime"
+                      >
+                        <Key size={13} />
+                        <span>{aiSaving ? "Saving..." : "Save Credentials"}</span>
+                      </button>
 
-                <button
-                  type="button"
-                  onClick={handleTestAI}
-                  disabled={aiTesting}
-                  className="btn btn-secondary btn-sm"
-                  style={{ padding: "7px 14px" }}
-                >
-                  <RefreshCw size={13} className={aiTesting ? "spin" : ""} />
-                  <span>{aiTesting ? "Testing Ping..." : `Test ${currentProvDetail.name} Connection`}</span>
-                </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleSaveAISettings(e, true)}
+                        disabled={aiSaving}
+                        className="btn btn-primary btn-sm"
+                        style={{ padding: "7px 16px" }}
+                        title="Save credentials and make this provider the active default for the workspace"
+                      >
+                        <Save size={13} />
+                        <span>{aiSaving ? "Saving..." : "Set as Active Runtime"}</span>
+                      </button>
+                    </>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleTestAI}
+                    disabled={aiTesting}
+                    className="btn btn-secondary btn-sm"
+                    style={{ padding: "7px 14px" }}
+                  >
+                    <RefreshCw size={13} className={aiTesting ? "spin" : ""} />
+                    <span>{aiTesting ? "Testing Ping..." : `Test ${currentProvDetail.name} Connection`}</span>
+                  </button>
+                </div>
+
+                {!currentProvDetail.is_active && (
+                  <p style={{ margin: 0, fontSize: "11px", color: "var(--text-muted)" }}>
+                    💡 Use <strong>Save Credentials</strong> to unlock this provider for specific workflow nodes while keeping your current default runtime active.
+                  </p>
+                )}
               </div>
             </form>
 
