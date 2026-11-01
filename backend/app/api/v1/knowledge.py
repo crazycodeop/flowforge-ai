@@ -255,12 +255,20 @@ async def upload_document(
                 extracted_text = full_pdf_text
             else:
                 # Scanned image-only PDF: check for embedded images
-                for page in reader.pages:
-                    if hasattr(page, "images") and len(page.images) > 0:
-                        first_img = page.images[0]
-                        image_base64 = base64.b64encode(first_img.data).decode("utf-8")
-                        image_mime = first_img.name.endswith(".png") and "image/png" or "image/jpeg"
-                        break
+                try:
+                    for page in reader.pages:
+                        if hasattr(page, "images") and len(page.images) > 0:
+                            first_img = page.images[0]
+                            image_base64 = base64.b64encode(first_img.data).decode("utf-8")
+                            image_mime = (
+                                "image/png"
+                                if first_img.name.lower().endswith(".png")
+                                else "image/jpeg"
+                            )
+                            break
+                except Exception:
+                    pass
+
                 if not image_base64 and full_pdf_text:
                     extracted_text = full_pdf_text
         except Exception as e:
