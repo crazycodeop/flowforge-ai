@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { api } from "../../api/client";
 import {
   X,
   Trash2,
@@ -41,43 +42,120 @@ const NODE_TAGS = {
 /**
  * Reusable guided model dropdown to prevent typos.
  */
-function ModelSelector({ value, onChange }) {
-  const PRESET_MODELS = [
-    { label: "Default (Use Workspace Settings)", value: "" },
+const PROVIDER_MODELS = {
+  groq: [
     { label: "qwen/qwen3.8-27b (Groq LPU - Recommended)", value: "qwen/qwen3.8-27b" },
     { label: "openai/gpt-oss-120b (Groq LPU)", value: "openai/gpt-oss-120b" },
     { label: "openai/gpt-oss-20b (Groq LPU)", value: "openai/gpt-oss-20b" },
+  ],
+  openai: [
     { label: "gpt-4o-mini (OpenAI Fast)", value: "gpt-4o-mini" },
     { label: "gpt-4o (OpenAI Flagship)", value: "gpt-4o" },
+  ],
+  gemini: [
     { label: "gemini-1.5-flash (Google Fast)", value: "gemini-1.5-flash" },
     { label: "gemini-1.5-pro (Google Deep)", value: "gemini-1.5-pro" },
-  ];
+  ],
+  mock: [
+    { label: "mock-model-v1 (Simulated)", value: "mock-model-v1" },
+  ],
+};
 
-  const isCustom = Boolean(value && !PRESET_MODELS.some((m) => m.value === value));
+/**
+ * Filtered model dropdown displaying ONLY models with active/saved API keys.
+ */
+function ModelSelector({ value, onChange }) {
+  const [aiSettings, setAiSettings] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    api.getAISettings()
+      .then((data) => {
+        if (isMounted) setAiSettings(data);
+      })
+      .catch((err) => console.warn("Could not load AI settings in inspector:", err));
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Filter available models to ONLY providers that have a configured key
+  const availableModels = useMemo(() => {
+    const list = [
+      {
+        label: `Default (Workspace Default${aiSettings?.model ? ` - ${aiSettings.model}` : ""})`,
+        value: "",
+      },
+    ];
+
+    if (!aiSettings) {
+      // Default to groq models since groq is the default configured provider
+      return [...list, ...(PROVIDER_MODELS.groq || [])];
+    }
+
+    const providers = aiSettings.providers || [];
+    providers.forEach((prov) => {
+      // Only include models if provider has a configured key or is mock
+      if (prov.has_key) {
+        const models = PROVIDER_MODELS[prov.id] || [];
+        list.push(...models);
+      }
+    });
+
+    return list;
+  }, [aiSettings]);
+
+  // Check if current value belongs to an unkeyed provider (e.g. legacy gemini)
+  const isUnkeyedCurrent = useMemo(() => {
+    if (!value || !aiSettings?.providers) return false;
+    // Check if value is from a provider without key
+    if (value.startsWith("gemini") && !aiSettings.providers.find(p => p.id === "gemini")?.has_key) return true;
+    if (value.startsWith("gpt") && !aiSettings.providers.find(p => p.id === "openai")?.has_key) return true;
+    return false;
+  }, [value, aiSettings]);
+
+  const isCustom = Boolean(value && !availableModels.some((m) => m.value === value) && !isUnkeyedCurrent);
   const [showCustom, setShowCustom] = useState(isCustom);
+
+  const missingKeyProviders = useMemo(() => {
+    if (!aiSettings?.providers) return [];
+    return aiSettings.providers.filter((p) => p.requires_key && !p.has_key).map((p) => p.name);
+  }, [aiSettings]);
 
   return (
     <div>
       <select
-        value={showCustom ? "custom" : (value || "")}
+        value={isUnkeyedCurrent ? "unkeyed" : showCustom ? "custom" : (value || "")}
         onChange={(e) => {
           if (e.target.value === "custom") {
             setShowCustom(true);
+          } else if (e.target.value === "unkeyed") {
+            // Keep current
           } else {
             setShowCustom(false);
             onChange(e.target.value || null);
           }
         }}
         className="input"
-        style={{ fontSize: "12px", width: "100%" }}
+        style={{
+          fontSize: "12px",
+          width: "100%",
+          borderColor: isUnkeyedCurrent ? "#ef4444" : undefined,
+        }}
       >
-        {PRESET_MODELS.map((m) => (
+        {isUnkeyedCurrent && (
+          <option value="unkeyed" style={{ color: "#f87171" }}>
+            ⚠ {value} (Missing API Key — Select a valid model below)
+          </option>
+        )}
+        {availableModels.map((m) => (
           <option key={m.value} value={m.value}>
             {m.label}
           </option>
         ))}
         <option value="custom">Custom Model ID...</option>
       </select>
+
       {showCustom && (
         <input
           type="text"
@@ -88,6 +166,20 @@ function ModelSelector({ value, onChange }) {
           style={{ fontSize: "11px", marginTop: "4px" }}
           autoFocus
         />
+      )}
+
+      {isUnkeyedCurrent && (
+        <div style={{ marginTop: "4px", padding: "6px 8px", background: "rgba(239, 68, 68, 0.12)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "4px" }}>
+          <span style={{ fontSize: "10px", color: "#f87171", display: "block", lineHeight: 1.3 }}>
+            ⚠ <strong>{value}</strong> requires an API key that is not configured. Please switch to <strong>Default</strong> or add the key in Settings.
+          </span>
+        </div>
+      )}
+
+      {missingKeyProviders.length > 0 && !isUnkeyedCurrent && (
+        <span style={{ fontSize: "10px", color: "#737373", marginTop: "4px", display: "block", lineHeight: 1.3 }}>
+          Showing only models with saved keys. Add {missingKeyProviders.join(", ")} keys in <a href="/settings" style={{ color: "#a78bfa", textDecoration: "underline" }}>Settings</a> to unlock more.
+        </span>
       )}
     </div>
   );

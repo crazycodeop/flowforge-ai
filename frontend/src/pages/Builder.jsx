@@ -53,7 +53,7 @@ export const DEFAULT_NODE_CONFIGS = {
     prompt_template: "Classify incoming customer support request:\n{ticket_text}",
     categories: ["billing", "technical", "general"],
     temperature: 0.0,
-    model: "gemini-1.5-flash",
+    model: null,
   },
   structured_extract: {
     prompt_template: "Extract structured customer information from:\n{ticket_text}",
@@ -67,7 +67,7 @@ export const DEFAULT_NODE_CONFIGS = {
       required: ["urgency"],
     },
     temperature: 0.0,
-    model: "gemini-1.5-flash",
+    model: null,
   },
   retrieval: {
     collection_name: "support_policies",
