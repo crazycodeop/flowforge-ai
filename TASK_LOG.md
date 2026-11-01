@@ -24,6 +24,30 @@
 - [x] **Milestone 19: Per-Node Multi-Provider Orchestration & Dynamic Model Grouping**
 - [x] **Milestone 20: Decoupled Multi-Provider Credential Saving & Granular Runtime Promotion**
 - [x] **Milestone 21: Streamlined Multi-Provider Status & Cleaned AI Settings UI**
+- [x] **Milestone 22: Knowledge Collections Center & 1-Click Interactive Test Scenarios**
+
+---
+
+### Milestone 22: Knowledge Collections Center & 1-Click Interactive Test Scenarios
+- **Date**: 2026-11-01
+- **Status**: Completed
+- **Features Implemented**:
+  1. **In-App Knowledge Collections Center (`frontend/src/pages/Knowledge.jsx`)**:
+     - Visual dashboard to inspect indexed company policy manuals, terms of service, and SOPs.
+     - 1-click **Seed Official Policies** button to populate standard refund and support guidelines.
+     - Live **Test Semantic Query** bar to test vector/BM25 retrieval scoring before deploying workflows.
+     - **Add Document** modal for manual text and SOP indexing.
+  2. **Dedicated Sidebar Navigation (`frontend/src/components/Shell.jsx`)**:
+     - Added **Knowledge Base** (`/knowledge`) under the AI & Knowledge sidebar group with `BookOpen` icon.
+  3. **1-Click Test Scenarios in Workflow Runner (`Builder.jsx`)**:
+     - In the **Trigger Workflow Run** modal, added quick scenario pills:
+       - `+ Refund Demo ($89.99)`: Injects customer refund request JSON.
+       - `+ Tech Issue Demo`: Injects high-priority outage JSON.
+     - Eliminates manual typing during client demos.
+- **Verification**:
+  - `vitest`: 2 passed (442ms).
+  - `vite build`: 0 errors in 5.36s.
+  - Git commit: `f72a682` pushed to `main`.
 
 ---
 
