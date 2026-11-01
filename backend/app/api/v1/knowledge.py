@@ -1,5 +1,6 @@
 import base64
 import io
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -258,11 +259,6 @@ async def upload_document(
     is_pdf = ext == ".pdf" or content_type == "application/pdf"
 
     settings = get_settings()
-    # Resolve provider with vision capability if available
-    target_prov = "gemini" if settings.GEMINI_API_KEY else "openai" if settings.OPENAI_API_KEY else settings.AI_PROVIDER
-    target_model = "gemini-3.5-flash" if target_prov == "gemini" else "gpt-4o-mini" if target_prov == "openai" else None
-    ai_prov = get_ai_provider(target_prov, model=target_model)
-
     detected_type = "image" if is_image else "pdf" if is_pdf else "text"
     extracted_text: str | None = None
     image_base64: str | None = None
@@ -331,32 +327,89 @@ async def upload_document(
         "[Clean, structured policy text in English formatted with clear markdown headings and bullet points]"
     )
 
-    try:
-        if image_base64:
-            # Multimodal Vision OCR + Translation
-            prompt_payload = [
-                {"type": "text", "text": system_instruction},
-                {"type": "image_url", "image_url": {"url": f"data:{image_mime};base64,{image_base64}"}},
-            ]
-            res = ai_prov.complete(prompt_payload)
-        elif extracted_text:
-            prompt_str = f"{system_instruction}\n\nDocument text to process:\n{extracted_text[:12000]}"
-            res = ai_prov.complete(prompt_str)
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Unable to extract text or visual content from this file format.",
-            )
-    except HTTPException:
-        raise
-    except Exception as e:
+    # Step 2: Build Multi-Model & Multi-Provider Fallback Cascade
+    candidate_providers: list[tuple[str, str | None]] = []
+    if image_base64:
+        # Multimodal Vision models
+        if getattr(settings, "GEMINI_API_KEY", None):
+            candidate_providers.extend([
+                ("gemini", "gemini-3.5-flash"),
+                ("gemini", "gemini-3.1-flash-lite"),
+                ("gemini", "gemini-flash-latest"),
+            ])
+        if getattr(settings, "OPENAI_API_KEY", None):
+            candidate_providers.extend([
+                ("openai", "gpt-4o-mini"),
+                ("openai", "gpt-4o"),
+            ])
+        if not candidate_providers:
+            candidate_providers.append((settings.AI_PROVIDER, settings.AI_MODEL))
+    else:
+        # Text extraction & translation models
+        if getattr(settings, "GEMINI_API_KEY", None):
+            candidate_providers.extend([
+                ("gemini", "gemini-3.5-flash"),
+                ("gemini", "gemini-3.1-flash-lite"),
+                ("gemini", "gemini-flash-latest"),
+            ])
+        if getattr(settings, "GROQ_API_KEY", None):
+            candidate_providers.extend([
+                ("groq", "qwen/qwen3.8-27b"),
+                ("groq", "openai/gpt-oss-120b"),
+                ("groq", "llama-3.3-70b-versatile"),
+            ])
+        if getattr(settings, "OPENAI_API_KEY", None):
+            candidate_providers.extend([
+                ("openai", "gpt-4o-mini"),
+                ("openai", "gpt-4o"),
+            ])
+        if not candidate_providers:
+            candidate_providers.append((settings.AI_PROVIDER, settings.AI_MODEL))
+
+    res = None
+    last_error: Exception | None = None
+
+    for prov_name, model_name in candidate_providers:
+        try:
+            logging.info("Attempting document extraction with %s (%s)", prov_name, model_name)
+            ai_prov = get_ai_provider(prov_name, model=model_name)
+            if image_base64:
+                prompt_payload = [
+                    {"type": "text", "text": system_instruction},
+                    {"type": "image_url", "image_url": {"url": f"data:{image_mime};base64,{image_base64}"}},
+                ]
+                res = ai_prov.complete(prompt_payload)
+            elif extracted_text:
+                prompt_str = f"{system_instruction}\n\nDocument text to process:\n{extracted_text[:12000]}"
+                res = ai_prov.complete(prompt_str)
+            else:
+                break
+
+            if res and res.content and res.content.strip():
+                logging.info("Document extraction succeeded using %s (%s)", prov_name, model_name)
+                break
+        except Exception as err:
+            logging.warning("Provider %s (%s) failed during document OCR: %s", prov_name, model_name, err)
+            last_error = err
+            continue
+
+    # Step 3: Handle Output or Graceful Degradation Fallback
+    raw_output: str = ""
+    if res and res.content and res.content.strip():
+        raw_output = res.content.strip()
+    elif extracted_text and extracted_text.strip():
+        # Fall back to raw extracted text if all remote AI calls encountered outages/rate limits
+        clean_name = Path(filename).stem.replace("_", " ").replace("-", " ").title()
+        raw_output = f"TITLE: {clean_name}\n\nCONTENT:\n{extracted_text.strip()}"
+        logging.info("Fell back to raw extracted text for document '%s'", filename)
+    else:
+        err_msg = str(last_error) if last_error else "Unable to extract text or visual content from this file format."
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"AI document extraction and translation failed: {str(e)}",
-        ) from e
+            detail=f"AI document extraction and translation failed: {err_msg}",
+        )
 
-    # Step 3: Parse Title and Content
-    raw_output = res.content.strip()
+    # Step 4: Parse Title and Content
     title = None
     content = raw_output
 

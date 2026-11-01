@@ -114,6 +114,31 @@ def test_upload_and_extract_document(client: TestClient, db_session: Session):
     assert res_data["document_id"] is not None
 
 
+def test_upload_fallback_cascade_when_ai_fails(client: TestClient, db_session: Session, monkeypatch):
+    """Verifies that if remote AI providers return 503 or outage errors, the system gracefully falls back to raw text."""
+    coll = seed_flagship_knowledge_base(db_session)
+
+    from app.ai.providers import OpenAICompatibleProvider
+    def mock_fail_complete(self, prompt, **kwargs):
+        raise RuntimeError("AI provider service error (503): High demand / UNAVAILABLE")
+
+    monkeypatch.setattr(OpenAICompatibleProvider, "complete", mock_fail_complete)
+
+    sample_doc = "Standard Security Guidelines: Multi-factor authentication is required for all administrative access."
+    files = {"file": ("security_policy.txt", io.BytesIO(sample_doc.encode("utf-8")), "text/plain")}
+    data = {
+        "collection_id": coll.id,
+        "auto_translate": "true",
+        "save_to_collection": "true",
+    }
+    resp = client.post("/api/v1/knowledge/upload", files=files, data=data)
+    assert resp.status_code == 200
+    res_data = resp.json()
+    assert "Security Policy" in res_data["title"]
+    assert "Multi-factor authentication is required" in res_data["content"]
+    assert res_data["document_id"] is not None
+
+
 def test_delete_document(client: TestClient, db_session: Session):
     coll = seed_flagship_knowledge_base(db_session)
     docs_resp = client.get(f"/api/v1/knowledge/collections/{coll.id}/documents")
