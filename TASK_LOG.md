@@ -19,6 +19,30 @@
 - [x] **Milestone 14: Visual Architecture Decoupling (GitHub README Consolidation), Sidebar Collapse Polish & Render-Aesthetic Alignment**
 - [x] **Milestone 15: Node Catalog & Inspector Complete Configuration Suite (All 9 Node Types)**
 - [x] **Milestone 16: Automated Workflow Building, Debounced Auto-Save & Interactive AI Provider Suite**
+- [x] **Milestone 17: Multi-Provider Credential Isolation, Real-Time Key Audit & Targeted Health Diagnostics**
+
+---
+
+### Milestone 17: Multi-Provider Credential Isolation, Real-Time Key Audit & Targeted Health Diagnostics
+- **Date**: 2026-11-01
+- **Status**: Completed
+- **Features Implemented**:
+  1. **Multi-Provider Key Isolation (`backend/app/core/config.py` & `factory.py`)**:
+     - Separated credentials into provider-specific stores (`GROQ_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`) so switching providers in the UI never confuses keys.
+     - Added native Google Gemini adapter via OpenAI-compatible API endpoint (`https://generativelanguage.googleapis.com/v1beta/openai`).
+  2. **Live Provider Status Badges on Cards (`Settings.jsx` & `settings.py`)**:
+     - Each provider card now displays two distinct real-time status badges:
+       - **Runtime Status**: `✓ ACTIVE RUNTIME` (green) or `Inactive` (grey).
+       - **Credential Status**: `✓ Key Configured (masked_key)` (green), `⚠ Key Required` (amber/red), or `✓ No Key Needed` (blue).
+  3. **Targeted Health Diagnostic Testing (`test_ai_connection`)**:
+     - `POST /api/v1/settings/ai/test` now accepts `{ provider, model, api_key }` payload to test the specific selected provider.
+     - Testing an unconfigured provider (e.g. OpenAI without key) rejects with a clear `400 Bad Request`: *"OPENAI API key is missing. Please enter your API key (sk-...) and save configuration before testing."*
+     - Testing a configured provider (e.g. Groq) verifies live connectivity and returns latency and model output.
+- **Verification**:
+  - Direct endpoint testing: OpenAI without key correctly returns 400 error; Groq returns 200 OK with `PONG` in 526ms.
+  - `vitest` frontend tests: 2/2 passed.
+  - `vite build` production build: 0 errors in 4.87s.
+  - `pytest backend/tests`: 54/54 passed in 8.30s.
 
 ---
 
