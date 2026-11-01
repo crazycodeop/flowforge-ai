@@ -17,6 +17,32 @@
 - [x] **Milestone 12: Render-Inspired Dark Dashboard Theme & Operational Cloud UI**
 - [x] **Milestone 13: Complete Responsive Design Overhaul & Viewport Hardening (320px–1920px)**
 - [x] **Milestone 14: Visual Architecture Decoupling (GitHub README Consolidation), Sidebar Collapse Polish & Render-Aesthetic Alignment**
+- [x] **Milestone 15: Node Catalog & Inspector Complete Configuration Suite (All 9 Node Types)**
+
+---
+
+### Milestone 15: Node Catalog & Inspector Complete Configuration Suite (All 9 Node Types)
+- **Date**: 2026-11-01
+- **Status**: Completed
+- **Features Implemented**:
+  1. **Complete Configuration Inspector for All 9 Catalog Nodes (`NodeInspector.jsx`)**:
+     - **API Trigger (`trigger`)**: Trigger type selector (`api`, `manual`, `scheduled`), input schema JSON editor, live webhook endpoint preview (`POST /api/v1/workflows/{id}/run`).
+     - **Input Data (`input_data`)**: Fallback and default payload JSON editor with real-time JSON validation.
+     - **AI Classify (`ai_classify`)**: Prompt template with `{field}` interpolation, comma-separated category tags, temperature slider (0.0 to 1.0), model override (`gemini-1.5-flash`), output structure preview (`category, confidence, reasoning`).
+     - **Structured Extract (`structured_extract`)**: Extraction instruction template, JSON schema definition editor, model override, temperature slider, Pydantic validation guarantee tag.
+     - **Knowledge Retrieval (`retrieval`)**: Target collection name (`support_policies`), query template, top K count (1-20), minimum score similarity threshold (0.0-1.0), output preview (`passages, sources, count`).
+     - **Condition Branch (`condition`)**: Field/path to check (supports dot notation like `extracted.amount`), operator dropdown (`>`, `<`, `==`, `!=`, `contains`, `is_empty`, `is_not_empty`), threshold value input, human-readable live logic preview box (`If field > 100 -> TRUE routes to green handle, FALSE routes to red handle`).
+     - **Data Transform (`transform`)**: Deterministic key-value field mapping rules JSON editor with template interpolation assistance.
+     - **Human Review (`human_approval`)**: Headline title, reviewer instruction template with `{field}` interpolation, required role dropdown (`reviewer`, `manager`, `admin`, `finance`), timeout hours SLA (1-168h), workflow pause behavior preview.
+     - **Workflow Result (`output`)**: Terminal node response template JSON editor defining the assembled payload returned to API callers.
+  2. **Canvas Node Preview Pills (`CustomNode.jsx`)**:
+     - Updated canvas nodes for all 9 node types to render distinct, color-coded, human-readable configuration summary pills directly on each canvas card (e.g. `If amount > 100`, `[billing, technical, general]`, `Top K: 3`, `Gate: reviewer (24h SLA)`).
+  3. **Builder Node Initialization Defaults (`Builder.jsx`)**:
+     - Introduced `DEFAULT_NODE_CONFIGS` so every node added via palette drag-and-drop or click starts with a complete, Pydantic-valid default configuration with zero validation errors out of the box.
+- **Verification**:
+  - `vitest` unit tests: 2 passed (`src/App.test.jsx`).
+  - `vite build` production bundle: 0 errors, built in 5.37s.
+  - `pytest backend/tests`: 54 passed across all unit and integration test suites in 10.03s.
 
 ---
 
