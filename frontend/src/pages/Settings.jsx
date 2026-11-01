@@ -170,7 +170,7 @@ export default function Settings() {
     loadAvailableModels(newProv, "");
   };
 
-  const handleSaveAISettings = async (e, setAsActive = true) => {
+  const handleSaveAISettings = async (e, setAsDefault = false) => {
     if (e && e.preventDefault) e.preventDefault();
     setAiSaving(true);
     setAiSaveMessage(null);
@@ -178,7 +178,7 @@ export default function Settings() {
       const payload = {
         provider: providerInput,
         model: modelInput,
-        set_as_active: setAsActive,
+        set_as_active: setAsDefault,
       };
       if (apiKeyInput.trim()) {
         payload.api_key = apiKeyInput.trim();
@@ -189,9 +189,7 @@ export default function Settings() {
       const provName = currentProvDetail?.name || providerInput.toUpperCase();
       setAiSaveMessage({
         type: "success",
-        text: setAsActive
-          ? `${provName} set as active default runtime and credentials saved!`
-          : `${provName} credentials saved! Active default runtime remains unchanged.`,
+        text: `${provName} saved! It is now active and available for workflow creation.`,
       });
     } catch (err) {
       setAiSaveMessage({ type: "error", text: err.message || "Failed to save AI settings." });
@@ -621,10 +619,10 @@ export default function Settings() {
         return (
           <div className="card" style={{ padding: "24px" }}>
             <h2 style={{ fontSize: "16px", fontWeight: 600, margin: "0 0 4px 0", color: "var(--text-main)" }}>
-              AI Provider & Model Runtime
+              AI Providers & Credentials
             </h2>
             <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "20px" }}>
-              Configure and test inference providers. Green badges indicate the currently active runtime and saved credentials.
+              Configure inference providers. Any provider with a saved key is Active and available across all workflows.
             </p>
 
             {aiSaveMessage && (
@@ -647,23 +645,19 @@ export default function Settings() {
               </div>
             )}
 
-            {/* Provider Selection Cards with Active / Key Badges */}
+            {/* Provider Selection Cards */}
             <div style={{ marginBottom: "22px" }}>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#a3a3a3", marginBottom: "8px" }}>
-                AI Providers & Credential Status
-              </label>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "12px" }}>
                 {[
                   { id: "groq", name: "Groq Cloud LPU", desc: "Ultra-low latency inference", badge: "Fastest" },
-                  { id: "gemini", name: "Google Gemini", desc: "Gemini 1.5 Flash & Pro", badge: "Multimodal" },
+                  { id: "gemini", name: "Google Gemini", desc: "Gemini 3.5 Flash & Pro", badge: "Multimodal" },
                   { id: "openai", name: "OpenAI", desc: "GPT-4o & GPT-4o-mini", badge: "Standard" },
                   { id: "mock", name: "Mock Sandbox", desc: "Simulated token execution", badge: "Zero Cost" },
                 ].map((prov) => {
                   const isSelected = providerInput === prov.id;
                   const detail = aiStatus?.providers?.find((p) => p.id === prov.id);
-                  const isActiveRuntime = detail ? detail.is_active : (aiStatus?.provider === prov.id);
-                  const hasKey = detail ? detail.has_key : false;
-                  const requiresKey = detail ? detail.requires_key : (prov.id !== "mock");
+                  const isActive = detail ? detail.is_active : false;
+                  const isDefault = detail ? detail.is_default : (aiStatus?.provider === prov.id);
 
                   return (
                     <div
@@ -679,6 +673,7 @@ export default function Settings() {
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
+                        minHeight: "92px",
                       }}
                     >
                       <div>
@@ -702,35 +697,25 @@ export default function Settings() {
                         <div style={{ fontSize: "11px", color: "#888888", marginBottom: "10px" }}>{prov.desc}</div>
                       </div>
 
-                      {/* Status Tags */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          {isActiveRuntime ? (
-                            <span style={{ fontSize: "10px", fontWeight: 700, padding: "1px 6px", borderRadius: "3px", background: "rgba(16, 185, 129, 0.2)", color: "#34d399", border: "1px solid rgba(16, 185, 129, 0.4)" }}>
-                              ✓ ACTIVE RUNTIME
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "#222222", color: "#737373" }}>
-                              Inactive
-                            </span>
-                          )}
-                        </div>
+                      {/* Status indicator */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        {isActive ? (
+                          <span style={{ fontSize: "11px", fontWeight: 600, color: "#34d399", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399" }}></span>
+                            Active
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: "11px", color: "#f87171", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#f87171" }}></span>
+                            Key Required
+                          </span>
+                        )}
 
-                        <div>
-                          {!requiresKey ? (
-                            <span style={{ fontSize: "10px", color: "#38bdf8", fontWeight: 500 }}>
-                              ✓ No Key Needed
-                            </span>
-                          ) : hasKey ? (
-                            <span style={{ fontSize: "10px", color: "#34d399", fontWeight: 500 }}>
-                              ✓ Key Configured ({detail?.masked_key})
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: "10px", color: "#f87171", fontWeight: 600 }}>
-                              ⚠ Key Required
-                            </span>
-                          )}
-                        </div>
+                        {isDefault && (
+                          <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "3px", background: "rgba(139, 92, 246, 0.2)", color: "#a78bfa", fontWeight: 600, border: "1px solid rgba(139, 92, 246, 0.3)" }}>
+                            Default
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
@@ -739,15 +724,16 @@ export default function Settings() {
             </div>
 
             {/* Provider Configuration Form */}
-            <form onSubmit={handleSaveAISettings} style={{ display: "flex", flexDirection: "column", gap: "12px", maxWidth: "560px", marginBottom: "20px" }}>
-              <div style={{ padding: "14px", background: "#161616", border: "1px solid #262626", borderRadius: "6px" }}>
+            <form onSubmit={handleSaveAISettings} style={{ display: "flex", flexDirection: "column", gap: "14px", maxWidth: "560px", marginBottom: "20px" }}>
+              <div style={{ padding: "16px", background: "#161616", border: "1px solid #262626", borderRadius: "6px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-                  <div style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5" }}>
+                  <div style={{ fontSize: "13px", fontWeight: 600, color: "#ffffff" }}>
                     Configuring: <span style={{ color: "#a78bfa" }}>{currentProvDetail.name}</span>
                   </div>
-                  {currentProvDetail.has_key ? (
-                    <span style={{ fontSize: "11px", color: "#34d399", fontWeight: 500 }}>
-                      ✓ Key Configured ({currentProvDetail.masked_key})
+                  {currentProvDetail.is_active ? (
+                    <span style={{ fontSize: "11px", color: "#34d399", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                      <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399" }}></span>
+                      Active {currentProvDetail.masked_key ? `(${currentProvDetail.masked_key})` : ""}
                     </span>
                   ) : currentProvDetail.requires_key ? (
                     <span style={{ fontSize: "11px", color: "#f87171", fontWeight: 500 }}>
@@ -763,63 +749,49 @@ export default function Settings() {
                 {/* API Key Input */}
                 {providerInput !== "mock" && (
                   <div style={{ marginBottom: "14px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
-                      <label style={{ fontSize: "11px", fontWeight: 600, color: "#888888" }}>
-                        API Key
-                      </label>
-                      {apiKeyInput.trim() && (
-                        <span style={{ fontSize: "10px", color: "#fbbf24" }}>
-                          New key entered (Click Fetch Models or Save)
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <div style={{ position: "relative", flex: 1 }}>
-                        <input
-                          type={showApiKey ? "text" : "password"}
-                          value={apiKeyInput}
-                          onChange={(e) => setApiKeyInput(e.target.value)}
-                          placeholder={
-                            currentProvDetail.has_key
-                              ? "Enter new key to update, or leave blank to keep current"
-                              : `Enter your ${currentProvDetail.name} API key`
-                          }
-                          className="input"
-                          style={{ fontSize: "12px", paddingRight: "36px" }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowApiKey(!showApiKey)}
-                          style={{
-                            position: "absolute",
-                            right: "8px",
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            background: "none",
-                            border: "none",
-                            color: "#737373",
-                            cursor: "pointer",
-                            padding: "4px",
-                          }}
-                          title={showApiKey ? "Hide key" : "Show key"}
-                        >
-                          {showApiKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                        </button>
-                      </div>
+                    <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "6px" }}>
+                      API Key
+                    </label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        type={showApiKey ? "text" : "password"}
+                        value={apiKeyInput}
+                        onChange={(e) => setApiKeyInput(e.target.value)}
+                        placeholder={
+                          currentProvDetail.has_key
+                            ? `Key saved (${currentProvDetail.masked_key}) — enter new key to update`
+                            : `Enter your ${currentProvDetail.name} API key`
+                        }
+                        className="input"
+                        style={{ fontSize: "12px", paddingRight: "36px", width: "100%" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        style={{
+                          position: "absolute",
+                          right: "8px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          background: "none",
+                          border: "none",
+                          color: "#737373",
+                          cursor: "pointer",
+                          padding: "4px",
+                        }}
+                        title={showApiKey ? "Hide key" : "Show key"}
+                      >
+                        {showApiKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
                     </div>
                   </div>
                 )}
 
-                {/* Default Model with Prominent Fetch Models Button */}
+                {/* Default Model */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
-                    <label style={{ fontSize: "11px", fontWeight: 600, color: "#888888" }}>
-                      Default Model
-                    </label>
-                    {modelsLoading && (
-                      <span style={{ fontSize: "10px", color: "#8b5cf6" }}>Querying provider catalog...</span>
-                    )}
-                  </div>
+                  <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "6px" }}>
+                    Default Model
+                  </label>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <select
                       value={modelInput}
@@ -828,7 +800,7 @@ export default function Settings() {
                       style={{ fontSize: "12px", flex: 1 }}
                       disabled={modelsLoading}
                     >
-                      {modelsLoading && <option>Fetching models from {currentProvDetail.name}...</option>}
+                      {modelsLoading && <option>Fetching models...</option>}
                       {!modelsLoading && availableModels.length > 0 && availableModels.map((m) => (
                         <option key={m.id} value={m.id}>{m.name}</option>
                       ))}
@@ -860,78 +832,43 @@ export default function Settings() {
                       </button>
                     )}
                   </div>
-
-                  {availableModels.length > 0 && !modelsLoading && (
-                    <div style={{ marginTop: "5px", fontSize: "10px", color: "#34d399" }}>
-                      ✓ Showing {availableModels.length} active models loaded from {currentProvDetail.name}
-                    </div>
-                  )}
-                  {modelsError && (
-                    <div style={{ marginTop: "5px", fontSize: "10px", color: "#ef4444" }}>
-                      {modelsError}
-                    </div>
-                  )}
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                  {currentProvDetail.is_active ? (
-                    <button
-                      type="button"
-                      onClick={(e) => handleSaveAISettings(e, true)}
-                      disabled={aiSaving}
-                      className="btn btn-primary btn-sm"
-                      style={{ padding: "7px 16px" }}
-                    >
-                      <Save size={13} />
-                      <span>{aiSaving ? "Saving..." : "Save Settings"}</span>
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={(e) => handleSaveAISettings(e, false)}
-                        disabled={aiSaving}
-                        className="btn btn-secondary btn-sm"
-                        style={{ padding: "7px 14px", border: "1px solid #3b82f6", color: "#60a5fa" }}
-                        title="Save credentials to unlock models in workflows without changing the active default runtime"
-                      >
-                        <Key size={13} />
-                        <span>{aiSaving ? "Saving..." : "Save Credentials"}</span>
-                      </button>
+              {/* Action Buttons: Clean & Direct */}
+              <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                <button
+                  type="submit"
+                  disabled={aiSaving}
+                  className="btn btn-primary btn-sm"
+                  style={{ padding: "8px 18px", fontSize: "12px", fontWeight: 600 }}
+                >
+                  <Save size={13} />
+                  <span>{aiSaving ? "Saving..." : "Save Key"}</span>
+                </button>
 
-                      <button
-                        type="button"
-                        onClick={(e) => handleSaveAISettings(e, true)}
-                        disabled={aiSaving}
-                        className="btn btn-primary btn-sm"
-                        style={{ padding: "7px 16px" }}
-                        title="Save credentials and make this provider the active default for the workspace"
-                      >
-                        <Save size={13} />
-                        <span>{aiSaving ? "Saving..." : "Set as Active Runtime"}</span>
-                      </button>
-                    </>
-                  )}
+                <button
+                  type="button"
+                  onClick={handleTestAI}
+                  disabled={aiTesting}
+                  className="btn btn-secondary btn-sm"
+                  style={{ padding: "8px 16px", fontSize: "12px" }}
+                >
+                  <RefreshCw size={13} className={aiTesting ? "spin" : ""} />
+                  <span>{aiTesting ? "Testing Ping..." : "Test Connection"}</span>
+                </button>
 
+                {!currentProvDetail.is_default && currentProvDetail.is_active && (
                   <button
                     type="button"
-                    onClick={handleTestAI}
-                    disabled={aiTesting}
+                    onClick={(e) => handleSaveAISettings(e, true)}
+                    disabled={aiSaving}
                     className="btn btn-secondary btn-sm"
-                    style={{ padding: "7px 14px" }}
+                    style={{ padding: "8px 14px", fontSize: "11px", color: "#a78bfa" }}
+                    title="Make this provider the default fallback for new nodes"
                   >
-                    <RefreshCw size={13} className={aiTesting ? "spin" : ""} />
-                    <span>{aiTesting ? "Testing Ping..." : `Test ${currentProvDetail.name} Connection`}</span>
+                    Set as Default Fallback
                   </button>
-                </div>
-
-                {!currentProvDetail.is_active && (
-                  <p style={{ margin: 0, fontSize: "11px", color: "var(--text-muted)" }}>
-                    💡 Use <strong>Save Credentials</strong> to unlock this provider for specific workflow nodes while keeping your current default runtime active.
-                  </p>
                 )}
               </div>
             </form>

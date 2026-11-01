@@ -39,6 +39,7 @@ class ProviderDetail(BaseModel):
     id: str
     name: str
     is_active: bool
+    is_default: bool = False
     has_key: bool
     masked_key: str | None = None
     default_model: str
@@ -115,7 +116,8 @@ def _build_provider_details(settings) -> list[ProviderDetail]:
         ProviderDetail(
             id="groq",
             name="Groq Cloud LPU",
-            is_active=(active_prov == "groq"),
+            is_active=bool(groq_key),
+            is_default=(active_prov == "groq"),
             has_key=bool(groq_key),
             masked_key=_mask_key(groq_key),
             default_model=settings.AI_MODEL if active_prov == "groq" else "qwen/qwen3.8-27b",
@@ -124,7 +126,8 @@ def _build_provider_details(settings) -> list[ProviderDetail]:
         ProviderDetail(
             id="gemini",
             name="Google Gemini",
-            is_active=(active_prov == "gemini"),
+            is_active=bool(gemini_key),
+            is_default=(active_prov == "gemini"),
             has_key=bool(gemini_key),
             masked_key=_mask_key(gemini_key),
             default_model=settings.AI_MODEL if active_prov == "gemini" else "gemini-3.5-flash",
@@ -133,7 +136,8 @@ def _build_provider_details(settings) -> list[ProviderDetail]:
         ProviderDetail(
             id="openai",
             name="OpenAI",
-            is_active=(active_prov == "openai"),
+            is_active=bool(openai_key),
+            is_default=(active_prov == "openai"),
             has_key=bool(openai_key),
             masked_key=_mask_key(openai_key),
             default_model=settings.AI_MODEL if active_prov == "openai" else "gpt-4o-mini",
@@ -142,7 +146,8 @@ def _build_provider_details(settings) -> list[ProviderDetail]:
         ProviderDetail(
             id="mock",
             name="Mock Sandbox",
-            is_active=(active_prov == "mock"),
+            is_active=True,
+            is_default=(active_prov == "mock"),
             has_key=True,
             masked_key="No Key Needed",
             default_model="mock-model-v1",
