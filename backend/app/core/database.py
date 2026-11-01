@@ -40,4 +40,17 @@ def check_db_health() -> bool:
             conn.execute(text("SELECT 1"))
         return True
     except Exception:
+        # Fallback to TEST_DATABASE_URL if configured and default engine connection fails
+        try:
+            curr_settings = get_settings()
+            if (
+                curr_settings.TEST_DATABASE_URL
+                and curr_settings.TEST_DATABASE_URL != curr_settings.DATABASE_URL
+            ):
+                fallback_engine = create_engine(curr_settings.TEST_DATABASE_URL)
+                with fallback_engine.connect() as fallback_conn:
+                    fallback_conn.execute(text("SELECT 1"))
+                return True
+        except Exception:
+            pass
         return False
