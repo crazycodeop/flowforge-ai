@@ -25,6 +25,7 @@
 - [x] **Milestone 20: Decoupled Multi-Provider Credential Saving & Granular Runtime Promotion**
 - [x] **Milestone 21: Streamlined Multi-Provider Status & Cleaned AI Settings UI**
 - [x] **Milestone 22: Knowledge Collections Center & 1-Click Interactive Test Scenarios**
+- **Bug Fix**: Resolved `TypeError: Cannot read properties of undefined (reading 'map')` in `Knowledge.jsx:286` by correctly unpacking the backend `search_knowledge_base` response dictionary keys (`sources`, `passages`). Production build verified green. Commit `41edfbf`.
 
 ---
 
