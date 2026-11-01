@@ -324,6 +324,31 @@ export const api = {
     return request("/knowledge/collections");
   },
 
+  async createKnowledgeCollection(payload) {
+    return request("/knowledge/collections", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getCollectionDocuments(collectionId) {
+    return request(`/knowledge/collections/${collectionId}/documents`);
+  },
+
+  async addDocument(collectionId, payload) {
+    return request(`/knowledge/collections/${collectionId}/documents`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async searchKnowledge(payload) {
+    return request("/knowledge/search", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
   async seedKnowledge() {
     return request("/knowledge/seed", {
       method: "POST",

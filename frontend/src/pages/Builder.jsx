@@ -940,9 +940,55 @@ function BuilderCanvas() {
             </p>
 
             <div style={{ marginBottom: "16px" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, display: "block", marginBottom: "6px" }}>
-                Input Payload (JSON)
-              </label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                <label style={{ fontSize: "12px", fontWeight: 600 }}>
+                  Input Payload (JSON)
+                </label>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRunInputJson(
+                        JSON.stringify(
+                          {
+                            ticket_text:
+                              "I was charged twice ($89.99) on invoice INV-2026. Please process a refund to my credit card immediately.",
+                            customer_email: "jane.doe@enterprise.com",
+                            channel: "email",
+                          },
+                          null,
+                          2
+                        )
+                      )
+                    }
+                    className="btn btn-ghost btn-sm"
+                    style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid #333", color: "#a78bfa" }}
+                  >
+                    + Refund Demo ($89.99)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRunInputJson(
+                        JSON.stringify(
+                          {
+                            ticket_text:
+                              "Our production API is throwing 500 internal errors and users cannot log in. High urgency!",
+                            customer_email: "ops@techcorp.io",
+                            channel: "slack",
+                          },
+                          null,
+                          2
+                        )
+                      )
+                    }
+                    className="btn btn-ghost btn-sm"
+                    style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid #333", color: "#60a5fa" }}
+                  >
+                    + Tech Issue Demo
+                  </button>
+                </div>
+              </div>
               <textarea
                 value={runInputJson}
                 onChange={(e) => setRunInputJson(e.target.value)}

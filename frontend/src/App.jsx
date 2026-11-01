@@ -11,6 +11,7 @@ import Builder from "./pages/Builder";
 import Executions from "./pages/Executions";
 import Approvals from "./pages/Approvals";
 import Evaluations from "./pages/Evaluations";
+import Knowledge from "./pages/Knowledge";
 import SystemStatus from "./pages/SystemStatus";
 import UseCases from "./pages/UseCases";
 import Settings from "./pages/Settings";
@@ -37,6 +38,7 @@ export default function App() {
                     <Route path="/executions" element={<Executions />} />
                     <Route path="/approvals" element={<Approvals />} />
                     <Route path="/evaluations" element={<Evaluations />} />
+                    <Route path="/knowledge" element={<Knowledge />} />
                     <Route path="/system" element={<SystemStatus />} />
                     <Route path="/use-cases" element={<UseCases />} />
                     <Route path="/settings" element={<Settings />} />

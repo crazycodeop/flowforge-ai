@@ -6,6 +6,7 @@ import {
   PlayCircle,
   ShieldCheck,
   Gauge,
+  BookOpen,
   Sparkles,
   Settings as SettingsIcon,
   Search,
@@ -215,6 +216,7 @@ export default function Shell({ children }) {
   ];
 
   const aiNavItems = [
+    { label: "Knowledge Base", path: "/knowledge", icon: BookOpen },
     { label: "Evaluations", path: "/evaluations", icon: Gauge },
     { label: "Use Cases", path: "/use-cases", icon: Sparkles },
   ];
@@ -241,6 +243,7 @@ export default function Shell({ children }) {
     if (p === "/executions") return "Executions";
     if (p === "/approvals") return "Approvals";
     if (p === "/evaluations") return "Evaluations";
+    if (p === "/knowledge") return "Knowledge Base";
     if (p === "/use-cases") return "Use Cases";
     if (p === "/settings") return "Settings";
     if (p === "/system") return "System Status";
