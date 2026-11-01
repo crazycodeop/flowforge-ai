@@ -274,30 +274,47 @@ export default function Knowledge() {
                 </form>
 
                 {/* Semantic Search Matches Output */}
-                {searchResults && (
-                  <div style={{ marginTop: "14px", padding: "12px", background: "#111111", borderRadius: "6px", border: "1px solid #333" }}>
-                    <div style={{ fontSize: "11px", fontWeight: 600, color: "#8b5cf6", marginBottom: "8px" }}>
-                      Semantic Match Results ({searchResults.matches?.length || 0} citations)
-                    </div>
-                    {searchResults.matches?.length === 0 ? (
-                      <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>No policy documents matched query threshold.</div>
-                    ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                        {searchResults.matches.map((m, idx) => (
-                          <div key={idx} style={{ padding: "8px 10px", background: "#161616", borderRadius: "4px", border: "1px solid #222" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: 600, color: "#ffffff", marginBottom: "4px" }}>
-                              <span>{m.title}</span>
-                              <span style={{ color: "#34d399" }}>Score: {m.score?.toFixed(3)}</span>
-                            </div>
-                            <div style={{ fontSize: "12px", color: "#a3a3a3", lineHeight: 1.4 }}>
-                              {m.content}
-                            </div>
-                          </div>
-                        ))}
+                {searchResults && (() => {
+                  const items = searchResults.sources || searchResults.matches || [];
+                  const passages = searchResults.passages || [];
+
+                  return (
+                    <div style={{ marginTop: "14px", padding: "14px", background: "#111111", borderRadius: "6px", border: "1px solid #333" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                        <span style={{ fontSize: "11px", fontWeight: 600, color: "#8b5cf6" }}>
+                          Semantic Match Results ({items.length} citation{items.length === 1 ? "" : "s"})
+                        </span>
+                        <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                          Query: "{searchResults.query}"
+                        </span>
                       </div>
-                    )}
-                  </div>
-                )}
+
+                      {items.length === 0 ? (
+                        <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                          No policy documents matched query score threshold. Try broader keywords like "refund", "billing", or "sla".
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                          {items.map((src, idx) => (
+                            <div key={idx} style={{ padding: "10px 12px", background: "#161616", borderRadius: "4px", border: "1px solid #222" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: 600, color: "#ffffff", marginBottom: "4px" }}>
+                                <span>{src.title}</span>
+                                <span style={{ color: "#34d399", fontFamily: "var(--font-mono)", fontSize: "11px" }}>
+                                  Score: {src.score !== undefined ? src.score.toFixed(3) : "Matched"}
+                                </span>
+                              </div>
+                              {passages[idx] && (
+                                <div style={{ fontSize: "12px", color: "#a3a3a3", lineHeight: 1.4, whiteSpace: "pre-line" }}>
+                                  "{passages[idx]}"
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Document Cards */}
