@@ -143,6 +143,29 @@ class OutputExecutor(BaseNodeExecutor):
         return {"result": assembled}
 
 
+def resolve_provider_for_model(
+    provider_name: str | None, model_name: str | None
+) -> tuple[str | None, str | None]:
+    """Infers the appropriate AI provider from the model name if not explicitly specified."""
+    if provider_name and provider_name.strip():
+        return provider_name.lower().strip(), model_name
+
+    if not model_name:
+        return None, None
+
+    m_lower = model_name.lower().strip()
+    if "gemini" in m_lower:
+        return "gemini", model_name
+    if any(m_lower.startswith(prefix) for prefix in ["gpt", "o1", "o3", "chatgpt"]):
+        return "openai", model_name
+    if any(keyword in m_lower for keyword in ["qwen", "llama", "deepseek", "allam", "orpheus"]):
+        return "groq", model_name
+    if "mock" in m_lower:
+        return "mock", model_name
+
+    return None, model_name
+
+
 class AIClassifyExecutor(BaseNodeExecutor):
     def execute(self, context: ExecutionContext) -> dict[str, Any]:
         prompt_template = context.node_config.get("prompt_template", "")
@@ -151,11 +174,15 @@ class AIClassifyExecutor(BaseNodeExecutor):
         model_override = context.node_config.get("model")
         temperature = float(context.node_config.get("temperature", 0.0))
 
-        provider = get_ai_provider()
+        target_prov, target_model = resolve_provider_for_model(
+            context.node_config.get("provider"),
+            model_override,
+        )
+        provider = get_ai_provider(provider_name=target_prov, model=target_model)
         response = provider.classify(
             prompt=rendered_prompt,
             categories=categories,
-            model=model_override,
+            model=target_model,
             temperature=temperature,
         )
 
@@ -179,11 +206,15 @@ class StructuredExtractExecutor(BaseNodeExecutor):
         model_override = context.node_config.get("model")
         temperature = float(context.node_config.get("temperature", 0.0))
 
-        provider = get_ai_provider()
+        target_prov, target_model = resolve_provider_for_model(
+            context.node_config.get("provider"),
+            model_override,
+        )
+        provider = get_ai_provider(provider_name=target_prov, model=target_model)
         response = provider.extract(
             prompt=rendered_prompt,
             schema=schema_definition,
-            model=model_override,
+            model=target_model,
             temperature=temperature,
         )
 

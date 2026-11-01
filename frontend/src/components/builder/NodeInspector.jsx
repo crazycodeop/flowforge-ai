@@ -172,11 +172,26 @@ function ModelSelector({ value, onChange }) {
             ⚠ {value} (Missing Key)
           </option>
         )}
-        {availableModels.map((m) => (
-          <option key={m.value} value={m.value}>
-            {m.label}
-          </option>
-        ))}
+        <option value="">
+          Default ({aiSettings?.model || "Workspace Settings"})
+        </option>
+        {(aiSettings?.providers || [
+          { id: "groq", name: "Groq Cloud LPU", has_key: true },
+          { id: "gemini", name: "Google Gemini", has_key: true }
+        ]).map((prov) => {
+          if (!prov.has_key) return null;
+          const models = PROVIDER_MODELS[prov.id] || [];
+          if (models.length === 0) return null;
+          return (
+            <optgroup key={prov.id} label={`${prov.name} (${prov.id.toUpperCase()})`}>
+              {models.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </optgroup>
+          );
+        })}
         <option value="custom">Custom Model ID...</option>
       </select>
 
