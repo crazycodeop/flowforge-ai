@@ -191,24 +191,125 @@ export default function NodeInspector({
           </div>
         )}
 
-        {nodeType === "condition" && (
-          <div>
-            <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-              Condition Operator
-            </label>
-            <select
-              value={config.operator || "greater_than"}
-              onChange={(e) => handleConfigChange("operator", e.target.value)}
-              className="input"
-              style={{ fontSize: "12px" }}
-            >
-              <option value="greater_than">Greater than (&gt;)</option>
-              <option value="less_than">Less than (&lt;)</option>
-              <option value="equals">Equals (==)</option>
-              <option value="contains">Contains</option>
-            </select>
-          </div>
-        )}
+        {nodeType === "condition" && (() => {
+          const activeField = config.field_path || config.branches?.[0]?.field_path || "amount";
+          const activeOp = config.operator || config.branches?.[0]?.operator || "greater_than";
+          const activeVal = config.value ?? config.branches?.[0]?.value ?? "100";
+
+          const updateCondition = (field, val) => {
+            const nextField = field === "field_path" ? val : activeField;
+            const nextOp = field === "operator" ? val : activeOp;
+            const nextVal = field === "value" ? val : activeVal;
+
+            onUpdateNode(node.id, {
+              ...node.data,
+              config: {
+                ...config,
+                field_path: nextField,
+                operator: nextOp,
+                value: nextVal,
+                branches: [
+                  {
+                    branch_name: "true",
+                    operator: nextOp,
+                    field_path: nextField,
+                    value: nextVal,
+                  },
+                ],
+                default_branch: "false",
+              },
+            });
+          };
+
+          const opSymbol =
+            activeOp === "greater_than" ? ">" :
+            activeOp === "less_than" ? "<" :
+            activeOp === "not_equals" ? "!=" :
+            activeOp === "contains" ? "contains" : "==";
+
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
+                  Field / Variable to Check
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. amount, priority, or category"
+                  value={activeField}
+                  onChange={(e) => updateCondition("field_path", e.target.value)}
+                  className="input"
+                  style={{ fontSize: "12px" }}
+                />
+                <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
+                  Name of field from input payload or upstream node output
+                </span>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
+                  Condition Operator
+                </label>
+                <select
+                  value={activeOp}
+                  onChange={(e) => updateCondition("operator", e.target.value)}
+                  className="input"
+                  style={{ fontSize: "12px" }}
+                >
+                  <option value="greater_than">Greater than (&gt;)</option>
+                  <option value="less_than">Less than (&lt;)</option>
+                  <option value="equals">Equals (==)</option>
+                  <option value="not_equals">Not equals (!=)</option>
+                  <option value="contains">Contains</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
+                  Comparison Value (Threshold)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 100, high, billing"
+                  value={activeVal}
+                  onChange={(e) => updateCondition("value", e.target.value)}
+                  className="input"
+                  style={{ fontSize: "12px" }}
+                />
+                <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
+                  The value or threshold number to compare against
+                </span>
+              </div>
+
+              {/* Human-Readable Rule Preview Box */}
+              <div
+                style={{
+                  padding: "10px 12px",
+                  background: "#141414",
+                  border: "1px solid #262626",
+                  borderRadius: "6px",
+                  fontSize: "11px",
+                  lineHeight: "1.4",
+                }}
+              >
+                <div style={{ fontWeight: 600, color: "#f5f5f5", marginBottom: "4px" }}>
+                  Rule Logic Preview:
+                </div>
+                <div style={{ color: "#fbbf24", fontFamily: "var(--font-mono)", marginBottom: "4px" }}>
+                  If {activeField || "field"} {opSymbol} {activeVal || "value"}
+                </div>
+                <div style={{ color: "#a3a3a3", display: "flex", flexDirection: "column", gap: "2px" }}>
+                  <div>
+                    <span style={{ color: "#10b981", fontWeight: 600 }}>• TRUE</span> ➔ routes to green handle
+                  </div>
+                  <div>
+                    <span style={{ color: "#ef4444", fontWeight: 600 }}>• FALSE</span> ➔ routes to red handle
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Danger Zone: Delete Node */}
         <div style={{ marginTop: "auto", paddingTop: "16px", borderTop: "1px solid #222222" }}>

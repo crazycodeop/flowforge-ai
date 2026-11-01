@@ -170,11 +170,22 @@ export default function CustomNode({ id, data, selected }) {
             Top K: {data.config?.top_k || 3}
           </div>
         )}
-        {nodeType === "condition" && (
-          <div style={{ fontSize: "10px", color: "#fbbf24", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
-            Rule: {data.config?.operator || "equals"}
-          </div>
-        )}
+        {nodeType === "condition" && (() => {
+          const field = data.config?.field_path || data.config?.branches?.[0]?.field_path || "amount";
+          const op = data.config?.operator || data.config?.branches?.[0]?.operator || "greater_than";
+          const val = data.config?.value ?? data.config?.branches?.[0]?.value ?? "100";
+          const opSym =
+            op === "greater_than" ? ">" :
+            op === "less_than" ? "<" :
+            op === "not_equals" ? "!=" :
+            op === "contains" ? "contains" : "==";
+
+          return (
+            <div style={{ fontSize: "10px", color: "#fbbf24", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
+              If {field} {opSym} {String(val)}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Outgoing Connection Handles */}
