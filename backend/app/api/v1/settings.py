@@ -290,12 +290,15 @@ def fetch_provider_models(
                                 "gemini-2.5-flash",
                             ]
                             if not any(bad in clean_id.lower() for bad in exclude_keywords):
-                                display_name = m.get("displayName", clean_id)
-                                label = (
-                                    f"{clean_id} ({display_name})"
-                                    if display_name != clean_id
-                                    else clean_id
+                                m.get("displayName", clean_id)
+                                tier_badge = (
+                                    " [Free Tier]"
+                                    if ("flash" in clean_id and "preview" not in clean_id)
+                                    else " [Billing Required]"
+                                    if "pro" in clean_id
+                                    else ""
                                 )
+                                label = f"{clean_id}{tier_badge}"
                                 models.append(AIModelItem(id=clean_id, name=label))
 
                     # Put recommended models first
