@@ -56,6 +56,11 @@ export default function Settings() {
   const [aiSaving, setAiSaving] = useState(false);
   const [aiSaveMessage, setAiSaveMessage] = useState(null);
 
+  // Dynamic Available Models State
+  const [availableModels, setAvailableModels] = useState([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [modelsError, setModelsError] = useState(null);
+
   // Appearance State
   const [theme, setTheme] = useState(localStorage.getItem("ff_theme") || "dark");
   const [gridStyle, setGridStyle] = useState(localStorage.getItem("ff_grid_style") || "dots");
@@ -111,11 +116,42 @@ export default function Settings() {
     }
   };
 
+  const loadAvailableModels = async (prov, key) => {
+    setModelsLoading(true);
+    setModelsError(null);
+    try {
+      const res = await api.fetchAvailableModels({
+        provider: prov,
+        api_key: key ? key.trim() : undefined,
+      });
+      if (res && res.models && res.models.length > 0) {
+        setAvailableModels(res.models);
+        setModelInput((prev) => {
+          if (res.models.some((m) => m.id === prev)) return prev;
+          return res.models[0].id;
+        });
+      } else {
+        setAvailableModels([]);
+        if (res && res.error) {
+          setModelsError(res.error);
+        }
+      }
+    } catch (err) {
+      setModelsError(err.message || "Failed to fetch models from provider.");
+      setAvailableModels([]);
+    } finally {
+      setModelsLoading(false);
+    }
+  };
+
   const loadAISettings = async () => {
     try {
       const data = await api.getAISettings();
       setAiStatus(data);
-      if (data?.provider) setProviderInput(data.provider);
+      if (data?.provider) {
+        setProviderInput(data.provider);
+        loadAvailableModels(data.provider, "");
+      }
       if (data?.model) setModelInput(data.model);
     } catch (e) {
       console.warn("Could not load AI settings:", e);
@@ -124,10 +160,10 @@ export default function Settings() {
 
   const handleProviderSelect = (newProv) => {
     setProviderInput(newProv);
-    if (newProv === "groq") setModelInput("qwen/qwen3.8-27b");
-    else if (newProv === "openai") setModelInput("gpt-4o-mini");
-    else if (newProv === "gemini") setModelInput("gemini-1.5-flash");
-    else if (newProv === "mock") setModelInput("mock-model-v1");
+    setApiKeyInput("");
+    setAiTestResult(null);
+    setAiSaveMessage(null);
+    loadAvailableModels(newProv, "");
   };
 
   const handleSaveAISettings = async (e) => {
@@ -753,7 +789,11 @@ export default function Settings() {
                   <div>
                     <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
                       API Key{" "}
-                      {currentProvDetail.has_key ? (
+                      {apiKeyInput.trim() ? (
+                        <span style={{ color: "#fbbf24", fontWeight: 500 }}>
+                          (Unsaved Key Entered — click Fetch Models or Save)
+                        </span>
+                      ) : currentProvDetail.has_key ? (
                         <span style={{ color: "#34d399", fontWeight: 400 }}>
                           (Configured: {currentProvDetail.masked_key})
                         </span>
@@ -768,6 +808,11 @@ export default function Settings() {
                         type={showApiKey ? "text" : "password"}
                         value={apiKeyInput}
                         onChange={(e) => setApiKeyInput(e.target.value)}
+                        onBlur={() => {
+                          if (apiKeyInput.trim()) {
+                            loadAvailableModels(providerInput, apiKeyInput.trim());
+                          }
+                        }}
                         placeholder={
                           currentProvDetail.has_key
                             ? "Enter new key to replace, or leave blank to keep current"

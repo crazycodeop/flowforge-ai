@@ -171,6 +171,13 @@ export const api = {
     });
   },
 
+  async fetchAvailableModels(payload) {
+    return request("/settings/ai/models", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
   // --- Workflows ---
   async listNodeTypes() {
     return request("/workflows/nodes");

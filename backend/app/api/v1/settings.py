@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 from typing import Annotated
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -62,6 +63,24 @@ class AIProviderUpdateRequest(BaseModel):
     base_url: str | None = Field(default=None, description="Optional Base URL")
 
 
+class AIModelItem(BaseModel):
+    id: str
+    name: str
+
+
+class AIModelsRequest(BaseModel):
+    provider: str = Field(..., description="Provider name: 'groq', 'gemini', 'openai', or 'mock'")
+    api_key: str | None = Field(default=None, description="Optional API key for dynamic fetching")
+
+
+class AIModelsResponse(BaseModel):
+    provider: str
+    has_key: bool
+    models: list[AIModelItem]
+    source: str = "live_api"
+    error: str | None = None
+
+
 class AIConnectionTestRequest(BaseModel):
     provider: str | None = Field(default=None, description="Provider to test")
     model: str | None = Field(default=None, description="Model to test")
@@ -105,7 +124,7 @@ def _build_provider_details(settings) -> list[ProviderDetail]:
             is_active=(active_prov == "gemini"),
             has_key=bool(gemini_key),
             masked_key=_mask_key(gemini_key),
-            default_model=settings.AI_MODEL if active_prov == "gemini" else "gemini-1.5-flash",
+            default_model=settings.AI_MODEL if active_prov == "gemini" else "gemini-2.5-flash",
             requires_key=True,
         ),
         ProviderDetail(
@@ -202,6 +221,165 @@ def get_ai_status(user: Annotated[User, Depends(require_user)]) -> AIProviderSta
         request_timeout=settings.AI_REQUEST_TIMEOUT,
         max_retries=settings.AI_MAX_RETRIES,
         providers=_build_provider_details(settings),
+    )
+
+
+def fetch_provider_models(
+    provider: str, api_key: str | None = None
+) -> tuple[list[AIModelItem], str | None]:
+    """Dynamically queries the AI provider's models endpoint to return available active models."""
+    prov = provider.lower().strip()
+    if prov == "mock":
+        return [
+            AIModelItem(id="mock-model-v1", name="mock-model-v1 (Deterministic Mock)"),
+            AIModelItem(id="mock-instant-v2", name="mock-instant-v2 (Zero-Latency Mock)"),
+        ], None
+
+    if not api_key:
+        return [], None
+
+    try:
+        if prov == "groq":
+            res = httpx.get(
+                "https://api.groq.com/openai/v1/models",
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=10.0,
+            )
+            if res.status_code == 200:
+                data = res.json().get("data", [])
+                models: list[AIModelItem] = []
+                for m in data:
+                    mid = m.get("id", "")
+                    if any(
+                        bad in mid.lower()
+                        for bad in ["whisper", "guard", "moderation", "tts", "embedding"]
+                    ):
+                        continue
+                    models.append(AIModelItem(id=mid, name=mid))
+                models.sort(key=lambda x: x.id)
+                return models, None
+            return [], f"Groq API error ({res.status_code}): {res.text[:150]}"
+
+        elif prov == "gemini":
+            # 1. Native Gemini models list (returns all active models supporting generateContent)
+            try:
+                res2 = httpx.get(
+                    f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}",
+                    timeout=10.0,
+                )
+                if res2.status_code == 200:
+                    data = res2.json().get("models", [])
+                    models = []
+                    for m in data:
+                        methods = m.get("supportedGenerationMethods", [])
+                        if "generateContent" in methods:
+                            raw_name = m.get("name", "")
+                            clean_id = raw_name.replace("models/", "")
+                            if not any(
+                                bad in clean_id.lower() for bad in ["embedding", "aqa", "imagen"]
+                            ):
+                                display_name = m.get("displayName", clean_id)
+                                label = (
+                                    f"{clean_id} ({display_name})"
+                                    if display_name != clean_id
+                                    else clean_id
+                                )
+                                models.append(AIModelItem(id=clean_id, name=label))
+                    models.sort(key=lambda x: x.id)
+                    if models:
+                        return models, None
+            except Exception:
+                pass
+
+            # 2. OpenAI compatibility endpoint fallback
+            res = httpx.get(
+                "https://generativelanguage.googleapis.com/v1beta/openai/models",
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=10.0,
+            )
+            if res.status_code == 200:
+                data = res.json().get("data", [])
+                models = []
+                for m in data:
+                    mid = m.get("id", "")
+                    if not any(bad in mid.lower() for bad in ["embedding", "imagen", "aqa"]):
+                        models.append(AIModelItem(id=mid, name=mid))
+                models.sort(key=lambda x: x.id)
+                if models:
+                    return models, None
+                return [], "No chat-capable Gemini models returned."
+            return [], f"Gemini API error ({res.status_code}): {res.text[:150]}"
+
+        elif prov == "openai":
+            res = httpx.get(
+                "https://api.openai.com/v1/models",
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=10.0,
+            )
+            if res.status_code == 200:
+                data = res.json().get("data", [])
+                models = []
+                for m in data:
+                    mid = m.get("id", "")
+                    if (
+                        mid.startswith("gpt-")
+                        or mid.startswith("o1")
+                        or mid.startswith("o3")
+                        or mid.startswith("chatgpt")
+                    ) and not any(
+                        bad in mid.lower() for bad in ["realtime", "audio", "vision-preview"]
+                    ):
+                        models.append(AIModelItem(id=mid, name=mid))
+                models.sort(key=lambda x: x.id)
+                return models, None
+            return [], f"OpenAI API error ({res.status_code}): {res.text[:150]}"
+
+    except Exception as e:
+        return [], str(e)
+
+    return [], None
+
+
+@router.post("/ai/models", response_model=AIModelsResponse)
+def get_provider_available_models(
+    payload: AIModelsRequest,
+    user: Annotated[User, Depends(require_user)],
+) -> AIModelsResponse:
+    """Dynamically fetches active available models directly from the provider API."""
+    settings = get_settings()
+    prov = payload.provider.lower().strip()
+    key = payload.api_key.strip() if payload.api_key and payload.api_key.strip() else None
+
+    if not key and prov != "mock":
+        if prov == "groq":
+            key = getattr(settings, "GROQ_API_KEY", None) or (
+                settings.AI_API_KEY if settings.AI_PROVIDER == "groq" else None
+            )
+        elif prov == "openai":
+            key = getattr(settings, "OPENAI_API_KEY", None) or (
+                settings.AI_API_KEY if settings.AI_PROVIDER == "openai" else None
+            )
+        elif prov == "gemini":
+            key = getattr(settings, "GEMINI_API_KEY", None) or (
+                settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None
+            )
+
+    if prov != "mock" and not key:
+        return AIModelsResponse(
+            provider=prov,
+            has_key=False,
+            models=[],
+            source="no_key",
+            error=f"No API key configured for {prov.upper()}. Enter your API key to fetch available models.",
+        )
+
+    models, err = fetch_provider_models(prov, key)
+    return AIModelsResponse(
+        provider=prov,
+        has_key=bool(key or prov == "mock"),
+        models=models,
+        source="live_api" if prov != "mock" else "mock",
+        error=err,
     )
 
 

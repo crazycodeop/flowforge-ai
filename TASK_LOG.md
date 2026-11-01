@@ -307,3 +307,35 @@
   - Jobs:
     - `frontend-checks`: **Passed (100% green)** — Node 24, dependencies, Vitest unit tests, Vite bundle build.
     - `backend-checks`: **Passed (100% green)** — Python 3.12, container init (Postgres 16 + Redis 7), pip editable install, Ruff lint & format, Alembic migrations, Pytest suite (54 tests passed).
+
+## Milestone 20: Live Provider Model Discovery & Gemini 404 Resolution
+- **Status**: Completed
+- **Date**: 2026-11-01
+- **Directives & Objectives Addressed**:
+  1. Dynamically fetch and display ONLY active, available models directly from the selected AI provider's live API rather than relying on hardcoded lists.
+  2. Resolve the Google Gemini 404 error (`models/gemini-1.5-flash is not found for API version v1main`).
+- **Key Changes**:
+  1. **Dynamic Model Discovery Endpoint (`POST /api/v1/settings/ai/models`)**:
+     - Created `AIModelsRequest` and `AIModelsResponse` schemas in [`backend/app/api/v1/settings.py`](file:///C:/Users/Crazy/Documents/flowforge/backend/app/api/v1/settings.py).
+     - Implemented `fetch_provider_models(provider, api_key)`:
+       - **Groq**: Queries `https://api.groq.com/openai/v1/models`, returning verified chat LLMs (`qwen/qwen3.8-27b`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, etc.) while filtering out non-completion models (whisper, guard, etc.).
+       - **Google Gemini**: Queries native `https://generativelanguage.googleapis.com/v1beta/models?key=<key>` filtering for `generateContent` support, with fallback to `v1beta/openai/models`.
+       - **OpenAI**: Queries `https://api.openai.com/v1/models` for active `gpt-` and `o1`/`o3` models.
+       - **Mock**: Returns deterministic mock testing models.
+     - Accepts optional `api_key` in the request payload so models can be fetched live before or after saving.
+  2. **API Client Integration (`frontend/src/api/client.js`)**:
+     - Added `api.fetchAvailableModels(payload)` to query `/settings/ai/models`.
+  3. **Settings UI Dynamic Catalog (`frontend/src/pages/Settings.jsx`)**:
+     - Replaced hardcoded model select dropdowns with a single dynamic model dropdown populated solely from live API discovery.
+     - Added a "Fetch Models" refresh button.
+     - Added auto-fetch on blur when entering a new API key.
+     - Clear visual feedback displaying `✓ Showing X active models fetched live from <Provider>` or status if an API key is required.
+  4. **Updated Default Models & Node Inspector (`frontend/src/components/builder/NodeInspector.jsx`)**:
+     - Updated default Gemini model to `gemini-2.5-flash` in `factory.py` and `NodeInspector.jsx` alongside `gemini-2.0-flash` and `gemini-2.5-pro`.
+- **Tests & Verification**:
+  - `POST /api/v1/settings/ai/models`: Successfully returned live Groq models (`qwen/qwen3.8-27b`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, etc.).
+  - `ruff check backend`: 0 errors.
+  - `ruff format --check backend`: 77 files passed.
+  - `pytest backend/tests`: **54 passed, 2 warnings** in 8.81s.
+  - `npm --prefix frontend test`: **2 passed**.
+  - `npm --prefix frontend run build`: **Successful production Vite build** in 7.12s.
