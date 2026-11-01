@@ -1,10 +1,16 @@
+import base64
+import io
+from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+import pypdf
+from app.ai.factory import get_ai_provider
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.models.knowledge import KnowledgeCollection, KnowledgeDocument
 from app.retrieval.engine import search_knowledge_base
@@ -41,6 +47,15 @@ class DocumentResponse(BaseModel):
     title: str
     content: str
     metadata: dict[str, Any] = Field(alias="doc_metadata", default_factory=dict)
+
+
+class DocumentExtractResponse(BaseModel):
+    title: str
+    content: str
+    original_filename: str
+    detected_type: str
+    translated: bool
+    document_id: str | None = None
 
 
 class SearchRequest(BaseModel):
@@ -187,4 +202,167 @@ def search_knowledge(payload: SearchRequest, db: Session = Depends(get_db)):
         query=payload.query,
         top_k=payload.top_k,
         score_threshold=payload.score_threshold,
+    )
+
+
+@router.post("/upload", response_model=DocumentExtractResponse)
+async def upload_document(
+    file: UploadFile = File(...),
+    collection_id: str | None = Form(default=None),
+    auto_translate: bool = Form(default=True),
+    save_to_collection: bool = Form(default=False),
+    db: Session = Depends(get_db),
+):
+    """Uploads a document (PDF, scanned image, or text file), performs AI OCR & translation to English, and optionally indexes it."""
+    filename = file.filename or "uploaded_document"
+    raw_bytes = await file.read()
+    if not raw_bytes:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
+
+    if len(raw_bytes) > 25 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="File size exceeds maximum limit of 25MB.",
+        )
+
+    ext = Path(filename).suffix.lower()
+    content_type = file.content_type or ""
+    is_image = ext in [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff"] or content_type.startswith("image/")
+    is_pdf = ext == ".pdf" or content_type == "application/pdf"
+
+    settings = get_settings()
+    # Resolve provider with vision capability if available
+    target_prov = "gemini" if settings.GEMINI_API_KEY else "openai" if settings.OPENAI_API_KEY else settings.AI_PROVIDER
+    target_model = "gemini-3.5-flash" if target_prov == "gemini" else "gpt-4o-mini" if target_prov == "openai" else None
+    ai_prov = get_ai_provider(target_prov, model=target_model)
+
+    detected_type = "image" if is_image else "pdf" if is_pdf else "text"
+    extracted_text: str | None = None
+    image_base64: str | None = None
+    image_mime: str = "image/png"
+
+    # Step 1: Extract content based on format
+    if is_image:
+        image_base64 = base64.b64encode(raw_bytes).decode("utf-8")
+        image_mime = content_type if content_type.startswith("image/") else ("image/png" if ext == ".png" else "image/jpeg")
+
+    elif is_pdf:
+        try:
+            reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
+            pages_text = [page.extract_text() or "" for page in reader.pages]
+            full_pdf_text = "\n\n".join(pages_text).strip()
+            if len(full_pdf_text) >= 40:
+                extracted_text = full_pdf_text
+            else:
+                # Scanned image-only PDF: check for embedded images
+                for page in reader.pages:
+                    if hasattr(page, "images") and len(page.images) > 0:
+                        first_img = page.images[0]
+                        image_base64 = base64.b64encode(first_img.data).decode("utf-8")
+                        image_mime = first_img.name.endswith(".png") and "image/png" or "image/jpeg"
+                        break
+                if not image_base64 and full_pdf_text:
+                    extracted_text = full_pdf_text
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to parse PDF document: {str(e)}",
+            ) from e
+
+    else:
+        # Standard text file (.txt, .md, .csv, etc.)
+        for enc in ["utf-8", "latin-1", "cp1252"]:
+            try:
+                extracted_text = raw_bytes.decode(enc)
+                break
+            except UnicodeDecodeError:
+                continue
+
+        if extracted_text is None:
+            extracted_text = raw_bytes.decode("utf-8", errors="replace")
+
+    # Step 2: Perform AI OCR & English Translation
+    system_instruction = (
+        "You are an enterprise document intelligence and OCR translation engine.\n"
+        "Analyze this document with precision:\n"
+        "1. Transcribe all text, policies, conditions, clauses, tables, and rules accurately.\n"
+        "2. If the document or text is in ANY language other than English (e.g. Spanish, German, French, "
+        "Chinese, Japanese, Arabic, Hindi, Portuguese, Russian, Italian, etc.), translate it into clear, "
+        "accurate, professional English.\n"
+        "3. Preserve all policy numbers, section codes, dates, monetary amounts, and technical terms.\n"
+        "4. Format your output strictly in this exact structure:\n\n"
+        "TITLE: [Concise descriptive English title for this document, max 10 words]\n\n"
+        "CONTENT:\n"
+        "[Clean, structured policy text in English formatted with clear markdown headings and bullet points]"
+    )
+
+    try:
+        if image_base64:
+            # Multimodal Vision OCR + Translation
+            prompt_payload = [
+                {"type": "text", "text": system_instruction},
+                {"type": "image_url", "image_url": {"url": f"data:{image_mime};base64,{image_base64}"}},
+            ]
+            res = ai_prov.complete(prompt_payload)
+        elif extracted_text:
+            prompt_str = f"{system_instruction}\n\nDocument text to process:\n{extracted_text[:12000]}"
+            res = ai_prov.complete(prompt_str)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Unable to extract text or visual content from this file format.",
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI document extraction and translation failed: {str(e)}",
+        ) from e
+
+    # Step 3: Parse Title and Content
+    raw_output = res.content.strip()
+    title = None
+    content = raw_output
+
+    if "CONTENT:" in raw_output:
+        parts = raw_output.split("CONTENT:", 1)
+        title_raw = parts[0].replace("TITLE:", "").strip()
+        title = title_raw.splitlines()[0].strip() if title_raw else None
+        content = parts[1].strip()
+    elif raw_output.startswith("TITLE:"):
+        lines = raw_output.splitlines()
+        title = lines[0].replace("TITLE:", "").strip()
+        content = "\n".join(lines[1:]).strip()
+
+    if not title:
+        title = Path(filename).stem.replace("_", " ").replace("-", " ").title()
+
+    # Step 4: Optionally Index into Knowledge Base
+    saved_doc_id: str | None = None
+    if collection_id and save_to_collection:
+        coll = db.get(KnowledgeCollection, collection_id)
+        if coll:
+            doc = KnowledgeDocument(
+                collection_id=coll.id,
+                title=title,
+                content=content,
+                doc_metadata={
+                    "source": filename,
+                    "translated_to_english": True,
+                    "detected_type": detected_type,
+                },
+            )
+            db.add(doc)
+            db.commit()
+            db.refresh(doc)
+            saved_doc_id = doc.id
+
+    return DocumentExtractResponse(
+        title=title,
+        content=content,
+        original_filename=filename,
+        detected_type=detected_type,
+        translated=True,
+        document_id=saved_doc_id,
     )

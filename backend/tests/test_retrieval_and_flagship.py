@@ -1,3 +1,4 @@
+import io
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -91,6 +92,26 @@ def test_knowledge_api_endpoints(client: TestClient, db_session: Session):
     data = resp.json()
     assert data["count"] > 0
     assert any("Technical" in s["title"] for s in data["sources"])
+
+
+def test_upload_and_extract_document(client: TestClient, db_session: Session):
+    coll = seed_flagship_knowledge_base(db_session)
+    sample_text = (
+        "POLÍTICA DE REEMBOLSO\n\nLos reembolsos deben solicitarse dentro de los 30 días posteriores a la compra."
+    )
+    files = {"file": ("politica_reembolso.txt", io.BytesIO(sample_text.encode("utf-8")), "text/plain")}
+    data = {
+        "collection_id": coll.id,
+        "auto_translate": "true",
+        "save_to_collection": "true",
+    }
+    resp = client.post("/api/v1/knowledge/upload", files=files, data=data)
+    assert resp.status_code == 200
+    res_data = resp.json()
+    assert res_data["title"] is not None
+    assert res_data["content"] is not None
+    assert res_data["translated"] is True
+    assert res_data["document_id"] is not None
 
 
 def test_end_to_end_flagship_support_workflow_execution(db_session: Session):

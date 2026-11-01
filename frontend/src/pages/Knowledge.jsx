@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   BookOpen,
   Search,
@@ -12,6 +12,9 @@ import {
   ExternalLink,
   ChevronRight,
   Sparkles,
+  UploadCloud,
+  Languages,
+  FileCheck,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useModal } from "../context/ModalContext";
@@ -39,6 +42,10 @@ export default function Knowledge() {
   const [newDocTitle, setNewDocTitle] = useState("");
   const [newDocContent, setNewDocContent] = useState("");
   const [addingDoc, setAddingDoc] = useState(false);
+  const fileInputRef = useRef(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
+  const [uploadedFileInfo, setUploadedFileInfo] = useState(null);
 
   useEffect(() => {
     loadCollections();
@@ -127,6 +134,43 @@ export default function Knowledge() {
       await modal.alert({ title: "Failed to Add Document", message: err.message || "Document creation error.", variant: "danger" });
     } finally {
       setAddingDoc(false);
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    setUploadProgress("Analyzing & extracting document text via AI OCR...");
+    setUploadedFileInfo(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (selectedCollection) {
+        formData.append("collection_id", selectedCollection.id);
+      }
+      formData.append("auto_translate", "true");
+
+      const res = await api.uploadDocument(formData);
+      setNewDocTitle(res.title || "");
+      setNewDocContent(res.content || "");
+      setUploadedFileInfo(`Extracted & translated from "${res.original_filename}" (${res.detected_type.toUpperCase()})`);
+      setStatusMessage({
+        type: "success",
+        text: `Successfully transcribed and translated "${res.original_filename}" to English!`,
+      });
+    } catch (err) {
+      await modal.alert({
+        title: "Document Extraction Failed",
+        message: err.message || "Could not extract text from document.",
+        variant: "danger",
+      });
+    } finally {
+      setUploadingFile(false);
+      setUploadProgress("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -420,7 +464,59 @@ export default function Knowledge() {
               Add text for policies, terms, or guidelines to be indexed for semantic retrieval.
             </p>
 
-            <form onSubmit={handleAddDocument} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <form onSubmit={handleAddDocument} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {/* File Upload Dropzone */}
+              <div
+                onClick={() => !uploadingFile && fileInputRef.current?.click()}
+                style={{
+                  padding: "16px",
+                  borderRadius: "6px",
+                  background: uploadingFile ? "rgba(139, 92, 246, 0.08)" : "#161616",
+                  border: "1px dashed #3b3b3b",
+                  textAlign: "center",
+                  cursor: uploadingFile ? "not-allowed" : "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md,.csv,.json"
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
+                  disabled={uploadingFile}
+                />
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+                  <UploadCloud size={24} color="#8b5cf6" />
+                  <span style={{ fontSize: "13px", fontWeight: 600, color: "#ffffff" }}>
+                    {uploadingFile ? "Analyzing Document & Translating..." : "Click to Upload Document or Scanned File"}
+                  </span>
+                  <span style={{ fontSize: "11px", color: "var(--text-muted)", maxWidth: "440px", lineHeight: 1.4 }}>
+                    Supports PDFs, scanned images, and text in <strong>any language</strong>. AI OCR transcribes and translates directly to English.
+                  </span>
+                </div>
+              </div>
+
+              {uploadingFile && (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#a78bfa", padding: "8px 12px", background: "rgba(139, 92, 246, 0.1)", borderRadius: "4px" }}>
+                  <RefreshCw size={14} className="spin" />
+                  <span>{uploadProgress || "Extracting text and translating to English..."}</span>
+                </div>
+              )}
+
+              {uploadedFileInfo && (
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#34d399", padding: "6px 10px", background: "rgba(16, 185, 129, 0.1)", borderRadius: "4px", border: "1px solid rgba(16, 185, 129, 0.25)" }}>
+                  <FileCheck size={14} />
+                  <span>{uploadedFileInfo}</span>
+                </div>
+              )}
+
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "2px 0" }}>
+                <div style={{ flex: 1, height: "1px", background: "#262626" }}></div>
+                <span style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.05em" }}>Review & Edit Document</span>
+                <div style={{ flex: 1, height: "1px", background: "#262626" }}></div>
+              </div>
+
               <div>
                 <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
                   Document Title

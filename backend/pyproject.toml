@@ -28,6 +28,8 @@ dependencies = [
     "jsonschema>=4.20.0",
     "pyjwt>=2.8.0",
     "email-validator>=2.1.0",
+    "python-multipart>=0.0.9",
+    "pypdf>=4.0.0",
 ]
 
 [project.optional-dependencies]

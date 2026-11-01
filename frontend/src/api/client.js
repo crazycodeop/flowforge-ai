@@ -354,4 +354,20 @@ export const api = {
       method: "POST",
     });
   },
+
+  async uploadDocument(formData) {
+    const token = localStorage.getItem("token") || localStorage.getItem("access_token");
+    const headers = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch("/api/v1/knowledge/upload", {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Upload and extraction failed");
+    }
+    return res.json();
+  },
 };
