@@ -4,12 +4,12 @@ import logging
 from pathlib import Path
 from typing import Any
 
+import pypdf
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-import pypdf
 from app.ai.factory import get_ai_provider
 from app.core.config import get_settings
 from app.core.database import get_db
@@ -245,7 +245,9 @@ async def upload_document(
     filename = file.filename or "uploaded_document"
     raw_bytes = await file.read()
     if not raw_bytes:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty."
+        )
 
     if len(raw_bytes) > 25 * 1024 * 1024:
         raise HTTPException(
@@ -255,7 +257,15 @@ async def upload_document(
 
     ext = Path(filename).suffix.lower()
     content_type = file.content_type or ""
-    is_image = ext in [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff"] or content_type.startswith("image/")
+    is_image = ext in [
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".webp",
+        ".bmp",
+        ".gif",
+        ".tiff",
+    ] or content_type.startswith("image/")
     is_pdf = ext == ".pdf" or content_type == "application/pdf"
 
     settings = get_settings()
@@ -267,7 +277,11 @@ async def upload_document(
     # Step 1: Extract content based on format
     if is_image:
         image_base64 = base64.b64encode(raw_bytes).decode("utf-8")
-        image_mime = content_type if content_type.startswith("image/") else ("image/png" if ext == ".png" else "image/jpeg")
+        image_mime = (
+            content_type
+            if content_type.startswith("image/")
+            else ("image/png" if ext == ".png" else "image/jpeg")
+        )
 
     elif is_pdf:
         try:
@@ -332,37 +346,47 @@ async def upload_document(
     if image_base64:
         # Multimodal Vision models
         if getattr(settings, "GEMINI_API_KEY", None):
-            candidate_providers.extend([
-                ("gemini", "gemini-3.5-flash"),
-                ("gemini", "gemini-3.1-flash-lite"),
-                ("gemini", "gemini-flash-latest"),
-            ])
+            candidate_providers.extend(
+                [
+                    ("gemini", "gemini-3.5-flash"),
+                    ("gemini", "gemini-3.1-flash-lite"),
+                    ("gemini", "gemini-flash-latest"),
+                ]
+            )
         if getattr(settings, "OPENAI_API_KEY", None):
-            candidate_providers.extend([
-                ("openai", "gpt-4o-mini"),
-                ("openai", "gpt-4o"),
-            ])
+            candidate_providers.extend(
+                [
+                    ("openai", "gpt-4o-mini"),
+                    ("openai", "gpt-4o"),
+                ]
+            )
         if not candidate_providers:
             candidate_providers.append((settings.AI_PROVIDER, settings.AI_MODEL))
     else:
         # Text extraction & translation models
         if getattr(settings, "GEMINI_API_KEY", None):
-            candidate_providers.extend([
-                ("gemini", "gemini-3.5-flash"),
-                ("gemini", "gemini-3.1-flash-lite"),
-                ("gemini", "gemini-flash-latest"),
-            ])
+            candidate_providers.extend(
+                [
+                    ("gemini", "gemini-3.5-flash"),
+                    ("gemini", "gemini-3.1-flash-lite"),
+                    ("gemini", "gemini-flash-latest"),
+                ]
+            )
         if getattr(settings, "GROQ_API_KEY", None):
-            candidate_providers.extend([
-                ("groq", "qwen/qwen3.8-27b"),
-                ("groq", "openai/gpt-oss-120b"),
-                ("groq", "llama-3.3-70b-versatile"),
-            ])
+            candidate_providers.extend(
+                [
+                    ("groq", "qwen/qwen3.8-27b"),
+                    ("groq", "openai/gpt-oss-120b"),
+                    ("groq", "llama-3.3-70b-versatile"),
+                ]
+            )
         if getattr(settings, "OPENAI_API_KEY", None):
-            candidate_providers.extend([
-                ("openai", "gpt-4o-mini"),
-                ("openai", "gpt-4o"),
-            ])
+            candidate_providers.extend(
+                [
+                    ("openai", "gpt-4o-mini"),
+                    ("openai", "gpt-4o"),
+                ]
+            )
         if not candidate_providers:
             candidate_providers.append((settings.AI_PROVIDER, settings.AI_MODEL))
 
@@ -376,11 +400,16 @@ async def upload_document(
             if image_base64:
                 prompt_payload = [
                     {"type": "text", "text": system_instruction},
-                    {"type": "image_url", "image_url": {"url": f"data:{image_mime};base64,{image_base64}"}},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{image_mime};base64,{image_base64}"},
+                    },
                 ]
                 res = ai_prov.complete(prompt_payload)
             elif extracted_text:
-                prompt_str = f"{system_instruction}\n\nDocument text to process:\n{extracted_text[:12000]}"
+                prompt_str = (
+                    f"{system_instruction}\n\nDocument text to process:\n{extracted_text[:12000]}"
+                )
                 res = ai_prov.complete(prompt_str)
             else:
                 break
@@ -389,7 +418,9 @@ async def upload_document(
                 logging.info("Document extraction succeeded using %s (%s)", prov_name, model_name)
                 break
         except Exception as err:
-            logging.warning("Provider %s (%s) failed during document OCR: %s", prov_name, model_name, err)
+            logging.warning(
+                "Provider %s (%s) failed during document OCR: %s", prov_name, model_name, err
+            )
             last_error = err
             continue
 
@@ -403,7 +434,11 @@ async def upload_document(
         raw_output = f"TITLE: {clean_name}\n\nCONTENT:\n{extracted_text.strip()}"
         logging.info("Fell back to raw extracted text for document '%s'", filename)
     else:
-        err_msg = str(last_error) if last_error else "Unable to extract text or visual content from this file format."
+        err_msg = (
+            str(last_error)
+            if last_error
+            else "Unable to extract text or visual content from this file format."
+        )
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"AI document extraction and translation failed: {err_msg}",

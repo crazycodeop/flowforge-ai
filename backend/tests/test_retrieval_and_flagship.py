@@ -1,4 +1,5 @@
 import io
+
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -96,10 +97,10 @@ def test_knowledge_api_endpoints(client: TestClient, db_session: Session):
 
 def test_upload_and_extract_document(client: TestClient, db_session: Session):
     coll = seed_flagship_knowledge_base(db_session)
-    sample_text = (
-        "POLÍTICA DE REEMBOLSO\n\nLos reembolsos deben solicitarse dentro de los 30 días posteriores a la compra."
-    )
-    files = {"file": ("politica_reembolso.txt", io.BytesIO(sample_text.encode("utf-8")), "text/plain")}
+    sample_text = "POLÍTICA DE REEMBOLSO\n\nLos reembolsos deben solicitarse dentro de los 30 días posteriores a la compra."
+    files = {
+        "file": ("politica_reembolso.txt", io.BytesIO(sample_text.encode("utf-8")), "text/plain")
+    }
     data = {
         "collection_id": coll.id,
         "auto_translate": "true",
@@ -114,11 +115,14 @@ def test_upload_and_extract_document(client: TestClient, db_session: Session):
     assert res_data["document_id"] is not None
 
 
-def test_upload_fallback_cascade_when_ai_fails(client: TestClient, db_session: Session, monkeypatch):
+def test_upload_fallback_cascade_when_ai_fails(
+    client: TestClient, db_session: Session, monkeypatch
+):
     """Verifies that if remote AI providers return 503 or outage errors, the system gracefully falls back to raw text."""
     coll = seed_flagship_knowledge_base(db_session)
 
     from app.ai.providers import OpenAICompatibleProvider
+
     def mock_fail_complete(self, prompt, **kwargs):
         raise RuntimeError("AI provider service error (503): High demand / UNAVAILABLE")
 

@@ -28,7 +28,7 @@
 - [x] **Milestone 23: Multilingual Document OCR, Extraction & Auto-Translation to English**
 - **Document Deletion Support**: Implemented `DELETE /api/v1/knowledge/collections/{coll_id}/documents/{doc_id}` and added a red-accented `<Trash2 />` delete action to each document card in `Knowledge.jsx` with confirmation dialog and automatic collection count refresh. Commit `710b72e`.
 - **Dependency & Scanned PDF Fix**: Installed `pillow` (`pypdf[image]`) to support image extraction from scanned PDF files. Added error resilience and fallback in `knowledge.py:257`. Verified with pytest. Commit `ff46745`.
-- **Multi-Model & Multi-Provider Document Fallback Cascade**: Added 5-tier fallback cascade in `POST /api/v1/knowledge/upload` (`gemini-3.5-flash` ➔ `gemini-3.1-flash-lite` ➔ `gemini-flash-latest` ➔ `groq/qwen3.8-27b` ➔ `openai/gpt-4o-mini` ➔ raw text). If Gemini hits high-demand 503 spikes, the system automatically falls back to alternative models or raw extracted text without blocking the user. Commit `a1e91b9`.
+- **CI Pipeline Lint & Format Fix**: Resolved Ruff import sorting (I001) and formatting checks across `backend/app/api/v1/knowledge.py`, `backend/app/api/v1/settings.py`, and `backend/tests/test_retrieval_and_flagship.py`. Verified `ruff check backend` and `ruff format --check backend` pass with 0 errors. All 57 pytest backend tests and all frontend vitest tests pass cleanly.
 
 ---
 

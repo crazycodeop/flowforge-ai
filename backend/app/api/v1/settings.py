@@ -570,7 +570,12 @@ def update_ai_settings(
                 new_lines.append(f"AI_PROVIDER={prov}")
             if payload.set_as_active and not seen_model:
                 new_lines.append(f"AI_MODEL={payload.model}")
-            if payload.set_as_active and not seen_key and payload.api_key and payload.api_key.strip():
+            if (
+                payload.set_as_active
+                and not seen_key
+                and payload.api_key
+                and payload.api_key.strip()
+            ):
                 new_lines.append(f"AI_API_KEY={payload.api_key.strip()}")
             if key_var_name and not seen_specific and payload.api_key and payload.api_key.strip():
                 new_lines.append(f"{key_var_name}={payload.api_key.strip()}")
