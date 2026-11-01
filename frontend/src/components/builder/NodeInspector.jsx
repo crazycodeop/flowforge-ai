@@ -39,6 +39,61 @@ const NODE_TAGS = {
 };
 
 /**
+ * Reusable guided model dropdown to prevent typos.
+ */
+function ModelSelector({ value, onChange }) {
+  const PRESET_MODELS = [
+    { label: "Default (Use Workspace Settings)", value: "" },
+    { label: "qwen/qwen3.8-27b (Groq LPU - Recommended)", value: "qwen/qwen3.8-27b" },
+    { label: "openai/gpt-oss-120b (Groq LPU)", value: "openai/gpt-oss-120b" },
+    { label: "openai/gpt-oss-20b (Groq LPU)", value: "openai/gpt-oss-20b" },
+    { label: "gpt-4o-mini (OpenAI Fast)", value: "gpt-4o-mini" },
+    { label: "gpt-4o (OpenAI Flagship)", value: "gpt-4o" },
+    { label: "gemini-1.5-flash (Google Fast)", value: "gemini-1.5-flash" },
+    { label: "gemini-1.5-pro (Google Deep)", value: "gemini-1.5-pro" },
+  ];
+
+  const isCustom = Boolean(value && !PRESET_MODELS.some((m) => m.value === value));
+  const [showCustom, setShowCustom] = useState(isCustom);
+
+  return (
+    <div>
+      <select
+        value={showCustom ? "custom" : (value || "")}
+        onChange={(e) => {
+          if (e.target.value === "custom") {
+            setShowCustom(true);
+          } else {
+            setShowCustom(false);
+            onChange(e.target.value || null);
+          }
+        }}
+        className="input"
+        style={{ fontSize: "12px", width: "100%" }}
+      >
+        {PRESET_MODELS.map((m) => (
+          <option key={m.value} value={m.value}>
+            {m.label}
+          </option>
+        ))}
+        <option value="custom">Custom Model ID...</option>
+      </select>
+      {showCustom && (
+        <input
+          type="text"
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value || null)}
+          placeholder="Enter custom model ID (e.g. meta-llama/llama-3.1)..."
+          className="input"
+          style={{ fontSize: "11px", marginTop: "4px" }}
+          autoFocus
+        />
+      )}
+    </div>
+  );
+}
+
+/**
  * Render-inspired dark inspector panel for configuring selected nodes.
  * @param {{
  *   node: any,
@@ -385,18 +440,14 @@ export default function NodeInspector({
               </span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <div>
                 <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Model Override
+                  Model Override (Select to Prevent Typos)
                 </label>
-                <input
-                  type="text"
+                <ModelSelector
                   value={config.model || ""}
-                  onChange={(e) => handleConfigChange("model", e.target.value || null)}
-                  className="input"
-                  style={{ fontSize: "12px" }}
-                  placeholder="gemini-1.5-flash"
+                  onChange={(val) => handleConfigChange("model", val)}
                 />
               </div>
               <div>
@@ -412,7 +463,7 @@ export default function NodeInspector({
                   onChange={(e) => handleConfigChange("temperature", parseFloat(e.target.value))}
                   style={{ width: "100%", accentColor: "#8b5cf6" }}
                 />
-                <span style={{ fontSize: "10px", color: "#666666" }}>0.0 = deterministic</span>
+                <span style={{ fontSize: "10px", color: "#666666" }}>0.0 = deterministic & consistent</span>
               </div>
             </div>
 
@@ -474,18 +525,14 @@ export default function NodeInspector({
               </span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <div>
                 <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Model Override
+                  Model Override (Select to Prevent Typos)
                 </label>
-                <input
-                  type="text"
+                <ModelSelector
                   value={config.model || ""}
-                  onChange={(e) => handleConfigChange("model", e.target.value || null)}
-                  className="input"
-                  style={{ fontSize: "12px" }}
-                  placeholder="gemini-1.5-flash"
+                  onChange={(val) => handleConfigChange("model", val)}
                 />
               </div>
               <div>

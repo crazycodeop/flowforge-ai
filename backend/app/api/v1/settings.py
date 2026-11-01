@@ -32,6 +32,13 @@ class UserProfileResponse(BaseModel):
     created_at: str
 
 
+
+class AIProviderUpdateRequest(BaseModel):
+    provider: str = Field(..., description="Provider name: 'groq', 'openai', 'gemini', or 'mock'")
+    model: str = Field(..., description="Default model name")
+    api_key: str | None = Field(default=None, description="API Key")
+    base_url: str | None = Field(default=None, description="Optional Base URL")
+
 class AIProviderStatusResponse(BaseModel):
     provider: str
     model: str
@@ -114,7 +121,7 @@ def test_ai_connection(user: Annotated[User, Depends(require_user)]):
     try:
         provider = get_ai_provider()
         start = time.perf_counter()
-        resp = provider.complete([{"role": "user", "content": "Respond with only: PONG"}])
+        resp = provider.complete("Respond with only: PONG")
         latency = round((time.perf_counter() - start) * 1000, 2)
         return {
             "status": "connected",
@@ -129,3 +136,70 @@ def test_ai_connection(user: Annotated[User, Depends(require_user)]):
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"AI connection test failed: {str(e)}",
         ) from e
+
+
+@router.put("/ai", response_model=AIProviderStatusResponse)
+def update_ai_settings(
+    payload: AIProviderUpdateRequest,
+    user: Annotated[User, Depends(require_user)],
+) -> AIProviderStatusResponse:
+    import os
+    from pathlib import Path
+
+    valid_providers = {"groq", "openai", "gemini", "mock", "ollama"}
+    prov = payload.provider.lower().strip()
+    if prov not in valid_providers:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid provider '{payload.provider}'. Must be one of: {', '.join(valid_providers)}",
+        )
+
+    os.environ["AI_PROVIDER"] = prov
+    os.environ["AI_MODEL"] = payload.model
+    if payload.api_key is not None:
+        os.environ["AI_API_KEY"] = payload.api_key
+    if payload.base_url is not None:
+        os.environ["AI_BASE_URL"] = payload.base_url
+
+    # Persist to .env file
+    try:
+        env_path = Path("backend/.env")
+        if not env_path.exists():
+            env_path = Path(".env")
+        if env_path.exists():
+            lines = env_path.read_text(encoding="utf-8").splitlines()
+            new_lines = []
+            for line in lines:
+                if line.startswith("AI_PROVIDER="):
+                    new_lines.append(f"AI_PROVIDER={prov}")
+                elif line.startswith("AI_MODEL="):
+                    new_lines.append(f"AI_MODEL={payload.model}")
+                elif line.startswith("AI_API_KEY=") and payload.api_key is not None:
+                    new_lines.append(f"AI_API_KEY={payload.api_key}")
+                elif line.startswith("AI_BASE_URL=") and payload.base_url is not None:
+                    new_lines.append(f"AI_BASE_URL={payload.base_url}")
+                else:
+                    new_lines.append(line)
+            env_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+    except Exception:
+        pass
+
+    get_settings.cache_clear()
+    refreshed = get_settings()
+
+    raw_key = refreshed.AI_API_KEY
+    masked = None
+    if raw_key and len(raw_key) > 8:
+        masked = f"{raw_key[:4]}...{raw_key[-4:]}"
+    elif raw_key:
+        masked = "****"
+
+    return AIProviderStatusResponse(
+        provider=refreshed.AI_PROVIDER,
+        model=refreshed.AI_MODEL,
+        base_url=refreshed.AI_BASE_URL,
+        api_key_configured=bool(raw_key),
+        api_key_masked=masked,
+        request_timeout=refreshed.AI_REQUEST_TIMEOUT,
+        max_retries=refreshed.AI_MAX_RETRIES,
+    )

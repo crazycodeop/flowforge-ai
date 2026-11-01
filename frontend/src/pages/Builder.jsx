@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ReactFlow,
@@ -15,7 +15,11 @@ import {
 import "@xyflow/react/dist/style.css";
 import {
   Save,
+  Check,
   CheckCircle,
+  RefreshCw,
+  Sparkles,
+  Shield,
   AlertTriangle,
   UploadCloud,
   ChevronLeft,
@@ -107,6 +111,70 @@ export const DEFAULT_NODE_CONFIGS = {
   },
 };
 
+
+export const STARTER_TEMPLATES = [
+  {
+    id: "flagship",
+    name: "Customer Support Triage",
+    badge: "Flagship",
+    icon: Sparkles,
+    desc: "Webhook -> Intent Classifier -> Policy Retrieval -> Extract -> Route -> Synthesizer",
+    nodes: [
+      { id: "node_webhook", type: "trigger", name: "Customer Support Webhook", position: { x: 280, y: 50 }, config: DEFAULT_NODE_CONFIGS.trigger },
+      { id: "node_classify", type: "ai_classify", name: "AI Intent Classifier", position: { x: 280, y: 170 }, config: DEFAULT_NODE_CONFIGS.ai_classify },
+      { id: "node_retrieval", type: "retrieval", name: "Policy Knowledge Retrieval", position: { x: 280, y: 290 }, config: DEFAULT_NODE_CONFIGS.retrieval },
+      { id: "node_extract", type: "structured_extract", name: "Structured Ticket Extractor", position: { x: 280, y: 410 }, config: DEFAULT_NODE_CONFIGS.structured_extract },
+      { id: "node_condition", type: "condition", name: "Priority Route", position: { x: 280, y: 530 }, config: DEFAULT_NODE_CONFIGS.condition },
+      { id: "node_output", type: "output", name: "Resolution Synthesizer", position: { x: 280, y: 660 }, config: DEFAULT_NODE_CONFIGS.output },
+    ],
+    edges: [
+      { id: "e1", source: "node_webhook", target: "node_classify", animated: true },
+      { id: "e2", source: "node_classify", target: "node_retrieval", animated: true },
+      { id: "e3", source: "node_retrieval", target: "node_extract", animated: true },
+      { id: "e4", source: "node_extract", target: "node_condition", animated: true },
+      { id: "e5", source: "node_condition", target: "node_output", sourceHandle: "true", animated: true },
+    ],
+  },
+  {
+    id: "approval",
+    name: "Human Review & Compliance Gate",
+    badge: "Review Gate",
+    icon: Shield,
+    desc: "Webhook -> Ticket Extractor -> Amount > $100 -> Human Approval Gate -> Result",
+    nodes: [
+      { id: "node_webhook", type: "trigger", name: "Refund Request Webhook", position: { x: 280, y: 50 }, config: DEFAULT_NODE_CONFIGS.trigger },
+      { id: "node_extract", type: "structured_extract", name: "Amount & Urgency Extractor", position: { x: 280, y: 170 }, config: DEFAULT_NODE_CONFIGS.structured_extract },
+      { id: "node_condition", type: "condition", name: "Check Amount > $100", position: { x: 280, y: 290 }, config: DEFAULT_NODE_CONFIGS.condition },
+      { id: "node_approval", type: "human_approval", name: "Manager Approval Gate", position: { x: 120, y: 430 }, config: DEFAULT_NODE_CONFIGS.human_approval },
+      { id: "node_output", type: "output", name: "Resolution Result", position: { x: 420, y: 430 }, config: DEFAULT_NODE_CONFIGS.output },
+    ],
+    edges: [
+      { id: "e1", source: "node_webhook", target: "node_extract", animated: true },
+      { id: "e2", source: "node_extract", target: "node_condition", animated: true },
+      { id: "e3", source: "node_condition", target: "node_approval", sourceHandle: "true", animated: true },
+      { id: "e4", source: "node_condition", target: "node_output", sourceHandle: "false", animated: true },
+    ],
+  },
+  {
+    id: "extraction",
+    name: "AI Extraction Pipeline",
+    badge: "Fast RAG",
+    icon: Sparkles,
+    desc: "Input Payload -> AI Intent Classifier -> JSON Field Parser -> Result Assembly",
+    nodes: [
+      { id: "node_input", type: "input_data", name: "Payload Input", position: { x: 280, y: 50 }, config: DEFAULT_NODE_CONFIGS.input_data },
+      { id: "node_classify", type: "ai_classify", name: "Category Classifier", position: { x: 280, y: 180 }, config: DEFAULT_NODE_CONFIGS.ai_classify },
+      { id: "node_extract", type: "structured_extract", name: "Field Parser", position: { x: 280, y: 310 }, config: DEFAULT_NODE_CONFIGS.structured_extract },
+      { id: "node_output", type: "output", name: "Final Assembled Payload", position: { x: 280, y: 440 }, config: DEFAULT_NODE_CONFIGS.output },
+    ],
+    edges: [
+      { id: "e1", source: "node_input", target: "node_classify", animated: true },
+      { id: "e2", source: "node_classify", target: "node_extract", animated: true },
+      { id: "e3", source: "node_extract", target: "node_output", animated: true },
+    ],
+  },
+];
+
 const nodeTypes = {
   custom: CustomNode,
 };
@@ -119,6 +187,9 @@ function BuilderCanvas() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState("saved"); // "saved", "saving", "unsaved", "error"
+  const isInitialMount = useRef(true);
+  const autoSaveTimerRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -290,13 +361,19 @@ function BuilderCanvas() {
     setSelectedNodeId(null);
   }, []);
 
-  // Adding a node from palette
+  // Adding a node from palette with smart auto-positioning & connection
   const handleAddNode = (type, name) => {
     const newId = `node_${Date.now()}`;
+    const selected = nodes.find((n) => n.id === selectedNodeId);
+
+    const position = selected
+      ? { x: selected.position.x, y: selected.position.y + 130 }
+      : { x: 280, y: 80 + nodes.length * 120 };
+
     const newNode = {
       id: newId,
       type: "custom",
-      position: { x: 280 + Math.random() * 60, y: 120 + Math.random() * 60 },
+      position,
       data: {
         id: newId,
         type,
@@ -307,11 +384,44 @@ function BuilderCanvas() {
         timeout_seconds: 60,
       },
     };
+
     setNodes((nds) => [...nds, newNode]);
+    if (selected) {
+      setEdges((eds) => [
+        ...eds,
+        {
+          id: `e_${selected.id}_${newId}`,
+          source: selected.id,
+          target: newId,
+          animated: true,
+        },
+      ]);
+    }
     setSelectedNodeId(newId);
     if (!isDesktop) {
       setIsPaletteOpen(false);
     }
+  };
+
+  // 1-Click Starter Template applicator
+  const handleApplyTemplate = (tpl) => {
+    const formattedNodes = tpl.nodes.map((n) => ({
+      id: n.id,
+      type: "custom",
+      position: n.position,
+      data: {
+        id: n.id,
+        type: n.type,
+        name: n.name,
+        description: "",
+        config: JSON.parse(JSON.stringify(n.config)),
+        retry_policy: { max_retries: 3, backoff_base_seconds: 1.0 },
+        timeout_seconds: 60,
+      },
+    }));
+    setNodes(formattedNodes);
+    setEdges(tpl.edges);
+    setSelectedNodeId(null);
   };
 
   // Node Inspector updates
@@ -337,6 +447,35 @@ function BuilderCanvas() {
       },
     }));
   }, [nodes, handleDeleteNode]);
+
+
+  // Debounced Auto-Save effect
+  useEffect(() => {
+    if (loading) return;
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    setAutoSaveStatus("unsaved");
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        setAutoSaveStatus("saving");
+        const definition = buildDefinitionPayload();
+        await api.updateWorkflow(id, { definition });
+        setAutoSaveStatus("saved");
+      } catch (err) {
+        console.warn("Auto-save failed:", err);
+        setAutoSaveStatus("error");
+      }
+    }, 1200);
+
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [nodes, edges]);
 
   // Convert React Flow graph to backend WorkflowDefinition
   const buildDefinitionPayload = () => {
@@ -506,6 +645,23 @@ function BuilderCanvas() {
           ) : (
             <span className="badge badge-draft" style={{ fontSize: "10px", padding: "1px 6px" }}>
               Draft
+            </span>
+          )}
+
+          {/* Auto-Save Indicator */}
+          {autoSaveStatus === "saved" && (
+            <span style={{ fontSize: "10px", color: "#10b981", display: "inline-flex", alignItems: "center", gap: "3px", padding: "1px 6px", borderRadius: "10px", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.25)" }}>
+              <Check size={10} /> Auto-saved
+            </span>
+          )}
+          {autoSaveStatus === "saving" && (
+            <span style={{ fontSize: "10px", color: "#a78bfa", display: "inline-flex", alignItems: "center", gap: "3px", padding: "1px 6px", borderRadius: "10px", background: "rgba(167, 139, 250, 0.12)", border: "1px solid rgba(167, 139, 250, 0.25)" }}>
+              <RefreshCw size={10} className="spin" /> Saving...
+            </span>
+          )}
+          {autoSaveStatus === "unsaved" && (
+            <span style={{ fontSize: "10px", color: "#eab308", display: "inline-flex", alignItems: "center", gap: "3px", padding: "1px 6px", borderRadius: "10px", background: "rgba(234, 179, 8, 0.12)", border: "1px solid rgba(234, 179, 8, 0.25)" }}>
+              <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#eab308" }} /> Unsaved
             </span>
           )}
 

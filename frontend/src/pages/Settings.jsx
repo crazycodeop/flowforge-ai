@@ -14,6 +14,9 @@ import {
   Key,
   Globe,
   Sliders,
+  Eye,
+  EyeOff,
+  Save,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useModal } from "../context/ModalContext";
@@ -46,6 +49,12 @@ export default function Settings() {
   const [aiStatus, setAiStatus] = useState(null);
   const [aiTesting, setAiTesting] = useState(false);
   const [aiTestResult, setAiTestResult] = useState(null);
+  const [providerInput, setProviderInput] = useState("groq");
+  const [modelInput, setModelInput] = useState("qwen/qwen3.8-27b");
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [aiSaving, setAiSaving] = useState(false);
+  const [aiSaveMessage, setAiSaveMessage] = useState(null);
 
   // Appearance State
   const [theme, setTheme] = useState(localStorage.getItem("ff_theme") || "dark");
@@ -106,8 +115,41 @@ export default function Settings() {
     try {
       const data = await api.getAISettings();
       setAiStatus(data);
+      if (data?.provider) setProviderInput(data.provider);
+      if (data?.model) setModelInput(data.model);
     } catch (e) {
       console.warn("Could not load AI settings:", e);
+    }
+  };
+
+  const handleProviderSelect = (newProv) => {
+    setProviderInput(newProv);
+    if (newProv === "groq") setModelInput("qwen/qwen3.8-27b");
+    else if (newProv === "openai") setModelInput("gpt-4o-mini");
+    else if (newProv === "gemini") setModelInput("gemini-1.5-flash");
+    else if (newProv === "mock") setModelInput("mock-model-v1");
+  };
+
+  const handleSaveAISettings = async (e) => {
+    e.preventDefault();
+    setAiSaving(true);
+    setAiSaveMessage(null);
+    try {
+      const payload = {
+        provider: providerInput,
+        model: modelInput,
+      };
+      if (apiKeyInput.trim()) {
+        payload.api_key = apiKeyInput.trim();
+      }
+      const res = await api.updateAISettings(payload);
+      setAiStatus(res);
+      setApiKeyInput("");
+      setAiSaveMessage({ type: "success", text: "AI provider runtime settings saved successfully!" });
+    } catch (err) {
+      setAiSaveMessage({ type: "error", text: err.message || "Failed to save AI settings." });
+    } finally {
+      setAiSaving(false);
     }
   };
 
@@ -521,56 +563,212 @@ export default function Settings() {
             AI Provider & Model Runtime
           </h2>
           <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "20px" }}>
-            FlowForge AI orchestrates non-deterministic LLM inference through unified provider adapters with deterministic schema validation.
+            Select your inference provider, configure API keys, and test your live model connection.
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", gap: "16px", marginBottom: "24px" }}>
-            <div style={{ padding: "16px", background: "#181818", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <span style={{ fontWeight: 600, fontSize: "13px", color: "#f5f5f5" }}>Active Inference Provider</span>
-                <span className="badge badge-published">Connected</span>
-              </div>
-              <div style={{ fontSize: "20px", fontWeight: 700, color: "#8b5cf6", fontFamily: "var(--font-mono)" }}>
-                {aiStatus?.provider?.toUpperCase() || "GROQ"}
-              </div>
-              <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-                Primary low-latency LPU model execution engine
-              </div>
-            </div>
-
-            <div style={{ padding: "16px", background: "#181818", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                <span style={{ fontWeight: 600, fontSize: "13px", color: "#f5f5f5" }}>Configured Model</span>
-                <span className="badge badge-neutral">Strict JSON</span>
-              </div>
-              <div style={{ fontSize: "16px", fontWeight: 700, color: "#f5f5f5", fontFamily: "var(--font-mono)" }}>
-                {aiStatus?.model || "qwen/qwen3.8-27b"}
-              </div>
-              <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-                Enforced temperature: 0.0 with Pydantic JSON schema repair
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-            <button
-              onClick={handleTestAI}
-              disabled={aiTesting}
-              className="btn btn-secondary btn-sm"
-              style={{ padding: "6px 14px" }}
+          {aiSaveMessage && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 12px",
+                borderRadius: "4px",
+                fontSize: "12px",
+                marginBottom: "16px",
+                background: aiSaveMessage.type === "success" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                color: aiSaveMessage.type === "success" ? "#34d399" : "#f87171",
+                border: aiSaveMessage.type === "success" ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(239, 68, 68, 0.25)",
+              }}
             >
-              <RefreshCw size={13} className={aiTesting ? "spin" : ""} />
-              <span>{aiTesting ? "Running Inference Test..." : "Test AI Model Connection"}</span>
-            </button>
+              {aiSaveMessage.type === "success" ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+              <span>{aiSaveMessage.text}</span>
+            </div>
+          )}
+
+          {/* Provider Selection Cards */}
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#a3a3a3", marginBottom: "8px" }}>
+              Select Active AI Provider
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px" }}>
+              {[
+                { id: "groq", name: "Groq Cloud LPU", desc: "Ultra-low latency inference", badge: "Fastest" },
+                { id: "gemini", name: "Google Gemini", desc: "Gemini 1.5 Flash & Pro", badge: "Multimodal" },
+                { id: "openai", name: "OpenAI", desc: "GPT-4o & GPT-4o-mini", badge: "Standard" },
+                { id: "mock", name: "Mock Sandbox", desc: "No API key required", badge: "Local Test" },
+              ].map((prov) => {
+                const isSelected = providerInput === prov.id;
+                return (
+                  <div
+                    key={prov.id}
+                    onClick={() => handleProviderSelect(prov.id)}
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: "6px",
+                      background: isSelected ? "rgba(139, 92, 246, 0.12)" : "#161616",
+                      border: isSelected ? "1px solid #8b5cf6" : "1px solid #262626",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                      <span style={{ fontSize: "13px", fontWeight: 600, color: isSelected ? "#ffffff" : "#d4d4d4" }}>
+                        {prov.name}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "9px",
+                          fontWeight: 600,
+                          padding: "1px 5px",
+                          borderRadius: "3px",
+                          background: isSelected ? "#8b5cf6" : "#222222",
+                          color: isSelected ? "#ffffff" : "#a3a3a3",
+                        }}
+                      >
+                        {prov.badge}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "11px", color: "#888888" }}>{prov.desc}</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
+          {/* Configuration Form */}
+          <form onSubmit={handleSaveAISettings} style={{ display: "flex", flexDirection: "column", gap: "14px", maxWidth: "560px", marginBottom: "24px" }}>
+            {/* Model Selection */}
+            <div>
+              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
+                Default Model
+              </label>
+              {providerInput === "groq" && (
+                <select
+                  value={modelInput}
+                  onChange={(e) => setModelInput(e.target.value)}
+                  className="input"
+                  style={{ fontSize: "12px" }}
+                >
+                  <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b (Groq LPU - Recommended)</option>
+                  <option value="openai/gpt-oss-120b">openai/gpt-oss-120b</option>
+                  <option value="openai/gpt-oss-20b">openai/gpt-oss-20b</option>
+                </select>
+              )}
+              {providerInput === "openai" && (
+                <select
+                  value={modelInput}
+                  onChange={(e) => setModelInput(e.target.value)}
+                  className="input"
+                  style={{ fontSize: "12px" }}
+                >
+                  <option value="gpt-4o-mini">gpt-4o-mini (Fast & Cost-Efficient)</option>
+                  <option value="gpt-4o">gpt-4o (High Intelligence)</option>
+                  <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                </select>
+              )}
+              {providerInput === "gemini" && (
+                <select
+                  value={modelInput}
+                  onChange={(e) => setModelInput(e.target.value)}
+                  className="input"
+                  style={{ fontSize: "12px" }}
+                >
+                  <option value="gemini-1.5-flash">gemini-1.5-flash (Fast & Cost-Efficient)</option>
+                  <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Reasoning)</option>
+                </select>
+              )}
+              {providerInput === "mock" && (
+                <input
+                  type="text"
+                  value="mock-model-v1"
+                  disabled
+                  className="input"
+                  style={{ fontSize: "12px", color: "#888888" }}
+                />
+              )}
+            </div>
+
+            {/* API Key */}
+            {providerInput !== "mock" && (
+              <div>
+                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
+                  API Key {aiStatus?.api_key_configured && !apiKeyInput ? `(Configured: ${aiStatus.api_key_masked})` : ""}
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showApiKey ? "text" : "password"}
+                    value={apiKeyInput}
+                    onChange={(e) => setApiKeyInput(e.target.value)}
+                    placeholder={
+                      aiStatus?.api_key_configured
+                        ? "Enter new key to update, or leave blank to keep current"
+                        : providerInput === "groq"
+                        ? "gsk_..."
+                        : providerInput === "gemini"
+                        ? "AIza..."
+                        : "sk-..."
+                    }
+                    className="input"
+                    style={{ fontSize: "12px", paddingRight: "36px" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    style={{
+                      position: "absolute",
+                      right: "8px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      color: "#737373",
+                      cursor: "pointer",
+                      padding: "4px",
+                    }}
+                    title={showApiKey ? "Hide key" : "Show key"}
+                  >
+                    {showApiKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+                <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
+                  Your API keys are encrypted and stored securely on your backend environment.
+                </span>
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "6px" }}>
+              <button
+                type="submit"
+                disabled={aiSaving}
+                className="btn btn-primary btn-sm"
+                style={{ padding: "7px 16px" }}
+              >
+                <Save size={13} />
+                <span>{aiSaving ? "Saving..." : "Save AI Configuration"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleTestAI}
+                disabled={aiTesting}
+                className="btn btn-secondary btn-sm"
+                style={{ padding: "7px 14px" }}
+              >
+                <RefreshCw size={13} className={aiTesting ? "spin" : ""} />
+                <span>{aiTesting ? "Testing Ping..." : "Test AI Model Connection"}</span>
+              </button>
+            </div>
+          </form>
+
+          {/* Test Results Banner */}
           {aiTestResult && (
             <div
               style={{
                 padding: "12px 16px",
                 borderRadius: "6px",
                 fontSize: "12px",
-                maxWidth: "600px",
+                maxWidth: "560px",
                 background: aiTestResult.success ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
                 color: aiTestResult.success ? "#34d399" : "#f87171",
                 border: aiTestResult.success ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(239, 68, 68, 0.25)",
@@ -579,14 +777,17 @@ export default function Settings() {
               {aiTestResult.success ? (
                 <div>
                   <div style={{ fontWeight: 600, marginBottom: "4px" }}>✓ AI Connection Verified Successfully</div>
-                  <div style={{ fontFamily: "var(--font-mono)", color: "#a3a3a3" }}>
-                    Latency: {aiTestResult.data?.latency_ms || 180}ms • Tokens: {aiTestResult.data?.tokens || 42} • Cost: ${aiTestResult.data?.cost_usd || "0.000004"}
+                  <div style={{ fontFamily: "var(--font-mono)", color: "#d4d4d4", fontSize: "11px" }}>
+                    Provider: {aiTestResult.data?.provider} • Model: {aiTestResult.data?.model} • Latency: {aiTestResult.data?.latency_ms}ms • Tokens: {aiTestResult.data?.tokens}
+                  </div>
+                  <div style={{ marginTop: "4px", fontSize: "11px", color: "#a3a3a3" }}>
+                    Response: <span style={{ color: "#34d399", fontWeight: 600 }}>"{aiTestResult.data?.response}"</span>
                   </div>
                 </div>
               ) : (
                 <div>
-                  <div style={{ fontWeight: 600 }}>✕ Connection Failed</div>
-                  <div>{aiTestResult.error}</div>
+                  <div style={{ fontWeight: 600, marginBottom: "2px" }}>✕ Connection Failed</div>
+                  <div style={{ fontSize: "11px", lineHeight: "1.4" }}>{aiTestResult.error}</div>
                 </div>
               )}
             </div>

@@ -157,6 +157,13 @@ export const api = {
     return request("/settings/ai");
   },
 
+  async updateAISettings(payload) {
+    return request("/settings/ai", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
   async testAIConnection() {
     return request("/settings/ai/test", {
       method: "POST",
