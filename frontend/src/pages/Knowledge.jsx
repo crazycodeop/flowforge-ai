@@ -15,6 +15,7 @@ import {
   UploadCloud,
   Languages,
   FileCheck,
+  Trash2,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useModal } from "../context/ModalContext";
@@ -171,6 +172,30 @@ export default function Knowledge() {
       setUploadingFile(false);
       setUploadProgress("");
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDeleteDocument = async (docId, docTitle) => {
+    if (!selectedCollection) return;
+    const confirmed = await modal.confirm({
+      title: "Delete Reference Document",
+      message: `Are you sure you want to delete "${docTitle}" from this collection?`,
+      confirmText: "Delete",
+      variant: "danger",
+    });
+    if (!confirmed) return;
+
+    try {
+      await api.deleteDocument(selectedCollection.id, docId);
+      setStatusMessage({ type: "success", text: `Deleted "${docTitle}".` });
+      // Refresh documents
+      const updatedDocs = await api.getCollectionDocuments(selectedCollection.id);
+      setDocuments(updatedDocs);
+      // Refresh collections to update document counts
+      const data = await api.listKnowledgeCollections();
+      setCollections(data);
+    } catch (err) {
+      await modal.alert({ title: "Failed to Delete", message: err.message || "Delete error.", variant: "danger" });
     }
   };
 
@@ -406,11 +431,34 @@ export default function Knowledge() {
                             <FileText size={15} color="#8b5cf6" />
                             <span style={{ fontSize: "13px", fontWeight: 600, color: "#ffffff" }}>{doc.title}</span>
                           </div>
-                          {doc.metadata?.policy_id && (
-                            <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "#222", color: "#a3a3a3", fontFamily: "var(--font-mono)" }}>
-                              {doc.metadata.policy_id}
-                            </span>
-                          )}
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            {doc.metadata?.policy_id && (
+                              <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "#222", color: "#a3a3a3", fontFamily: "var(--font-mono)" }}>
+                                {doc.metadata.policy_id}
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteDocument(doc.id, doc.title)}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: "#737373",
+                                cursor: "pointer",
+                                padding: "4px",
+                                borderRadius: "4px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                transition: "color 0.15s ease",
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+                              onMouseLeave={(e) => (e.currentTarget.style.color = "#737373")}
+                              title={`Delete "${doc.title}"`}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                         <div style={{ fontSize: "12px", color: "#a3a3a3", lineHeight: 1.5, whiteSpace: "pre-line" }}>
                           {doc.content}

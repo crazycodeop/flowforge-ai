@@ -114,6 +114,21 @@ def test_upload_and_extract_document(client: TestClient, db_session: Session):
     assert res_data["document_id"] is not None
 
 
+def test_delete_document(client: TestClient, db_session: Session):
+    coll = seed_flagship_knowledge_base(db_session)
+    docs_resp = client.get(f"/api/v1/knowledge/collections/{coll.id}/documents")
+    assert docs_resp.status_code == 200
+    docs = docs_resp.json()
+    assert len(docs) > 0
+    target_id = docs[0]["id"]
+
+    del_resp = client.delete(f"/api/v1/knowledge/collections/{coll.id}/documents/{target_id}")
+    assert del_resp.status_code == 200
+
+    docs_after = client.get(f"/api/v1/knowledge/collections/{coll.id}/documents").json()
+    assert not any(d["id"] == target_id for d in docs_after)
+
+
 def test_end_to_end_flagship_support_workflow_execution(db_session: Session):
     """Verifies complete execution of the flagship support triage, knowledge retrieval, and routing workflow."""
     workflow = create_or_update_flagship_workflow(db_session)

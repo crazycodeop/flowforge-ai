@@ -342,6 +342,12 @@ export const api = {
     });
   },
 
+  async deleteDocument(collectionId, documentId) {
+    return request(`/knowledge/collections/${collectionId}/documents/${documentId}`, {
+      method: "DELETE",
+    });
+  },
+
   async searchKnowledge(payload) {
     return request("/knowledge/search", {
       method: "POST",

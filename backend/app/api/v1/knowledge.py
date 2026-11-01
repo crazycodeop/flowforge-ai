@@ -183,6 +183,33 @@ def add_document(
     )
 
 
+@router.delete(
+    "/collections/{collection_id}/documents/{document_id}",
+    status_code=status.HTTP_200_OK,
+)
+def delete_document(
+    collection_id: str,
+    document_id: str,
+    db: Session = Depends(get_db),
+):
+    """Deletes a document from a knowledge collection."""
+    doc = db.scalar(
+        select(KnowledgeDocument).where(
+            KnowledgeDocument.id == document_id,
+            KnowledgeDocument.collection_id == collection_id,
+        )
+    )
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document '{document_id}' not found in collection '{collection_id}'.",
+        )
+
+    db.delete(doc)
+    db.commit()
+    return {"message": f"Document '{document_id}' deleted successfully.", "id": document_id}
+
+
 @router.post("/seed", status_code=status.HTTP_200_OK)
 def seed_knowledge(db: Session = Depends(get_db)):
     """Seeds official FlowForge support policies and SLA guidelines."""
