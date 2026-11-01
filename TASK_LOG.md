@@ -23,6 +23,27 @@
 - [x] **Milestone 18: Dynamic Key-Gated Model Filtering in Node Inspector**
 - [x] **Milestone 19: Per-Node Multi-Provider Orchestration & Dynamic Model Grouping**
 - [x] **Milestone 20: Decoupled Multi-Provider Credential Saving & Granular Runtime Promotion**
+- [x] **Milestone 21: Streamlined Multi-Provider Status & Cleaned AI Settings UI**
+
+---
+
+### Milestone 21: Streamlined Multi-Provider Status & Cleaned AI Settings UI
+- **Date**: 2026-11-01
+- **Status**: Completed
+- **Features Implemented**:
+  1. **Simultaneous Active Status for All Configured Providers (`_build_provider_details`)**:
+     - Removed the outdated "Inactive" label. Any provider with a saved API key (Groq, Gemini, OpenAI, Mock) now displays as `● Active`.
+     - The workspace fallback provider is marked with a clean `Default` badge.
+  2. **Simplified Settings AI Panel (`Settings.jsx`)**:
+     - Removed redundant buttons, confusing "Save Credentials vs Set as Active Runtime" duality, and cluttered explanatory text.
+     - Single primary action: `Save Key` saves the provider's credentials directly.
+     - Secondary action: `Test Connection` performs immediate ping verification.
+     - Optional `Set as Default Fallback` appears only when viewing an active non-default provider.
+- **Verification**:
+  - `vitest`: 2 passed (409ms).
+  - `vite build`: 0 errors in 4.89s.
+  - `pytest backend/tests`: 54 passed in 7.54s.
+  - Git commit: `5182fa9` pushed to `main`.
 
 ---
 
