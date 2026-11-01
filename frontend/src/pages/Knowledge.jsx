@@ -16,9 +16,12 @@ import {
   Languages,
   FileCheck,
   Trash2,
+  Eye,
+  Edit3,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useModal } from "../context/ModalContext";
+import MarkdownView from "../components/MarkdownView";
 
 /**
  * Knowledge Collections & Semantic Retrieval Center.
@@ -47,6 +50,7 @@ export default function Knowledge() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [uploadedFileInfo, setUploadedFileInfo] = useState(null);
+  const [modalTab, setModalTab] = useState("edit");
 
   useEffect(() => {
     loadCollections();
@@ -373,8 +377,8 @@ export default function Knowledge() {
                                 </span>
                               </div>
                               {passages[idx] && (
-                                <div style={{ fontSize: "12px", color: "#a3a3a3", lineHeight: 1.4, whiteSpace: "pre-line" }}>
-                                  "{passages[idx]}"
+                                <div style={{ marginTop: "4px", padding: "6px 8px", background: "#111", borderRadius: "4px" }}>
+                                  <MarkdownView content={passages[idx]} />
                                 </div>
                               )}
                             </div>
@@ -460,8 +464,8 @@ export default function Knowledge() {
                             </button>
                           </div>
                         </div>
-                        <div style={{ fontSize: "12px", color: "#a3a3a3", lineHeight: 1.5, whiteSpace: "pre-line" }}>
-                          {doc.content}
+                        <div style={{ marginTop: "6px" }}>
+                          <MarkdownView content={doc.content} />
                         </div>
                       </div>
                     ))}
@@ -581,18 +585,73 @@ export default function Knowledge() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                  Content / Policy Text
-                </label>
-                <textarea
-                  rows={6}
-                  placeholder="Paste the full policy text, conditions, exceptions, or guidelines..."
-                  value={newDocContent}
-                  onChange={(e) => setNewDocContent(e.target.value)}
-                  className="input"
-                  style={{ width: "100%", fontSize: "12px", resize: "vertical" }}
-                  required
-                />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                  <label style={{ fontSize: "11px", fontWeight: 600, color: "#888888" }}>
+                    Content / Policy Text
+                  </label>
+                  <div style={{ display: "flex", gap: "4px" }}>
+                    <button
+                      type="button"
+                      onClick={() => setModalTab("edit")}
+                      className="btn btn-ghost btn-sm"
+                      style={{
+                        padding: "2px 8px",
+                        fontSize: "11px",
+                        background: modalTab === "edit" ? "#222" : "transparent",
+                        color: modalTab === "edit" ? "#c084fc" : "#737373",
+                        border: modalTab === "edit" ? "1px solid #333" : "1px solid transparent",
+                      }}
+                    >
+                      <Edit3 size={11} style={{ marginRight: "4px" }} /> Edit Raw
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setModalTab("preview")}
+                      className="btn btn-ghost btn-sm"
+                      style={{
+                        padding: "2px 8px",
+                        fontSize: "11px",
+                        background: modalTab === "preview" ? "#222" : "transparent",
+                        color: modalTab === "preview" ? "#c084fc" : "#737373",
+                        border: modalTab === "preview" ? "1px solid #333" : "1px solid transparent",
+                      }}
+                    >
+                      <Eye size={11} style={{ marginRight: "4px" }} /> Preview Markdown
+                    </button>
+                  </div>
+                </div>
+
+                {modalTab === "edit" ? (
+                  <textarea
+                    rows={6}
+                    placeholder="Paste the full policy text, conditions, exceptions, or guidelines..."
+                    value={newDocContent}
+                    onChange={(e) => setNewDocContent(e.target.value)}
+                    className="input"
+                    style={{ width: "100%", fontSize: "12px", resize: "vertical" }}
+                    required
+                  />
+                ) : (
+                  <div
+                    style={{
+                      minHeight: "135px",
+                      maxHeight: "220px",
+                      overflowY: "auto",
+                      padding: "12px",
+                      background: "#111",
+                      border: "1px solid #262626",
+                      borderRadius: "6px",
+                    }}
+                  >
+                    {newDocContent ? (
+                      <MarkdownView content={newDocContent} />
+                    ) : (
+                      <div style={{ color: "var(--text-muted)", fontSize: "12px" }}>
+                        No content entered yet. Paste or upload a document to preview formatted markdown.
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "8px" }}>

@@ -28,6 +28,7 @@
 - [x] **Milestone 23: Multilingual Document OCR, Extraction & Auto-Translation to English**
 - **Document Deletion Support**: Implemented `DELETE /api/v1/knowledge/collections/{coll_id}/documents/{doc_id}` and added a red-accented `<Trash2 />` delete action to each document card in `Knowledge.jsx` with confirmation dialog and automatic collection count refresh. Commit `710b72e`.
 - **Dependency & Scanned PDF Fix**: Installed `pillow` (`pypdf[image]`) to support image extraction from scanned PDF files. Added error resilience and fallback in `knowledge.py:257`. Verified with pytest. Commit `ff46745`.
+- **Markdown Document Rendering in Knowledge Collections**: Installed `marked` and built [`MarkdownView.jsx`](file:///C:/Users/Crazy/Documents/flowforge/frontend/src/components/MarkdownView.jsx) with custom dark-themed styling (`.markdown-body` for headings, lists, bold text, code blocks, and blockquotes). Integrated into `Knowledge.jsx` document cards, test query citations, and added an interactive "Edit Raw" / "Preview Markdown" tabbed preview to the Add Reference Document modal.
 - **CI Pipeline Lint & Format Fix**: Resolved Ruff import sorting (I001) and formatting checks across `backend/app/api/v1/knowledge.py`, `backend/app/api/v1/settings.py`, and `backend/tests/test_retrieval_and_flagship.py`. Verified `ruff check backend` and `ruff format --check backend` pass with 0 errors. All 57 pytest backend tests and all frontend vitest tests pass cleanly.
 
 ---
