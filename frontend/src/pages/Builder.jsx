@@ -30,6 +30,83 @@ import CustomNode from "../components/builder/CustomNode";
 import NodePalette from "../components/builder/NodePalette";
 import NodeInspector from "../components/builder/NodeInspector";
 
+export const DEFAULT_NODE_CONFIGS = {
+  trigger: {
+    trigger_type: "api",
+    input_schema: {
+      type: "object",
+      properties: {
+        ticket_text: { type: "string" },
+      },
+    },
+  },
+  input_data: {
+    default_payload: {
+      ticket_text: "I was charged $89 twice on my card. Please refund my statement.",
+    },
+  },
+  ai_classify: {
+    prompt_template: "Classify incoming customer support request:\n{ticket_text}",
+    categories: ["billing", "technical", "general"],
+    temperature: 0.0,
+    model: "gemini-1.5-flash",
+  },
+  structured_extract: {
+    prompt_template: "Extract structured customer information from:\n{ticket_text}",
+    schema_definition: {
+      type: "object",
+      properties: {
+        customer_id: { type: "string" },
+        email: { type: "string" },
+        urgency: { type: "string", enum: ["low", "medium", "high", "critical"] },
+      },
+      required: ["urgency"],
+    },
+    temperature: 0.0,
+    model: "gemini-1.5-flash",
+  },
+  retrieval: {
+    collection_name: "support_policies",
+    query_template: "{ticket_text}",
+    top_k: 3,
+    score_threshold: 0.6,
+  },
+  condition: {
+    field_path: "amount",
+    operator: "greater_than",
+    value: "100",
+    branches: [
+      {
+        branch_name: "true",
+        operator: "greater_than",
+        field_path: "amount",
+        value: "100",
+      },
+    ],
+    default_branch: "false",
+  },
+  transform: {
+    mapping_rules: {
+      status: "processed",
+      customer_id: "{customer_id}",
+      summary: "Processed support inquiry",
+    },
+  },
+  human_approval: {
+    title: "High-Priority Compliance Review",
+    description_template: "Review required for inquiry: {ticket_text}",
+    timeout_hours: 24,
+    required_role: "reviewer",
+  },
+  output: {
+    response_template: {
+      status: "success",
+      category: "{ai_classify.category}",
+      resolution: "Request triaged and queued for fulfillment",
+    },
+  },
+};
+
 const nodeTypes = {
   custom: CustomNode,
 };
@@ -105,7 +182,7 @@ function BuilderCanvas() {
           type,
           name: name || "Node",
           description: "",
-          config: {},
+          config: DEFAULT_NODE_CONFIGS[type] ? JSON.parse(JSON.stringify(DEFAULT_NODE_CONFIGS[type])) : {},
           retry_policy: { max_retries: 3, backoff_base_seconds: 1.0 },
           timeout_seconds: 60,
         },
@@ -225,7 +302,7 @@ function BuilderCanvas() {
         type,
         name,
         description: "",
-        config: {},
+        config: DEFAULT_NODE_CONFIGS[type] ? JSON.parse(JSON.stringify(DEFAULT_NODE_CONFIGS[type])) : {},
         retry_policy: { max_retries: 3, backoff_base_seconds: 1.0 },
         timeout_seconds: 60,
       },

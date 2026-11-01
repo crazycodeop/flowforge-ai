@@ -159,15 +159,30 @@ export default function CustomNode({ id, data, selected }) {
           </div>
         ) : null}
 
-        {/* Dynamic configuration preview pill */}
-        {nodeType === "ai_classify" && data.config?.categories && (
+        {/* Dynamic configuration preview pill for all 9 node types */}
+        {nodeType === "trigger" && (
+          <div style={{ fontSize: "10px", color: "#34d399", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
+            Trigger: {data.config?.trigger_type || "api"} webhook
+          </div>
+        )}
+        {nodeType === "input_data" && (
+          <div style={{ fontSize: "10px", color: "#38bdf8", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
+            Input: External Payload
+          </div>
+        )}
+        {nodeType === "ai_classify" && (
           <div style={{ fontSize: "10px", color: "#a78bfa", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
-            [{data.config.categories.slice(0, 3).join(", ")}]
+            [{(data.config?.categories || ["billing", "technical", "general"]).slice(0, 3).join(", ")}]
+          </div>
+        )}
+        {nodeType === "structured_extract" && (
+          <div style={{ fontSize: "10px", color: "#c084fc", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
+            Extracts: {Object.keys(data.config?.schema_definition?.properties || {}).slice(0, 3).join(", ") || "fields"}
           </div>
         )}
         {nodeType === "retrieval" && (
           <div style={{ fontSize: "10px", color: "#67e8f9", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
-            Top K: {data.config?.top_k || 3}
+            Top K: {data.config?.top_k || 3} | {data.config?.collection_name || "policies"}
           </div>
         )}
         {nodeType === "condition" && (() => {
@@ -186,6 +201,21 @@ export default function CustomNode({ id, data, selected }) {
             </div>
           );
         })()}
+        {nodeType === "transform" && (
+          <div style={{ fontSize: "10px", color: "#818cf8", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
+            Map: {Object.keys(data.config?.mapping_rules || {}).length || 1} fields
+          </div>
+        )}
+        {nodeType === "human_approval" && (
+          <div style={{ fontSize: "10px", color: "#f87171", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
+            Gate: {data.config?.required_role || "reviewer"} ({data.config?.timeout_hours || 24}h SLA)
+          </div>
+        )}
+        {nodeType === "output" && (
+          <div style={{ fontSize: "10px", color: "#4ade80", fontFamily: "var(--font-mono)", marginTop: "2px" }}>
+            Result Assembly
+          </div>
+        )}
       </div>
 
       {/* Outgoing Connection Handles */}
