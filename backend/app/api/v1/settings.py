@@ -124,7 +124,7 @@ def _build_provider_details(settings) -> list[ProviderDetail]:
             is_active=(active_prov == "gemini"),
             has_key=bool(gemini_key),
             masked_key=_mask_key(gemini_key),
-            default_model=settings.AI_MODEL if active_prov == "gemini" else "gemini-2.5-flash",
+            default_model=settings.AI_MODEL if active_prov == "gemini" else "gemini-3.5-flash",
             requires_key=True,
         ),
         ProviderDetail(
@@ -275,9 +275,21 @@ def fetch_provider_models(
                         if "generateContent" in methods:
                             raw_name = m.get("name", "")
                             clean_id = raw_name.replace("models/", "")
-                            if not any(
-                                bad in clean_id.lower() for bad in ["embedding", "aqa", "imagen"]
-                            ):
+                            exclude_keywords = [
+                                "tts",
+                                "image",
+                                "clip",
+                                "transcribe",
+                                "robotics",
+                                "banana",
+                                "lyria",
+                                "embedding",
+                                "aqa",
+                                "customtools",
+                                "gemini-1.5",
+                                "gemini-2.5-flash",
+                            ]
+                            if not any(bad in clean_id.lower() for bad in exclude_keywords):
                                 display_name = m.get("displayName", clean_id)
                                 label = (
                                     f"{clean_id} ({display_name})"
@@ -285,7 +297,22 @@ def fetch_provider_models(
                                     else clean_id
                                 )
                                 models.append(AIModelItem(id=clean_id, name=label))
-                    models.sort(key=lambda x: x.id)
+
+                    # Put recommended models first
+                    def gemini_rank(item: AIModelItem):
+                        if item.id == "gemini-3.5-flash":
+                            return 0
+                        if item.id == "gemini-flash-latest":
+                            return 1
+                        if item.id == "gemini-3.8-flash":
+                            return 2
+                        if "flash" in item.id:
+                            return 3
+                        if "pro" in item.id:
+                            return 4
+                        return 5
+
+                    models.sort(key=lambda x: (gemini_rank(x), x.id))
                     if models:
                         return models, None
             except Exception:

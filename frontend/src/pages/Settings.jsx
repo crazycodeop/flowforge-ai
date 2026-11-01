@@ -163,6 +163,10 @@ export default function Settings() {
     setApiKeyInput("");
     setAiTestResult(null);
     setAiSaveMessage(null);
+    if (newProv === "groq") setModelInput("qwen/qwen3.8-27b");
+    else if (newProv === "openai") setModelInput("gpt-4o-mini");
+    else if (newProv === "gemini") setModelInput("gemini-3.5-flash");
+    else if (newProv === "mock") setModelInput("mock-model-v1");
     loadAvailableModels(newProv, "");
   };
 
@@ -728,131 +732,139 @@ export default function Settings() {
             </div>
 
             {/* Provider Configuration Form */}
-            <form onSubmit={handleSaveAISettings} style={{ display: "flex", flexDirection: "column", gap: "14px", maxWidth: "560px", marginBottom: "20px" }}>
-              <div style={{ padding: "12px", background: "#161616", border: "1px solid #262626", borderRadius: "6px" }}>
-                <div style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5", marginBottom: "12px" }}>
-                  Configuring: <span style={{ color: "#8b5cf6" }}>{currentProvDetail.name}</span>
-                </div>
-
-                {/* Default Model */}
-                <div style={{ marginBottom: "12px" }}>
-                  <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                    Default Model
-                  </label>
-                  {providerInput === "groq" && (
-                    <select
-                      value={modelInput}
-                      onChange={(e) => setModelInput(e.target.value)}
-                      className="input"
-                      style={{ fontSize: "12px" }}
-                    >
-                      <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b (Groq LPU - Recommended)</option>
-                      <option value="openai/gpt-oss-120b">openai/gpt-oss-120b</option>
-                      <option value="openai/gpt-oss-20b">openai/gpt-oss-20b</option>
-                    </select>
-                  )}
-                  {providerInput === "openai" && (
-                    <select
-                      value={modelInput}
-                      onChange={(e) => setModelInput(e.target.value)}
-                      className="input"
-                      style={{ fontSize: "12px" }}
-                    >
-                      <option value="gpt-4o-mini">gpt-4o-mini (Fast & Cost-Efficient)</option>
-                      <option value="gpt-4o">gpt-4o (High Intelligence)</option>
-                    </select>
-                  )}
-                  {providerInput === "gemini" && (
-                    <select
-                      value={modelInput}
-                      onChange={(e) => setModelInput(e.target.value)}
-                      className="input"
-                      style={{ fontSize: "12px" }}
-                    >
-                      <option value="gemini-1.5-flash">gemini-1.5-flash (Fast & Cost-Efficient)</option>
-                      <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Reasoning)</option>
-                    </select>
-                  )}
-                  {providerInput === "mock" && (
-                    <input
-                      type="text"
-                      value="mock-model-v1"
-                      disabled
-                      className="input"
-                      style={{ fontSize: "12px", color: "#888888" }}
-                    />
+            <form onSubmit={handleSaveAISettings} style={{ display: "flex", flexDirection: "column", gap: "12px", maxWidth: "560px", marginBottom: "20px" }}>
+              <div style={{ padding: "14px", background: "#161616", border: "1px solid #262626", borderRadius: "6px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5" }}>
+                    Configuring: <span style={{ color: "#a78bfa" }}>{currentProvDetail.name}</span>
+                  </div>
+                  {currentProvDetail.has_key ? (
+                    <span style={{ fontSize: "11px", color: "#34d399", fontWeight: 500 }}>
+                      ✓ Key Configured ({currentProvDetail.masked_key})
+                    </span>
+                  ) : currentProvDetail.requires_key ? (
+                    <span style={{ fontSize: "11px", color: "#f87171", fontWeight: 500 }}>
+                      • Key Required
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: "11px", color: "#38bdf8", fontWeight: 500 }}>
+                      ✓ Local Sandbox
+                    </span>
                   )}
                 </div>
 
                 {/* API Key Input */}
                 {providerInput !== "mock" && (
-                  <div>
-                    <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#888888", marginBottom: "4px" }}>
-                      API Key{" "}
-                      {apiKeyInput.trim() ? (
-                        <span style={{ color: "#fbbf24", fontWeight: 500 }}>
-                          (Unsaved Key Entered — click Fetch Models or Save)
-                        </span>
-                      ) : currentProvDetail.has_key ? (
-                        <span style={{ color: "#34d399", fontWeight: 400 }}>
-                          (Configured: {currentProvDetail.masked_key})
-                        </span>
-                      ) : (
-                        <span style={{ color: "#ef4444", fontWeight: 600 }}>
-                          (Missing — Required to use {currentProvDetail.name})
+                  <div style={{ marginBottom: "14px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
+                      <label style={{ fontSize: "11px", fontWeight: 600, color: "#888888" }}>
+                        API Key
+                      </label>
+                      {apiKeyInput.trim() && (
+                        <span style={{ fontSize: "10px", color: "#fbbf24" }}>
+                          New key entered (Click Fetch Models or Save)
                         </span>
                       )}
-                    </label>
-                    <div style={{ position: "relative" }}>
-                      <input
-                        type={showApiKey ? "text" : "password"}
-                        value={apiKeyInput}
-                        onChange={(e) => setApiKeyInput(e.target.value)}
-                        onBlur={() => {
-                          if (apiKeyInput.trim()) {
-                            loadAvailableModels(providerInput, apiKeyInput.trim());
-                          }
-                        }}
-                        placeholder={
-                          currentProvDetail.has_key
-                            ? "Enter new key to replace, or leave blank to keep current"
-                            : providerInput === "openai"
-                            ? "sk-..."
-                            : providerInput === "gemini"
-                            ? "AIza..."
-                            : "gsk_..."
-                        }
-                        className="input"
-                        style={{ fontSize: "12px", paddingRight: "36px" }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowApiKey(!showApiKey)}
-                        style={{
-                          position: "absolute",
-                          right: "8px",
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                          background: "none",
-                          border: "none",
-                          color: "#737373",
-                          cursor: "pointer",
-                          padding: "4px",
-                        }}
-                        title={showApiKey ? "Hide key" : "Show key"}
-                      >
-                        {showApiKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                      </button>
                     </div>
-                    <span style={{ fontSize: "10px", color: "#666666", marginTop: "2px", display: "block" }}>
-                      {providerInput === "groq"
-                        ? "Groq keys start with 'gsk_' (console.groq.com/keys)"
-                        : providerInput === "gemini"
-                        ? "Google AI Studio keys start with 'AIza' (aistudio.google.com/apikey)"
-                        : "OpenAI keys start with 'sk-' (platform.openai.com/api-keys)"}
-                    </span>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <div style={{ position: "relative", flex: 1 }}>
+                        <input
+                          type={showApiKey ? "text" : "password"}
+                          value={apiKeyInput}
+                          onChange={(e) => setApiKeyInput(e.target.value)}
+                          placeholder={
+                            currentProvDetail.has_key
+                              ? "Enter new key to update, or leave blank to keep current"
+                              : `Enter your ${currentProvDetail.name} API key`
+                          }
+                          className="input"
+                          style={{ fontSize: "12px", paddingRight: "36px" }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                          style={{
+                            position: "absolute",
+                            right: "8px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "none",
+                            border: "none",
+                            color: "#737373",
+                            cursor: "pointer",
+                            padding: "4px",
+                          }}
+                          title={showApiKey ? "Hide key" : "Show key"}
+                        >
+                          {showApiKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
+
+                {/* Default Model with Prominent Fetch Models Button */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "#888888" }}>
+                      Default Model
+                    </label>
+                    {modelsLoading && (
+                      <span style={{ fontSize: "10px", color: "#8b5cf6" }}>Querying provider catalog...</span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <select
+                      value={modelInput}
+                      onChange={(e) => setModelInput(e.target.value)}
+                      className="input"
+                      style={{ fontSize: "12px", flex: 1 }}
+                      disabled={modelsLoading}
+                    >
+                      {modelsLoading && <option>Fetching models from {currentProvDetail.name}...</option>}
+                      {!modelsLoading && availableModels.length > 0 && availableModels.map((m) => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                      ))}
+                      {!modelsLoading && availableModels.length === 0 && (
+                        <option value={modelInput}>{modelInput || "No models loaded"}</option>
+                      )}
+                    </select>
+
+                    {providerInput !== "mock" && (
+                      <button
+                        type="button"
+                        onClick={() => loadAvailableModels(providerInput, apiKeyInput.trim())}
+                        disabled={modelsLoading}
+                        className="btn btn-secondary btn-sm"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "0 12px",
+                          height: "36px",
+                          whiteSpace: "nowrap",
+                          fontSize: "11px",
+                          fontWeight: 500,
+                        }}
+                        title="Query provider API to load active models"
+                      >
+                        <RefreshCw size={12} className={modelsLoading ? "spin" : ""} />
+                        <span>{modelsLoading ? "Loading..." : "Fetch Models"}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {availableModels.length > 0 && !modelsLoading && (
+                    <div style={{ marginTop: "5px", fontSize: "10px", color: "#34d399" }}>
+                      ✓ Showing {availableModels.length} active models loaded from {currentProvDetail.name}
+                    </div>
+                  )}
+                  {modelsError && (
+                    <div style={{ marginTop: "5px", fontSize: "10px", color: "#ef4444" }}>
+                      {modelsError}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Action Buttons */}

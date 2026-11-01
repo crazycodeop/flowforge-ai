@@ -51,10 +51,10 @@ const PROVIDER_MODELS = {
     { label: "gpt-4o (OpenAI Flagship)", value: "gpt-4o" },
   ],
   gemini: [
-    { label: "gemini-2.5-flash (Google Fast - Recommended)", value: "gemini-2.5-flash" },
-    { label: "gemini-2.0-flash (Google Low Latency)", value: "gemini-2.0-flash" },
-    { label: "gemini-2.5-pro (Google Deep Reasoning)", value: "gemini-2.5-pro" },
-    { label: "gemini-1.5-flash (Google Legacy Checkpoint)", value: "gemini-1.5-flash" },
+    { label: "gemini-3.5-flash (Google Fast - Recommended)", value: "gemini-3.5-flash" },
+    { label: "gemini-flash-latest (Google Latest)", value: "gemini-flash-latest" },
+    { label: "gemini-3.8-flash (Google Ultra Fast)", value: "gemini-3.8-flash" },
+    { label: "gemini-pro-latest (Google Deep)", value: "gemini-pro-latest" },
   ],
   mock: [
     { label: "mock-model-v1 (Simulated)", value: "mock-model-v1" },

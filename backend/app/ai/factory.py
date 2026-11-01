@@ -53,7 +53,7 @@ def get_ai_provider(
             or (settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None)
         )
         return OpenAICompatibleProvider(
-            default_model=selected_model or "gemini-2.5-flash",
+            default_model=selected_model or "gemini-3.5-flash",
             api_key=key,
             base_url=base_url or "https://generativelanguage.googleapis.com/v1beta/openai",
             timeout=req_timeout,
