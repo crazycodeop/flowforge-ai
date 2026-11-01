@@ -25,6 +25,30 @@
 - [x] **Milestone 20: Decoupled Multi-Provider Credential Saving & Granular Runtime Promotion**
 - [x] **Milestone 21: Streamlined Multi-Provider Status & Cleaned AI Settings UI**
 - [x] **Milestone 22: Knowledge Collections Center & 1-Click Interactive Test Scenarios**
+- [x] **Milestone 23: Multilingual Document OCR, Extraction & Auto-Translation to English**
+
+---
+
+### Milestone 23: Multilingual Document OCR, Extraction & Auto-Translation to English
+- **Date**: 2026-11-01
+- **Status**: Completed
+- **Features Implemented**:
+  1. **Document Upload & AI OCR Endpoint (`POST /api/v1/knowledge/upload`)**:
+     - Handles digital and scanned PDFs (`pypdf` text extraction with fallback to page image visual extraction).
+     - Handles image formats (`.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff`) and plain text documents (`.txt`, `.md`, `.csv`).
+     - Powered by Google Gemini Vision multimodal reasoning (`gemini-3.5-flash` or OpenAI `gpt-4o-mini`).
+     - Transcribes all text from scanned paper photos or PDFs in **any language** (Spanish, French, German, Chinese, Japanese, Arabic, Hindi, etc.) and translates accurately into structured English markdown with clear headings, bullet points, and extracted titles.
+     - Installed `python-multipart` and `pypdf` in production backend dependencies.
+  2. **Interactive File Upload Dropzone (`Knowledge.jsx`)**:
+     - Added drag-and-drop / click-to-upload card inside the **Add Reference Document** modal.
+     - Displays live transcription progress indicator (`Analyzing Document & Translating...`).
+     - Automatically populates the Document Title and Content fields in English for review before indexing.
+  3. **Verification**:
+     - `pytest backend/tests/test_retrieval_and_flagship.py`: 5/5 passed.
+     - `pytest backend/tests`: 55/55 passed in 11.69s.
+     - `vitest`: 2 passed (352ms).
+     - `vite build`: 0 errors in 5.80s.
+     - Git commit: `d858749` pushed to `main`.
 - **Bug Fix**: Resolved `TypeError: Cannot read properties of undefined (reading 'map')` in `Knowledge.jsx:286` by correctly unpacking the backend `search_knowledge_base` response dictionary keys (`sources`, `passages`). Production build verified green. Commit `41edfbf`.
 
 ---
