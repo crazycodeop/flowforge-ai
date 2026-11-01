@@ -18,6 +18,34 @@
 - [x] **Milestone 13: Complete Responsive Design Overhaul & Viewport Hardening (320px–1920px)**
 - [x] **Milestone 14: Visual Architecture Decoupling (GitHub README Consolidation), Sidebar Collapse Polish & Render-Aesthetic Alignment**
 - [x] **Milestone 15: Node Catalog & Inspector Complete Configuration Suite (All 9 Node Types)**
+- [x] **Milestone 16: Automated Workflow Building, Debounced Auto-Save & Interactive AI Provider Suite**
+
+---
+
+### Milestone 16: Automated Workflow Building, Debounced Auto-Save & Interactive AI Provider Suite
+- **Date**: 2026-11-01
+- **Status**: Completed
+- **Features Implemented**:
+  1. **Fixed Groq 400 Ping Bug (`settings.py`)**:
+     - Fixed `provider.complete()` call in `POST /api/v1/settings/ai/test` to pass a clean string `"Respond with only: PONG"` instead of a nested dictionary list.
+     - Verified with live Groq LPU test ping: responded with `PONG` in 412ms (status 200 OK).
+  2. **Interactive AI Provider Settings (`Settings.jsx` & `PUT /settings/ai`)**:
+     - Replaced read-only cards with interactive provider selection (Groq Cloud LPU, OpenAI, Google Gemini, and High-Fidelity Mock sandbox).
+     - Added provider-specific model dropdowns, masked API key input with Eye/EyeOff visibility toggle, and instant connection test with latency and token telemetry.
+  3. **Guarded Model Override Dropdown (`NodeInspector.jsx`)**:
+     - Replaced open text box with curated dropdown menu (`qwen/qwen3.8-27b`, `openai/gpt-oss-120b`, `gpt-4o-mini`, `gpt-4o`, `gemini-1.5-flash`, `gemini-1.5-pro`, or `Custom...`) to prevent user typos and invalid model 404s.
+  4. **Canvas Auto-Save (`Builder.jsx`)**:
+     - Added debounced auto-save (1200ms) on node and edge changes with visual indicator in header (`Auto-saved ✓`, `Saving...`, `Unsaved changes`).
+  5. **1-Click Starter Blueprints on Empty Canvas (`Builder.jsx`)**:
+     - Added 3 instant starter templates on empty canvas:
+       - 🚀 Customer Support Triage (Flagship 6-node DAG)
+       - 🛡️ Human Approval & Refund Gate
+       - ⚡ AI Extraction Pipeline
+     - Added smart auto-positioning and auto-connection when adding nodes from catalog.
+- **Verification**:
+  - `vitest` frontend tests: 2/2 passed.
+  - `vite build` production build: 0 errors in 10.40s.
+  - `pytest backend/tests`: 54/54 passed in 9.34s.
 
 ---
 
