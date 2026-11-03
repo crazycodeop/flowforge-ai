@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  MessageSquare,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useModal } from "../context/ModalContext";
@@ -217,6 +218,7 @@ export default function Shell({ children }) {
 
   const aiNavItems = [
     { label: "Knowledge Base", path: "/knowledge", icon: BookOpen },
+    { label: "WhatsApp Agent", path: "/whatsapp", icon: MessageSquare },
     { label: "Evaluations", path: "/evaluations", icon: Gauge },
     { label: "Use Cases", path: "/use-cases", icon: Sparkles },
   ];
@@ -244,6 +246,7 @@ export default function Shell({ children }) {
     if (p === "/approvals") return "Approvals";
     if (p === "/evaluations") return "Evaluations";
     if (p === "/knowledge") return "Knowledge Base";
+    if (p === "/whatsapp") return "WhatsApp Assistant";
     if (p === "/use-cases") return "Use Cases";
     if (p === "/settings") return "Settings";
     if (p === "/system") return "System Status";
