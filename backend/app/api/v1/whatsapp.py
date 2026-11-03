@@ -163,6 +163,47 @@ async def simulate_whatsapp_message(
 
     version_id = version.id
 
+    # Fast Greeting & Welcome Handling (< 50ms)
+    text_clean = payload.message.strip().lower()
+    greetings = {
+        "hi",
+        "hello",
+        "hey",
+        "hola",
+        "namaste",
+        "good morning",
+        "good evening",
+        "good afternoon",
+        "start",
+        "help",
+        "menu",
+    }
+    if text_clean in greetings or text_clean in {
+        "hi!",
+        "hello!",
+        "hey there",
+        "hey!",
+        "hi flowforge",
+    }:
+        return WhatsAppSimulateResponse(
+            reply=(
+                f"👋 *Hi {payload.customer_name}!*\n\n"
+                "Welcome to *FlowForge AI Support* on WhatsApp.\n\n"
+                "I am your automated AI support assistant. How can I help you today?\n\n"
+                "• *Refunds & Damaged Goods:* Describe the item and order #\n"
+                "• *Technical Escalations:* Report any platform outage or P0 bug\n"
+                "• *Policy Inquiries:* Ask about terms, billing, and SLAs\n\n"
+                "_Type your query or paste an order issue to get started!_"
+            ),
+            requires_approval=False,
+            approval_id=None,
+            run_id=None,
+            category="general",
+            policy_citation="FlowForge Welcome Protocol",
+            confidence=1.0,
+            timestamp=now_iso,
+        )
+
     # 2. Extract potential monetary amount (prioritizing currency symbols over order numbers)
     text_lower = payload.message.lower()
     currency_match = re.search(r"(?:[\$₹]|rs\.?|inr|usd)\s*(\d+(?:\.\d{1,2})?)", text_lower)
