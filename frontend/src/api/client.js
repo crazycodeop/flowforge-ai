@@ -38,8 +38,11 @@ async function request(endpoint, options = {}) {
     if (response.status === 401) {
       const currentPath = window.location.pathname;
       if (!currentPath.startsWith("/login") && !currentPath.startsWith("/register")) {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
+        // Only hard-evict the session if core identity verification itself reports 401
+        if (endpoint === "/auth/me" || endpoint === "/settings/profile") {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }
       }
     }
 
@@ -104,11 +107,11 @@ export const api = {
 
   // --- Organizations & Tenancy ---
   async listOrganizations() {
-    return request("/organizations/");
+    return request("/organizations");
   },
 
   async createOrganization(payload) {
-    return request("/organizations/", {
+    return request("/organizations", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -192,7 +195,7 @@ export const api = {
   },
 
   async listWorkflows() {
-    return request("/workflows/");
+    return request("/workflows");
   },
 
   async getWorkflow(workflowId) {
@@ -200,7 +203,7 @@ export const api = {
   },
 
   async createWorkflow(payload) {
-    return request("/workflows/", {
+    return request("/workflows", {
       method: "POST",
       body: JSON.stringify(payload),
     });

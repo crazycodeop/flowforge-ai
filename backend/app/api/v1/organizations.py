@@ -22,6 +22,7 @@ router = APIRouter(prefix="/organizations", tags=["Organizations"])
 
 
 @router.get("", response_model=list[OrgResponse], summary="List user organizations")
+@router.get("/", response_model=list[OrgResponse], include_in_schema=False)
 def list_user_organizations(
     user: Annotated[User, Depends(require_user)],
     db: Session = Depends(get_db),
@@ -77,6 +78,12 @@ def list_user_organizations(
     response_model=OrgResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create an organization",
+)
+@router.post(
+    "/",
+    response_model=OrgResponse,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False,
 )
 def create_organization(
     payload: OrgCreate,

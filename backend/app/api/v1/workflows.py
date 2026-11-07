@@ -34,6 +34,7 @@ def list_available_nodes() -> list[dict[str, Any]]:
 
 
 @router.post("/", response_model=WorkflowResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=WorkflowResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_workflow(
     payload: WorkflowCreate,
     db: Session = Depends(get_db),
@@ -76,6 +77,7 @@ def create_workflow(
 
 
 @router.get("/", response_model=list[WorkflowResponse])
+@router.get("", response_model=list[WorkflowResponse], include_in_schema=False)
 def list_workflows(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
