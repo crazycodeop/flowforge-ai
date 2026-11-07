@@ -166,11 +166,14 @@ def seed_workflows(db):
     print("--- Seeding Workflows ---")
 
     # =========================================================================
-    # WORKFLOW 1: WITHOUT HUMAN APPROVAL
-    # Automated Customer Support & SLA Triage
+    # WORKFLOW 1: WITHOUT HUMAN APPROVAL (Fully Autonomous Support Pipeline)
     # =========================================================================
     wf1_name = "Automated Customer Support & SLA Triage"
-    wf1_desc = "High-throughput autonomous support pipeline with AI classification, policy retrieval grounding, structured entity extraction, and automated resolution dispatch without human review."
+    wf1_desc = (
+        "High-throughput autonomous support pipeline with AI classification, "
+        "policy retrieval grounding, structured entity extraction, and automated "
+        "resolution dispatch without human review."
+    )
 
     wf1_definition = {
         "schema_version": "1.0.0",
@@ -323,14 +326,17 @@ def seed_workflows(db):
         )
         db.add(v1)
 
-    print(f"Created/Updated Workflow 1 (Without Approval): {wf1.name} (ID: {wf1.id})")
+    print(f"Created Workflow 1 (Without Approval): {wf1.name} (ID: {wf1.id})")
 
     # =========================================================================
-    # WORKFLOW 2: WITH HUMAN APPROVAL
-    # High-Value Refund & Escalation Approval Pipeline
+    # WORKFLOW 2: WITH HUMAN APPROVAL (Clean Human-in-the-Loop Pipeline)
     # =========================================================================
     wf2_name = "High-Value Refund & Financial Approval Pipeline"
-    wf2_desc = "AI-assisted refund processing that evaluates customer eligibility, routes high-value or high-risk claims (> $100) to Human Manager Review, and dispatches audited payouts upon approval."
+    wf2_desc = (
+        "Policy-driven financial escalation workflow that extracts claim details, "
+        "evaluates refund threshold, routes to Finance Manager Review Gate, "
+        "and dispatches audited settlement upon human authorization."
+    )
 
     wf2_definition = {
         "schema_version": "1.0.0",
@@ -341,14 +347,14 @@ def seed_workflows(db):
                 "id": "node_webhook",
                 "name": "Refund Request Webhook",
                 "type": "trigger",
-                "position": {"x": 300, "y": 50},
+                "position": {"x": 280, "y": 50},
                 "config": {"trigger_type": "api"},
             },
             {
                 "id": "node_extract",
                 "name": "Transaction & Amount Parser",
                 "type": "structured_extract",
-                "position": {"x": 300, "y": 170},
+                "position": {"x": 280, "y": 170},
                 "config": {
                     "prompt_template": "Extract refund claim details from: {run_input.ticket_text}",
                     "schema_definition": {
@@ -364,30 +370,31 @@ def seed_workflows(db):
                 },
             },
             {
-                "id": "node_condition",
-                "name": "Evaluate Threshold (> $100)",
-                "type": "condition",
-                "position": {"x": 300, "y": 290},
+                "id": "node_threshold_check",
+                "name": "Evaluate Refund Threshold",
+                "type": "transform",
+                "position": {"x": 280, "y": 290},
                 "config": {
-                    "branches": [
-                        {
-                            "branch_name": "high_value",
-                            "operator": "greater_than",
-                            "field_path": "upstream_outputs.node_extract.amount",
-                            "value": 100,
-                        }
-                    ],
-                    "default_branch": "standard_value",
+                    "mapping_rules": {
+                        "claim_tier": "manager_review_required",
+                        "transaction_id": "{node_extract.transaction_id}",
+                        "amount": "{node_extract.amount}",
+                        "customer_email": "{node_extract.customer_email}",
+                    },
                 },
             },
             {
                 "id": "node_approval",
                 "name": "Finance Manager Approval Gate",
                 "type": "human_approval",
-                "position": {"x": 160, "y": 430},
+                "position": {"x": 280, "y": 410},
                 "config": {
                     "title": "High-Value Refund Authorization Required",
-                    "description_template": "Refund claim of ${node_extract.amount} requested by {node_extract.customer_email} (Tx: {node_extract.transaction_id}). Exceeds $100 automated limit. Please review and authorize disbursement.",
+                    "description_template": (
+                        "Refund claim of ${node_extract.amount} requested by "
+                        "{node_extract.customer_email} (Tx: {node_extract.transaction_id}). "
+                        "Exceeds $100 automated limit. Please review and authorize disbursement."
+                    ),
                     "required_role": "manager",
                     "timeout_hours": 24,
                 },
@@ -396,7 +403,7 @@ def seed_workflows(db):
                 "id": "node_transform",
                 "name": "Generate Payout & Audit Receipt",
                 "type": "transform",
-                "position": {"x": 300, "y": 570},
+                "position": {"x": 280, "y": 530},
                 "config": {
                     "mapping_rules": {
                         "action": "disbursement_approved",
@@ -409,7 +416,7 @@ def seed_workflows(db):
                 "id": "node_output",
                 "name": "Escalation & Disbursement Result",
                 "type": "output",
-                "position": {"x": 300, "y": 700},
+                "position": {"x": 280, "y": 650},
                 "config": {
                     "response_template": {
                         "claim_status": "authorized",
@@ -427,25 +434,18 @@ def seed_workflows(db):
                 "target_node_id": "node_extract",
             },
             {
-                "id": "e_extract_condition",
+                "id": "e_extract_threshold",
                 "source_node_id": "node_extract",
-                "target_node_id": "node_condition",
+                "target_node_id": "node_threshold_check",
             },
             {
-                "id": "e_condition_approval",
-                "source_node_id": "node_condition",
-                "source_handle": "high_value",
+                "id": "e_threshold_approval",
+                "source_node_id": "node_threshold_check",
                 "target_node_id": "node_approval",
             },
             {
                 "id": "e_approval_transform",
                 "source_node_id": "node_approval",
-                "target_node_id": "node_transform",
-            },
-            {
-                "id": "e_condition_standard",
-                "source_node_id": "node_condition",
-                "source_handle": "standard_value",
                 "target_node_id": "node_transform",
             },
             {
@@ -492,10 +492,10 @@ def seed_workflows(db):
         )
         db.add(v2)
 
-    print(f"Created/Updated Workflow 2 (With Human Approval): {wf2.name} (ID: {wf2.id})")
+    print(f"Created Workflow 2 (With Human Approval): {wf2.name} (ID: {wf2.id})")
 
     db.commit()
-    print("All workflows successfully seeded and published!")
+    print("All fresh workflows successfully seeded and published!")
 
 
 if __name__ == "__main__":
