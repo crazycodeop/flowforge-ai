@@ -15,7 +15,6 @@ import Knowledge from "./pages/Knowledge";
 import SystemStatus from "./pages/SystemStatus";
 import UseCases from "./pages/UseCases";
 import Settings from "./pages/Settings";
-import WhatsAppSimulator from "./pages/WhatsAppSimulator";
 
 export default function App() {
   return (
@@ -42,7 +41,6 @@ export default function App() {
                     <Route path="/knowledge" element={<Knowledge />} />
                     <Route path="/system" element={<SystemStatus />} />
                     <Route path="/use-cases" element={<UseCases />} />
-                    <Route path="/whatsapp" element={<WhatsAppSimulator />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>

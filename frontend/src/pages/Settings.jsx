@@ -47,6 +47,7 @@ export default function Settings() {
 
   // AI Settings State
   const [aiStatus, setAiStatus] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const [aiTesting, setAiTesting] = useState(false);
   const [aiTestResult, setAiTestResult] = useState(null);
   const [providerInput, setProviderInput] = useState("groq");
@@ -79,6 +80,12 @@ export default function Settings() {
     loadOrganization();
     loadAISettings();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "ai") {
+      loadAISettings();
+    }
+  }, [activeTab]);
 
   const loadProfile = async () => {
     try {
@@ -145,6 +152,7 @@ export default function Settings() {
   };
 
   const loadAISettings = async () => {
+    setAiLoading(true);
     try {
       const data = await api.getAISettings();
       setAiStatus(data);
@@ -155,6 +163,8 @@ export default function Settings() {
       if (data?.model) setModelInput(data.model);
     } catch (e) {
       console.warn("Could not load AI settings:", e);
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -190,7 +200,7 @@ export default function Settings() {
       const provName = provDetail?.name || providerInput.toUpperCase();
       setAiSaveMessage({
         type: "success",
-        text: `${provName} saved! It is now active and available for workflow creation.`,
+        text: `${provName} key saved and persisted to environment! It will remain active across restarts.`,
       });
     } catch (err) {
       setAiSaveMessage({ type: "error", text: err.message || "Failed to save AI settings." });
@@ -611,17 +621,30 @@ export default function Settings() {
         const currentProvDetail = aiStatus?.providers?.find((p) => p.id === providerInput) || {
           id: providerInput,
           name: providerInput.toUpperCase(),
-          is_active: aiStatus?.provider === providerInput,
-          has_key: aiStatus?.provider === providerInput ? aiStatus?.api_key_configured : false,
+          is_active: providerInput === "mock" || (aiStatus?.provider === providerInput && aiStatus?.api_key_configured),
+          has_key: providerInput === "mock" || (aiStatus?.provider === providerInput && aiStatus?.api_key_configured),
           masked_key: aiStatus?.provider === providerInput ? aiStatus?.api_key_masked : null,
           requires_key: providerInput !== "mock",
         };
 
         return (
           <div className="card" style={{ padding: "24px" }}>
-            <h2 style={{ fontSize: "16px", fontWeight: 600, margin: "0 0 4px 0", color: "var(--text-main)" }}>
-              AI Providers & Credentials
-            </h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
+              <h2 style={{ fontSize: "16px", fontWeight: 600, margin: 0, color: "var(--text-main)" }}>
+                AI Providers & Credentials
+              </h2>
+              <button
+                type="button"
+                onClick={() => loadAISettings()}
+                disabled={aiLoading}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "5px", color: "#a3a3a3" }}
+                title="Re-check environment credentials"
+              >
+                <RefreshCw size={12} className={aiLoading ? "spin" : ""} />
+                <span>{aiLoading ? "Verifying..." : "Refresh Keys"}</span>
+              </button>
+            </div>
             <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "20px" }}>
               Configure inference providers. Any provider with a saved key is Active and available across all workflows.
             </p>
@@ -657,7 +680,7 @@ export default function Settings() {
                 ].map((prov) => {
                   const isSelected = providerInput === prov.id;
                   const detail = aiStatus?.providers?.find((p) => p.id === prov.id);
-                  const isActive = detail ? detail.is_active : false;
+                  const isActive = detail ? detail.is_active : (prov.id === "mock");
                   const isDefault = detail ? detail.is_default : (aiStatus?.provider === prov.id);
 
                   return (
@@ -731,10 +754,10 @@ export default function Settings() {
                   <div style={{ fontSize: "13px", fontWeight: 600, color: "#ffffff" }}>
                     Configuring: <span style={{ color: "#a78bfa" }}>{currentProvDetail.name}</span>
                   </div>
-                  {currentProvDetail.is_active ? (
+                  {currentProvDetail.is_active || currentProvDetail.id === "mock" ? (
                     <span style={{ fontSize: "11px", color: "#34d399", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "5px" }}>
                       <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399" }}></span>
-                      Active {currentProvDetail.masked_key ? `(${currentProvDetail.masked_key})` : ""}
+                      Active {currentProvDetail.masked_key && currentProvDetail.id !== "mock" ? `(${currentProvDetail.masked_key})` : ""}
                     </span>
                   ) : currentProvDetail.requires_key ? (
                     <span style={{ fontSize: "11px", color: "#f87171", fontWeight: 500 }}>

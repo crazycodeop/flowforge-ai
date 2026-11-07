@@ -58,11 +58,6 @@ class Settings(BaseSettings):
     )
     GOOGLE_CLIENT_SECRET: str | None = None
 
-    # WhatsApp Business Cloud API & Webhooks
-    WHATSAPP_PHONE_NUMBER_ID: str | None = None
-    WHATSAPP_ACCESS_TOKEN: str | None = None
-    WHATSAPP_VERIFY_TOKEN: str = "flowforge_whatsapp_token_2026"
-
     # Operational Limits
     MAX_WORKFLOW_NODES: int = 50
     MAX_GRAPH_DEPTH: int = 20

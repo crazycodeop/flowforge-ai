@@ -99,17 +99,63 @@ def _mask_key(key: str | None) -> str | None:
     return "****"
 
 
-def _build_provider_details(settings) -> list[ProviderDetail]:
-    active_prov = settings.AI_PROVIDER.lower().strip()
+def _persist_to_env_files(updates: dict[str, str | None]) -> None:
+    """Synchronizes and updates key-value pairs across all project .env files (.env, backend/.env)."""
+    env_paths = [Path(".env"), Path("backend/.env")]
+    for env_path in env_paths:
+        try:
+            if not env_path.exists():
+                continue
+            lines = env_path.read_text(encoding="utf-8").splitlines()
+            new_lines = []
+            applied = set()
+            for line in lines:
+                matched = False
+                for k, v in updates.items():
+                    if v is not None and (line.startswith(f"{k}=") or line.startswith(f"{k} =")):
+                        new_lines.append(f"{k}={v}")
+                        applied.add(k)
+                        matched = True
+                        break
+                if not matched:
+                    new_lines.append(line)
 
-    groq_key = getattr(settings, "GROQ_API_KEY", None) or (
-        settings.AI_API_KEY if active_prov == "groq" else None
+            for k, v in updates.items():
+                if v is not None and k not in applied:
+                    new_lines.append(f"{k}={v}")
+
+            env_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+        except Exception:
+            pass
+
+
+def _build_provider_details(settings) -> list[ProviderDetail]:
+    active_prov = (os.environ.get("AI_PROVIDER") or settings.AI_PROVIDER).lower().strip()
+
+    groq_key = (
+        os.environ.get("GROQ_API_KEY")
+        or getattr(settings, "GROQ_API_KEY", None)
+        or (
+            (os.environ.get("AI_API_KEY") or settings.AI_API_KEY) if active_prov == "groq" else None
+        )
     )
-    openai_key = getattr(settings, "OPENAI_API_KEY", None) or (
-        settings.AI_API_KEY if active_prov == "openai" else None
+    openai_key = (
+        os.environ.get("OPENAI_API_KEY")
+        or getattr(settings, "OPENAI_API_KEY", None)
+        or (
+            (os.environ.get("AI_API_KEY") or settings.AI_API_KEY)
+            if active_prov == "openai"
+            else None
+        )
     )
-    gemini_key = getattr(settings, "GEMINI_API_KEY", None) or (
-        settings.AI_API_KEY if active_prov == "gemini" else None
+    gemini_key = (
+        os.environ.get("GEMINI_API_KEY")
+        or getattr(settings, "GEMINI_API_KEY", None)
+        or (
+            (os.environ.get("AI_API_KEY") or settings.AI_API_KEY)
+            if active_prov == "gemini"
+            else None
+        )
     )
 
     return [
@@ -204,18 +250,35 @@ def change_password(
 @router.get("/ai", response_model=AIProviderStatusResponse)
 def get_ai_status(user: Annotated[User, Depends(require_user)]) -> AIProviderStatusResponse:
     settings = get_settings()
-    active_prov = settings.AI_PROVIDER.lower().strip()
+    active_prov = (os.environ.get("AI_PROVIDER") or settings.AI_PROVIDER).lower().strip()
 
     active_key = None
     if active_prov == "groq":
-        active_key = getattr(settings, "GROQ_API_KEY", None) or settings.AI_API_KEY
+        active_key = (
+            os.environ.get("GROQ_API_KEY")
+            or getattr(settings, "GROQ_API_KEY", None)
+            or os.environ.get("AI_API_KEY")
+            or settings.AI_API_KEY
+        )
     elif active_prov == "openai":
-        active_key = getattr(settings, "OPENAI_API_KEY", None) or (
-            settings.AI_API_KEY if settings.AI_PROVIDER == "openai" else None
+        active_key = (
+            os.environ.get("OPENAI_API_KEY")
+            or getattr(settings, "OPENAI_API_KEY", None)
+            or (
+                (os.environ.get("AI_API_KEY") or settings.AI_API_KEY)
+                if active_prov == "openai"
+                else None
+            )
         )
     elif active_prov == "gemini":
-        active_key = getattr(settings, "GEMINI_API_KEY", None) or (
-            settings.AI_API_KEY if settings.AI_PROVIDER == "gemini" else None
+        active_key = (
+            os.environ.get("GEMINI_API_KEY")
+            or getattr(settings, "GEMINI_API_KEY", None)
+            or (
+                (os.environ.get("AI_API_KEY") or settings.AI_API_KEY)
+                if active_prov == "gemini"
+                else None
+            )
         )
     elif active_prov == "mock":
         active_key = "mock"
@@ -501,9 +564,12 @@ def update_ai_settings(
             detail=f"Invalid provider '{payload.provider}'. Must be one of: {', '.join(valid_providers)}",
         )
 
+    env_updates: dict[str, str | None] = {}
     if payload.set_as_active:
         os.environ["AI_PROVIDER"] = prov
         os.environ["AI_MODEL"] = payload.model
+        env_updates["AI_PROVIDER"] = prov
+        env_updates["AI_MODEL"] = payload.model
 
     key_var_name = (
         "GROQ_API_KEY"
@@ -516,85 +582,51 @@ def update_ai_settings(
     )
 
     if payload.api_key is not None and payload.api_key.strip():
+        clean_key = payload.api_key.strip()
         if payload.set_as_active:
-            os.environ["AI_API_KEY"] = payload.api_key.strip()
+            os.environ["AI_API_KEY"] = clean_key
+            env_updates["AI_API_KEY"] = clean_key
         if key_var_name:
-            os.environ[key_var_name] = payload.api_key.strip()
+            os.environ[key_var_name] = clean_key
+            env_updates[key_var_name] = clean_key
+
     if payload.base_url is not None and payload.set_as_active:
         os.environ["AI_BASE_URL"] = payload.base_url
+        env_updates["AI_BASE_URL"] = payload.base_url
 
-    # Persist to .env file
-    try:
-        env_path = Path("backend/.env")
-        if not env_path.exists():
-            env_path = Path(".env")
-        if env_path.exists():
-            lines = env_path.read_text(encoding="utf-8").splitlines()
-            new_lines = []
-            seen_prov = False
-            seen_model = False
-            seen_key = False
-            seen_specific = False
-
-            for line in lines:
-                if line.startswith("AI_PROVIDER="):
-                    if payload.set_as_active:
-                        new_lines.append(f"AI_PROVIDER={prov}")
-                    else:
-                        new_lines.append(line)
-                    seen_prov = True
-                elif line.startswith("AI_MODEL="):
-                    if payload.set_as_active:
-                        new_lines.append(f"AI_MODEL={payload.model}")
-                    else:
-                        new_lines.append(line)
-                    seen_model = True
-                elif line.startswith("AI_API_KEY=") and payload.api_key and payload.api_key.strip():
-                    if payload.set_as_active:
-                        new_lines.append(f"AI_API_KEY={payload.api_key.strip()}")
-                    else:
-                        new_lines.append(line)
-                    seen_key = True
-                elif (
-                    key_var_name
-                    and line.startswith(f"{key_var_name}=")
-                    and payload.api_key
-                    and payload.api_key.strip()
-                ):
-                    new_lines.append(f"{key_var_name}={payload.api_key.strip()}")
-                    seen_specific = True
-                else:
-                    new_lines.append(line)
-
-            if payload.set_as_active and not seen_prov:
-                new_lines.append(f"AI_PROVIDER={prov}")
-            if payload.set_as_active and not seen_model:
-                new_lines.append(f"AI_MODEL={payload.model}")
-            if (
-                payload.set_as_active
-                and not seen_key
-                and payload.api_key
-                and payload.api_key.strip()
-            ):
-                new_lines.append(f"AI_API_KEY={payload.api_key.strip()}")
-            if key_var_name and not seen_specific and payload.api_key and payload.api_key.strip():
-                new_lines.append(f"{key_var_name}={payload.api_key.strip()}")
-
-            env_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
-    except Exception:
-        pass
+    # Persist to all .env files so keys survive server restarts
+    _persist_to_env_files(env_updates)
 
     get_settings.cache_clear()
     refreshed = get_settings()
 
     active_key = None
     if prov == "groq":
-        active_key = getattr(refreshed, "GROQ_API_KEY", None) or refreshed.AI_API_KEY
+        active_key = (
+            os.environ.get("GROQ_API_KEY")
+            or getattr(refreshed, "GROQ_API_KEY", None)
+            or (os.environ.get("AI_API_KEY") or refreshed.AI_API_KEY)
+        )
     elif prov == "openai":
-        active_key = getattr(refreshed, "OPENAI_API_KEY", None) or (
-            refreshed.AI_API_KEY if refreshed.AI_PROVIDER == "openai" else None
+        active_key = (
+            os.environ.get("OPENAI_API_KEY")
+            or getattr(refreshed, "OPENAI_API_KEY", None)
+            or (
+                (os.environ.get("AI_API_KEY") or refreshed.AI_API_KEY)
+                if refreshed.AI_PROVIDER == "openai"
+                else None
+            )
         )
     elif prov == "gemini":
+        active_key = (
+            os.environ.get("GEMINI_API_KEY")
+            or getattr(refreshed, "GEMINI_API_KEY", None)
+            or (
+                (os.environ.get("AI_API_KEY") or refreshed.AI_API_KEY)
+                if refreshed.AI_PROVIDER == "gemini"
+                else None
+            )
+        )
         active_key = getattr(refreshed, "GEMINI_API_KEY", None) or (
             refreshed.AI_API_KEY if refreshed.AI_PROVIDER == "gemini" else None
         )

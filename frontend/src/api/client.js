@@ -388,16 +388,4 @@ export const api = {
     }
     return res.json();
   },
-
-  // --- WhatsApp Business Integration ---
-  async getWhatsAppConfig() {
-    return request("/integrations/whatsapp/config");
-  },
-
-  async simulateWhatsAppMessage(payload) {
-    return request("/integrations/whatsapp/simulate", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-  },
 };
