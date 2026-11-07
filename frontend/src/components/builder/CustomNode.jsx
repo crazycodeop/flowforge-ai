@@ -219,51 +219,88 @@ export default function CustomNode({ id, data, selected }) {
       </div>
 
       {/* Outgoing Connection Handles */}
-      {isCondition ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "0 14px 4px 14px",
-            fontSize: "9px",
-            fontWeight: 600,
-            color: "#737373",
-          }}
-        >
-          <div style={{ position: "relative" }}>
-            <span>TRUE</span>
-            <Handle
-              type="source"
-              position={Position.Bottom}
-              id="true"
-              style={{
-                left: "50%",
-                background: "#10b981",
-                border: "2px solid #064e3b",
-                width: "8px",
-                height: "8px",
-                bottom: "-5px",
-              }}
-            />
+      {isCondition ? (() => {
+        const branches = data.config?.branches || [];
+        const firstBranch = branches[0];
+        const trueBranchName = firstBranch?.branch_name || "true";
+        const falseBranchName = data.config?.default_branch || "false";
+
+        return (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "0 14px 4px 14px",
+              fontSize: "9px",
+              fontWeight: 600,
+              color: "#737373",
+            }}
+          >
+            <div style={{ position: "relative" }}>
+              <span>TRUE</span>
+              <Handle
+                type="source"
+                position={Position.Bottom}
+                id={trueBranchName}
+                style={{
+                  left: "50%",
+                  background: "#10b981",
+                  border: "2px solid #064e3b",
+                  width: "8px",
+                  height: "8px",
+                  bottom: "-5px",
+                }}
+              />
+              {trueBranchName !== "true" && (
+                <Handle
+                  type="source"
+                  position={Position.Bottom}
+                  id="true"
+                  style={{
+                    left: "50%",
+                    background: "#10b981",
+                    border: "2px solid #064e3b",
+                    width: "8px",
+                    height: "8px",
+                    bottom: "-5px",
+                  }}
+                />
+              )}
+            </div>
+            <div style={{ position: "relative" }}>
+              <span>FALSE</span>
+              <Handle
+                type="source"
+                position={Position.Bottom}
+                id={falseBranchName}
+                style={{
+                  left: "50%",
+                  background: "#ef4444",
+                  border: "2px solid #7f1d1d",
+                  width: "8px",
+                  height: "8px",
+                  bottom: "-5px",
+                }}
+              />
+              {falseBranchName !== "false" && (
+                <Handle
+                  type="source"
+                  position={Position.Bottom}
+                  id="false"
+                  style={{
+                    left: "50%",
+                    background: "#ef4444",
+                    border: "2px solid #7f1d1d",
+                    width: "8px",
+                    height: "8px",
+                    bottom: "-5px",
+                  }}
+                />
+              )}
+            </div>
           </div>
-          <div style={{ position: "relative" }}>
-            <span>FALSE</span>
-            <Handle
-              type="source"
-              position={Position.Bottom}
-              id="false"
-              style={{
-                left: "50%",
-                background: "#ef4444",
-                border: "2px solid #7f1d1d",
-                width: "8px",
-                height: "8px",
-                bottom: "-5px",
-              }}
-            />
-          </div>
-        </div>
-      ) : !isTerminal ? (
+        );
+      })() : !isTerminal ? (
         <Handle
           type="source"
           position={Position.Bottom}
