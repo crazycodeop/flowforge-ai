@@ -68,7 +68,15 @@ jobs:
           CELERY_RESULT_BACKEND: "redis://localhost:6379/2"
           AI_PROVIDER: "mock"
         run: |
-          pytest backend/tests -v -rA --tb=short
+          pytest backend/tests -v -rfE --tb=short 2>&1 | tee pytest_output.txt
+
+      - name: Record Test Failures in Summary
+        if: always()
+        run: |
+          echo "## Pytest Output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -n 80 pytest_output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
   frontend-checks:
     runs-on: ubuntu-latest
