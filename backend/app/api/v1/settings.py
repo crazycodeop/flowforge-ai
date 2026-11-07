@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.ai.factory import get_ai_provider
-from app.api.deps import require_user
+from app.api.deps import get_current_user, require_user
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.security import hash_password, verify_password
@@ -248,7 +248,9 @@ def change_password(
 
 
 @router.get("/ai", response_model=AIProviderStatusResponse)
-def get_ai_status(user: Annotated[User, Depends(require_user)]) -> AIProviderStatusResponse:
+def get_ai_status(
+    user: Annotated[User | None, Depends(get_current_user)] = None,
+) -> AIProviderStatusResponse:
     settings = get_settings()
     active_prov = (os.environ.get("AI_PROVIDER") or settings.AI_PROVIDER).lower().strip()
 
@@ -444,7 +446,7 @@ def fetch_provider_models(
 @router.post("/ai/models", response_model=AIModelsResponse)
 def get_provider_available_models(
     payload: AIModelsRequest,
-    user: Annotated[User, Depends(require_user)],
+    user: Annotated[User | None, Depends(get_current_user)] = None,
 ) -> AIModelsResponse:
     """Dynamically fetches active available models directly from the provider API."""
     settings = get_settings()
