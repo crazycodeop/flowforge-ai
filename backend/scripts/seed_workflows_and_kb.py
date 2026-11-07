@@ -5,8 +5,9 @@ Seed script to create:
    - One WITHOUT human approval (Automated Customer Support & SLA Triage).
    - One WITH human approval (High-Value Refund & Escalation Approval Pipeline).
 """
-import uuid
+
 from sqlalchemy import select
+
 from app.core.database import SessionLocal
 from app.models.knowledge import KnowledgeCollection, KnowledgeDocument
 from app.models.workflow import Workflow, WorkflowVersion, compute_definition_checksum
@@ -18,7 +19,9 @@ def seed_knowledge_base(db):
     print("--- Seeding Knowledge Base Collections & Documents ---")
 
     # 1. Support & Billing Policies Collection
-    coll1 = db.scalar(select(KnowledgeCollection).where(KnowledgeCollection.name == "support_policies"))
+    coll1 = db.scalar(
+        select(KnowledgeCollection).where(KnowledgeCollection.name == "support_policies")
+    )
     if not coll1:
         coll1 = KnowledgeCollection(
             name="support_policies",
@@ -42,7 +45,7 @@ def seed_knowledge_base(db):
                 "## 3. SLA Payout Timelines\n"
                 "Once approved, refunds are credited to the original payment method within 3 to 5 business days via Stripe."
             ),
-            {"policy_code": "POL-BILL-001", "department": "Finance", "category": "billing"}
+            {"policy_code": "POL-BILL-001", "department": "Finance", "category": "billing"},
         ),
         (
             "Technical SLA & Incident Escalation Protocol (POL-TECH-002)",
@@ -60,7 +63,7 @@ def seed_knowledge_base(db):
                 "2. If database or worker timeout is detected, system triggers Slack incident room `#incident-war-room`.\n"
                 "3. On-call Site Reliability Engineer (SRE) receives PagerDuty push notification."
             ),
-            {"policy_code": "POL-TECH-002", "department": "Engineering", "category": "technical"}
+            {"policy_code": "POL-TECH-002", "department": "Engineering", "category": "technical"},
         ),
         (
             "Security, API Keys & Privacy Governance (POL-SEC-003)",
@@ -73,7 +76,7 @@ def seed_knowledge_base(db):
                 "- Workflows, step states, and execution histories are strictly partitioned by `organization_id`.\n"
                 "- Cross-tenant data leakage is prevented at both the database query filter and application middleware levels."
             ),
-            {"policy_code": "POL-SEC-003", "department": "Security", "category": "security"}
+            {"policy_code": "POL-SEC-003", "department": "Security", "category": "security"},
         ),
     ]
 
@@ -85,12 +88,14 @@ def seed_knowledge_base(db):
             )
         )
         if not existing:
-            db.add(KnowledgeDocument(
-                collection_id=coll1.id,
-                title=title,
-                content=content,
-                doc_metadata=meta,
-            ))
+            db.add(
+                KnowledgeDocument(
+                    collection_id=coll1.id,
+                    title=title,
+                    content=content,
+                    doc_metadata=meta,
+                )
+            )
 
     # 2. IT Infrastructure Runbooks Collection
     coll2 = db.scalar(select(KnowledgeCollection).where(KnowledgeCollection.name == "it_runbooks"))
@@ -119,7 +124,7 @@ def seed_knowledge_base(db):
                 "- Update connection string environment secret `DATABASE_URL` in Kubernetes config map.\n"
                 "- Trigger zero-downtime rolling restart of backend web instances."
             ),
-            {"runbook_id": "RB-DB-01", "team": "SRE"}
+            {"runbook_id": "RB-DB-01", "team": "SRE"},
         ),
         (
             "Celery Worker Lease Recovery & Queue Health",
@@ -132,7 +137,7 @@ def seed_knowledge_base(db):
                 "- If a worker crashes mid-execution, the lease watchdog automatically transitions expired `running` steps back to `queued` after 300 seconds.\n"
                 "- Run recovery probe: `POST /api/v1/runs/recover` to unstick orphaned background runs."
             ),
-            {"runbook_id": "RB-CELERY-02", "team": "DevOps"}
+            {"runbook_id": "RB-CELERY-02", "team": "DevOps"},
         ),
     ]
 
@@ -144,12 +149,14 @@ def seed_knowledge_base(db):
             )
         )
         if not existing:
-            db.add(KnowledgeDocument(
-                collection_id=coll2.id,
-                title=title,
-                content=content,
-                doc_metadata=meta,
-            ))
+            db.add(
+                KnowledgeDocument(
+                    collection_id=coll2.id,
+                    title=title,
+                    content=content,
+                    doc_metadata=meta,
+                )
+            )
 
     db.commit()
     print("Knowledge base seeded successfully.")
@@ -300,7 +307,11 @@ def seed_workflows(db):
         wf1.draft_definition = wf1_definition
 
     # Ensure published Version 1
-    v1 = db.scalar(select(WorkflowVersion).where(WorkflowVersion.workflow_id == wf1.id, WorkflowVersion.version_number == 1))
+    v1 = db.scalar(
+        select(WorkflowVersion).where(
+            WorkflowVersion.workflow_id == wf1.id, WorkflowVersion.version_number == 1
+        )
+    )
     if not v1:
         checksum1 = compute_definition_checksum(wf1_definition)
         v1 = WorkflowVersion(
@@ -465,7 +476,11 @@ def seed_workflows(db):
         wf2.draft_definition = wf2_definition
 
     # Ensure published Version 1
-    v2 = db.scalar(select(WorkflowVersion).where(WorkflowVersion.workflow_id == wf2.id, WorkflowVersion.version_number == 1))
+    v2 = db.scalar(
+        select(WorkflowVersion).where(
+            WorkflowVersion.workflow_id == wf2.id, WorkflowVersion.version_number == 1
+        )
+    )
     if not v2:
         checksum2 = compute_definition_checksum(wf2_definition)
         v2 = WorkflowVersion(
