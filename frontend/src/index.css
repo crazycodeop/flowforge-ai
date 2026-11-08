@@ -956,3 +956,43 @@ body {
     transform: translateY(0);
   }
 }
+
+
+/* Unified Header Icon Utility Button */
+.header-icon-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-light) !important;
+  color: var(--text-muted) !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  transition: all 0.15s ease !important;
+}
+
+.header-icon-btn:hover {
+  background: var(--surface-hover) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-dark) !important;
+}
+
+[data-theme="dark"] .header-icon-btn {
+  background: var(--surface-card) !important;
+  border-color: var(--border-light) !important;
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .header-icon-btn:hover {
+  background: var(--surface-hover) !important;
+  color: var(--text-main) !important;
+}

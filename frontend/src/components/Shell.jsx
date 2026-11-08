@@ -618,64 +618,59 @@ export default function Shell({ children }) {
         </div>
 
         {/* Right Utility Buttons */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "6px" : "8px" }}>
           {/* Search Trigger */}
-          <button
-            type="button"
-            onClick={() => setShowQuickSearch(true)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "7px",
-              padding: isMobile ? "0" : "4px 8px",
-              width: isMobile ? "32px" : "auto",
-              height: "32px",
-              background: "var(--surface-card)",
-              border: "1px solid var(--border-light)",
-              borderRadius: "6px",
-              color: "var(--text-muted)",
-              fontSize: "12px",
-              cursor: "pointer",
-              boxSizing: "border-box",
-            }}
-            title="Search (⌘K)"
-          >
-            <Search size={14} />
-            <span className="desktop-only">Search</span>
-            <span
-              className="desktop-only"
-              style={{
-                fontSize: "10px",
-                padding: "1px 4px",
-                background: "var(--surface-subtle)",
-                borderRadius: "3px",
-                color: "var(--text-muted)",
-                border: "1px solid var(--border-light)",
-              }}
+          {isMobile ? (
+            <button
+              type="button"
+              onClick={() => setShowQuickSearch(true)}
+              className="header-icon-btn"
+              title="Search (⌘K)"
             >
-              ⌘ K
-            </span>
-          </button>
+              <Search size={14} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowQuickSearch(true)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "7px",
+                padding: "4px 8px",
+                height: "32px",
+                background: "var(--surface-card)",
+                border: "1px solid var(--border-light)",
+                borderRadius: "6px",
+                color: "var(--text-muted)",
+                fontSize: "12px",
+                cursor: "pointer",
+                boxSizing: "border-box",
+              }}
+              title="Search (⌘K)"
+            >
+              <Search size={13} />
+              <span>Search</span>
+              <span
+                style={{
+                  fontSize: "10px",
+                  padding: "1px 4px",
+                  background: "var(--surface-subtle)",
+                  borderRadius: "3px",
+                  color: "var(--text-muted)",
+                  border: "1px solid var(--border-light)",
+                }}
+              >
+                ⌘ K
+              </span>
+            </button>
+          )}
 
           {/* Theme Toggle Button */}
           <button
             type="button"
             onClick={toggleTheme}
-            style={{
-              width: "32px",
-              height: "32px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "6px",
-              background: "var(--surface-card)",
-              border: "1px solid var(--border-light)",
-              color: "var(--text-muted)",
-              cursor: "pointer",
-              boxSizing: "border-box",
-              padding: 0,
-            }}
+            className="header-icon-btn"
             title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
             aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
@@ -683,27 +678,36 @@ export default function Shell({ children }) {
           </button>
 
           {/* + New Workflow Button */}
-          <button
-            type="button"
-            onClick={() => navigate("/workflows?action=new")}
-            className="btn btn-secondary btn-sm"
-            style={{
-              fontWeight: 600,
-              padding: isMobile ? "0" : "4px 10px",
-              width: isMobile ? "32px" : "auto",
-              height: "32px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "5px",
-              borderRadius: "6px",
-              boxSizing: "border-box",
-            }}
-            title="New Workflow"
-          >
-            <Plus size={14} />
-            {!isMobile && <span>New Workflow</span>}
-          </button>
+          {isMobile ? (
+            <button
+              type="button"
+              onClick={() => navigate("/workflows?action=new")}
+              className="header-icon-btn"
+              title="New Workflow"
+            >
+              <Plus size={14} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate("/workflows?action=new")}
+              className="btn btn-secondary btn-sm"
+              style={{
+                fontWeight: 600,
+                padding: "4px 10px",
+                height: "32px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                borderRadius: "6px",
+                boxSizing: "border-box",
+              }}
+              title="New Workflow"
+            >
+              <Plus size={13} />
+              <span>New Workflow</span>
+            </button>
+          )}
 
           {/* Blueprints Link */}
           <Link

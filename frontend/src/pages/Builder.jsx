@@ -783,7 +783,7 @@ function BuilderCanvas() {
           )}
           <button
             onClick={handleValidate}
-            className="btn btn-secondary btn-sm"
+            className={isMobile ? "header-icon-btn" : "btn btn-secondary btn-sm"}
             style={{
               padding: isMobile ? "0" : "4px 10px",
               width: isMobile ? "32px" : "auto",
@@ -802,7 +802,7 @@ function BuilderCanvas() {
           <button
             onClick={handleSaveDraft}
             disabled={saving}
-            className="btn btn-secondary btn-sm"
+            className={isMobile ? "header-icon-btn" : "btn btn-secondary btn-sm"}
             style={{
               padding: isMobile ? "0" : "4px 10px",
               width: isMobile ? "32px" : "auto",
@@ -821,7 +821,7 @@ function BuilderCanvas() {
           <button
             onClick={handlePublish}
             disabled={publishing}
-            className="btn btn-secondary btn-sm"
+            className={isMobile ? "header-icon-btn" : "btn btn-secondary btn-sm"}
             style={{
               padding: isMobile ? "0" : "4px 10px",
               width: isMobile ? "32px" : "auto",

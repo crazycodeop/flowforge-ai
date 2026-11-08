@@ -296,7 +296,7 @@ export default function PortalShell() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="theme-toggle-btn"
+              className="header-icon-btn"
               title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
               aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
@@ -307,12 +307,8 @@ export default function PortalShell() {
             <button
               type="button"
               onClick={handleSignOut}
-              className="btn btn-ghost btn-sm"
+              className="header-icon-btn"
               style={{
-                height: "28px",
-                width: "28px",
-                padding: 0,
-                color: "#94a3b8",
                 marginLeft: "2px",
               }}
               title="Sign Out of Portal"
