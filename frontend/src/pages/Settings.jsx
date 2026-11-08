@@ -376,16 +376,16 @@ export default function Settings() {
                 padding: "8px 14px",
                 background: "transparent",
                 border: "none",
-                borderBottom: isActive ? "2px solid #7e22ce" : "2px solid transparent",
-                color: isActive ? "#ffffff" : "var(--text-muted)",
+                borderBottom: isActive ? "2px solid var(--accent-primary)" : "2px solid transparent",
+                color: isActive ? "var(--text-main)" : "var(--text-muted)",
                 fontSize: "13px",
-                fontWeight: isActive ? 600 : 400,
+                fontWeight: isActive ? 600 : 500,
                 cursor: "pointer",
                 transition: "all 0.1s ease",
                 whiteSpace: "nowrap",
               }}
             >
-              <Icon size={14} />
+              <Icon size={14} color={isActive ? "var(--accent-primary)" : "var(--text-muted)"} />
               <span>{tab.label}</span>
             </button>
           );

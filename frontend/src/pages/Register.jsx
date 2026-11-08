@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Lock, Mail, User, Building, ArrowRight, AlertCircle, ShieldCheck } from "lucide-react";
 import { api } from "../api/client";
+import { useTheme } from "../context/ThemeContext";
+import { Sun, Moon } from "lucide-react";
 
 export default function Register() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -67,20 +70,48 @@ export default function Register() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#f8fafc",
+        background: "var(--main-bg)",
         padding: "24px 16px",
         fontFamily: "var(--font-sans)",
       }}
     >
+      {/* Theme Switcher Top-Right */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        style={{
+          position: "fixed",
+          top: "16px",
+          right: "16px",
+          width: "36px",
+          height: "36px",
+          borderRadius: "8px",
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-light)",
+          color: "var(--text-muted)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          zIndex: 50,
+          boxShadow: "var(--card-shadow)",
+        }}
+        title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      >
+        {theme === "dark" ? <Sun size={16} color="#fbbf24" /> : <Moon size={16} />}
+      </button>
+
+
       <div
         style={{
           width: "100%",
           maxWidth: "420px",
-          background: "#ffffff",
-          border: "1px solid #e2e8f0",
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-light)",
           borderRadius: "12px",
-          padding: "36px 32px",
-          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.02)",
+          padding: "clamp(24px, 5vw, 36px) clamp(16px, 5vw, 32px)",
+          boxShadow: "var(--card-shadow)",
         }}
       >
         {/* Brand Header */}
@@ -106,12 +137,12 @@ export default function Register() {
               fontWeight: 700,
               letterSpacing: "-0.025em",
               margin: "0 0 4px 0",
-              color: "#0f172a",
+              color: "var(--text-main)",
             }}
           >
             Create your Workspace
           </h1>
-          <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
+          <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: 0 }}>
             Start building AI workflows with multi-tenant governance
           </p>
         </div>
@@ -144,7 +175,7 @@ export default function Register() {
                 display: "block",
                 fontSize: "12px",
                 fontWeight: 600,
-                color: "#334155",
+                color: "var(--text-secondary)",
                 marginBottom: "5px",
               }}
             >
@@ -177,7 +208,7 @@ export default function Register() {
                 display: "block",
                 fontSize: "12px",
                 fontWeight: 600,
-                color: "#334155",
+                color: "var(--text-secondary)",
                 marginBottom: "5px",
               }}
             >
@@ -210,7 +241,7 @@ export default function Register() {
                 display: "block",
                 fontSize: "12px",
                 fontWeight: 600,
-                color: "#334155",
+                color: "var(--text-secondary)",
                 marginBottom: "5px",
               }}
             >
@@ -242,7 +273,7 @@ export default function Register() {
                 display: "block",
                 fontSize: "12px",
                 fontWeight: 600,
-                color: "#334155",
+                color: "var(--text-secondary)",
                 marginBottom: "5px",
               }}
             >

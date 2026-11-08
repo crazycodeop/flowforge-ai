@@ -2,9 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShieldCheck, Mail, Lock, ArrowRight, AlertCircle, Sparkles } from "lucide-react";
 import { api } from "../api/client";
+import { useTheme } from "../context/ThemeContext";
+import { Sun, Moon } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [selectedPersona, setSelectedPersona] = useState(null);
@@ -55,20 +58,48 @@ export default function Login() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#f8fafc",
+        background: "var(--main-bg)",
         padding: "24px 16px",
         fontFamily: "var(--font-sans)",
       }}
     >
+      {/* Theme Switcher Top-Right */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        style={{
+          position: "fixed",
+          top: "16px",
+          right: "16px",
+          width: "36px",
+          height: "36px",
+          borderRadius: "8px",
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-light)",
+          color: "var(--text-muted)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          zIndex: 50,
+          boxShadow: "var(--card-shadow)",
+        }}
+        title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      >
+        {theme === "dark" ? <Sun size={16} color="#fbbf24" /> : <Moon size={16} />}
+      </button>
+
+
       <div
         style={{
           width: "100%",
           maxWidth: "400px",
-          background: "#ffffff",
-          border: "1px solid #e2e8f0",
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-light)",
           borderRadius: "12px",
           padding: "clamp(24px, 5vw, 36px) clamp(16px, 5vw, 32px)",
-          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.02)",
+          boxShadow: "var(--card-shadow)",
         }}
       >
         {/* Brand Logo & Title */}
@@ -94,7 +125,7 @@ export default function Login() {
               fontWeight: 700,
               letterSpacing: "-0.025em",
               margin: "0 0 4px 0",
-              color: "#0f172a",
+              color: "var(--text-main)",
             }}
           >
             FlowForge Studio
@@ -102,7 +133,7 @@ export default function Login() {
           <p
             style={{
               fontSize: "13px",
-              color: "#64748b",
+              color: "var(--text-muted)",
               margin: 0,
             }}
           >
@@ -115,7 +146,8 @@ export default function Login() {
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            background: "#f1f5f9",
+            background: "var(--surface-subtle)",
+            border: "1px solid var(--border-light)",
             padding: "3px",
             borderRadius: "8px",
             marginBottom: "22px",
@@ -128,10 +160,10 @@ export default function Login() {
               fontSize: "12px",
               fontWeight: 600,
               borderRadius: "6px",
-              border: "none",
-              background: "#ffffff",
-              color: "#0f172a",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              border: "1px solid var(--border-light)",
+              background: "var(--surface-card)",
+              color: "var(--text-main)",
+              boxShadow: "var(--card-shadow)",
               cursor: "default",
             }}
           >
@@ -145,11 +177,11 @@ export default function Login() {
               fontSize: "12px",
               fontWeight: 500,
               borderRadius: "6px",
-              border: "none",
+              border: "1px solid transparent",
               background: "transparent",
-              color: "#64748b",
+              color: "var(--text-muted)",
               cursor: "pointer",
-              transition: "color 0.15s ease",
+              transition: "all 0.15s ease",
             }}
           >
             Client Portal
@@ -181,18 +213,18 @@ export default function Login() {
               onClick={() => handleSelectPersona("engineer@flowforge.ai", "password123", "engineer")}
               style={{
                 padding: "8px 10px",
-                background: selectedPersona === "engineer" ? "#f0fdfa" : "#f8fafc",
-                border: selectedPersona === "engineer" ? "1px solid #0d9488" : "1px solid #e2e8f0",
+                background: selectedPersona === "engineer" ? "var(--accent-primary-bg)" : "var(--surface-subtle)",
+                border: selectedPersona === "engineer" ? "1px solid var(--accent-primary)" : "1px solid var(--border-light)",
                 borderRadius: "6px",
                 textAlign: "left",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
               }}
             >
-              <div style={{ fontSize: "11px", fontWeight: 600, color: selectedPersona === "engineer" ? "#0f766e" : "#0f172a" }}>
+              <div style={{ fontSize: "11px", fontWeight: 600, color: selectedPersona === "engineer" ? "var(--accent-primary)" : "var(--text-main)" }}>
                 Platform Engineer
               </div>
-              <div style={{ fontSize: "10px", color: "#64748b", marginTop: "1px" }}>engineer@flowforge.ai</div>
+              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "1px" }}>engineer@flowforge.ai</div>
             </button>
 
             <button
@@ -200,18 +232,18 @@ export default function Login() {
               onClick={() => handleSelectPersona("architect@flowforge.ai", "password123", "architect")}
               style={{
                 padding: "8px 10px",
-                background: selectedPersona === "architect" ? "#f0fdfa" : "#f8fafc",
-                border: selectedPersona === "architect" ? "1px solid #0d9488" : "1px solid #e2e8f0",
+                background: selectedPersona === "architect" ? "var(--accent-primary-bg)" : "var(--surface-subtle)",
+                border: selectedPersona === "architect" ? "1px solid var(--accent-primary)" : "1px solid var(--border-light)",
                 borderRadius: "6px",
                 textAlign: "left",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
               }}
             >
-              <div style={{ fontSize: "11px", fontWeight: 600, color: selectedPersona === "architect" ? "#0f766e" : "#0f172a" }}>
+              <div style={{ fontSize: "11px", fontWeight: 600, color: selectedPersona === "architect" ? "var(--accent-primary)" : "var(--text-main)" }}>
                 Staff Architect
               </div>
-              <div style={{ fontSize: "10px", color: "#64748b", marginTop: "1px" }}>architect@flowforge.ai</div>
+              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "1px" }}>architect@flowforge.ai</div>
             </button>
           </div>
         </div>
@@ -245,7 +277,7 @@ export default function Login() {
                 display: "block",
                 fontSize: "12px",
                 fontWeight: 600,
-                color: "#334155",
+                color: "var(--text-secondary)",
                 marginBottom: "5px",
               }}
             >
