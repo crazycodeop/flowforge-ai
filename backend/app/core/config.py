@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = "dev-secret-key-change-in-production-min-32-chars-long"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    CORS_ORIGINS: list[str] = []
 
     # PostgreSQL Database
     DATABASE_URL: str = "postgresql+psycopg2://vakildesk@localhost:5433/flowforge"

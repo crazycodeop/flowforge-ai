@@ -4,7 +4,8 @@
  * Automatically injects JWT Bearer token and X-Organization-ID header.
  */
 
-const BASE_URL = "/api/v1";
+const API_HOST = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const BASE_URL = `${API_HOST}/api/v1`;
 
 /**
  * Common request helper.
