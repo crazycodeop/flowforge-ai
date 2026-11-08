@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Lock, Mail, User, Building, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
+import { Lock, Mail, User, Building, ArrowRight, AlertCircle, ShieldCheck } from "lucide-react";
 import { api } from "../api/client";
 
 export default function Register() {
@@ -9,7 +9,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("developer");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -32,7 +32,7 @@ export default function Register() {
       localStorage.setItem("token", loginData.access_token);
       localStorage.setItem("user", JSON.stringify(loginData.user));
 
-      // 3. Check or create custom organization if companyName provided
+      // 3. Create custom organization if companyName provided
       try {
         const orgs = await api.listOrganizations();
         if (companyName && companyName.trim()) {
@@ -67,55 +67,52 @@ export default function Register() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#0B0B0B",
-        padding: "clamp(12px, 3vw, 24px)",
-        color: "#F5F5F5",
-        fontFamily: "Inter, system-ui, sans-serif",
+        background: "#f8fafc",
+        padding: "24px 16px",
+        fontFamily: "var(--font-sans)",
       }}
     >
       <div
         style={{
           width: "100%",
-          maxWidth: "460px",
-          background: "#161616",
-          border: "1px solid #262626",
-          borderRadius: "8px",
-          padding: "clamp(24px, 5vw, 36px) clamp(16px, 4vw, 32px)",
-          boxShadow: "0 8px 30px rgba(0, 0, 0, 0.5)",
+          maxWidth: "420px",
+          background: "#ffffff",
+          border: "1px solid #e2e8f0",
+          borderRadius: "12px",
+          padding: "36px 32px",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.02)",
         }}
       >
         {/* Brand Header */}
-        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+        <div style={{ textAlign: "center", marginBottom: "22px" }}>
           <div
             style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "8px",
-              background: "#8B5CF6",
-              display: "flex",
+              width: "40px",
+              height: "40px",
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)",
+              display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              margin: "0 auto 16px auto",
+              marginBottom: "12px",
+              boxShadow: "0 4px 12px rgba(13, 148, 136, 0.2)",
             }}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
+            <ShieldCheck size={22} color="#ffffff" />
           </div>
-          <h1 style={{ fontSize: "20px", fontWeight: 700, margin: "0 0 6px 0", letterSpacing: "-0.01em", color: "#F5F5F5" }}>
-            Create your FlowForge AI Workspace
+          <h1
+            style={{
+              fontSize: "20px",
+              fontWeight: 700,
+              letterSpacing: "-0.025em",
+              margin: "0 0 4px 0",
+              color: "#0f172a",
+            }}
+          >
+            Create your Workspace
           </h1>
-          <p style={{ fontSize: "13px", color: "#A3A3A3", margin: 0 }}>
-            Production AI orchestration with multi-tenant team governance
+          <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
+            Start building AI workflows with multi-tenant governance
           </p>
         </div>
 
@@ -125,17 +122,17 @@ export default function Register() {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "10px",
-              padding: "10px 14px",
-              background: "rgba(239, 68, 68, 0.1)",
-              border: "1px solid rgba(239, 68, 68, 0.25)",
+              gap: "8px",
+              padding: "10px 12px",
+              background: "#fef2f2",
+              border: "1px solid #fecaca",
               borderRadius: "6px",
-              color: "#f87171",
-              fontSize: "13px",
-              marginBottom: "20px",
+              color: "#b91c1c",
+              fontSize: "12px",
+              marginBottom: "16px",
             }}
           >
-            <AlertCircle size={16} color="#ef4444" style={{ flexShrink: 0 }} />
+            <AlertCircle size={15} color="#dc2626" style={{ flexShrink: 0 }} />
             <span>{error}</span>
           </div>
         )}
@@ -147,29 +144,28 @@ export default function Register() {
                 display: "block",
                 fontSize: "12px",
                 fontWeight: 600,
-                color: "#A3A3A3",
-                marginBottom: "6px",
+                color: "#334155",
+                marginBottom: "5px",
               }}
             >
-              Full Name *
+              Full name *
             </label>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-              <User size={16} color="#737373" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
+              <User size={15} color="#94a3b8" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Sarah Connor"
                 required
+                className="input"
                 style={{
                   width: "100%",
-                  padding: "9px 12px 9px 38px",
-                  background: "#111111",
-                  border: "1px solid #262626",
-                  borderRadius: "6px",
-                  color: "#F5F5F5",
+                  height: "38px",
+                  paddingLeft: "36px",
                   fontSize: "13px",
-                  outline: "none",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
                 }}
               />
             </div>
@@ -181,29 +177,28 @@ export default function Register() {
                 display: "block",
                 fontSize: "12px",
                 fontWeight: 600,
-                color: "#A3A3A3",
-                marginBottom: "6px",
+                color: "#334155",
+                marginBottom: "5px",
               }}
             >
-              Work Email *
+              Work email *
             </label>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-              <Mail size={16} color="#737373" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
+              <Mail size={15} color="#94a3b8" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="sarah@cyberdyne.io"
+                placeholder="sarah@company.com"
                 required
+                className="input"
                 style={{
                   width: "100%",
-                  padding: "9px 12px 9px 38px",
-                  background: "#111111",
-                  border: "1px solid #262626",
-                  borderRadius: "6px",
-                  color: "#F5F5F5",
+                  height: "38px",
+                  paddingLeft: "36px",
                   fontSize: "13px",
-                  outline: "none",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
                 }}
               />
             </div>
@@ -215,28 +210,27 @@ export default function Register() {
                 display: "block",
                 fontSize: "12px",
                 fontWeight: 600,
-                color: "#A3A3A3",
-                marginBottom: "6px",
+                color: "#334155",
+                marginBottom: "5px",
               }}
             >
-              Organization / Team Name (Optional)
+              Organization name (Optional)
             </label>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-              <Building size={16} color="#737373" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
+              <Building size={15} color="#94a3b8" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
               <input
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="Acme Autonomous AI"
+                placeholder="Acme Corporation"
+                className="input"
                 style={{
                   width: "100%",
-                  padding: "9px 12px 9px 38px",
-                  background: "#111111",
-                  border: "1px solid #262626",
-                  borderRadius: "6px",
-                  color: "#F5F5F5",
+                  height: "38px",
+                  paddingLeft: "36px",
                   fontSize: "13px",
-                  outline: "none",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
                 }}
               />
             </div>
@@ -248,14 +242,14 @@ export default function Register() {
                 display: "block",
                 fontSize: "12px",
                 fontWeight: 600,
-                color: "#A3A3A3",
-                marginBottom: "6px",
+                color: "#334155",
+                marginBottom: "5px",
               }}
             >
               Password *
             </label>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-              <Lock size={16} color="#737373" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
+              <Lock size={15} color="#94a3b8" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
               <input
                 type="password"
                 value={password}
@@ -263,15 +257,14 @@ export default function Register() {
                 placeholder="At least 6 characters"
                 minLength={6}
                 required
+                className="input"
                 style={{
                   width: "100%",
-                  padding: "9px 12px 9px 38px",
-                  background: "#111111",
-                  border: "1px solid #262626",
-                  borderRadius: "6px",
-                  color: "#F5F5F5",
+                  height: "38px",
+                  paddingLeft: "36px",
                   fontSize: "13px",
-                  outline: "none",
+                  borderRadius: "6px",
+                  border: "1px solid #cbd5e1",
                 }}
               />
             </div>
@@ -280,32 +273,34 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
+            className="btn btn-primary"
             style={{
-              marginTop: "8px",
-              padding: "10px 16px",
-              background: "#8B5CF6",
-              border: "none",
-              borderRadius: "6px",
-              color: "#ffffff",
+              width: "100%",
+              height: "40px",
+              marginTop: "4px",
+              gap: "8px",
               fontSize: "13px",
               fontWeight: 600,
-              cursor: loading ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              opacity: loading ? 0.7 : 1,
-              transition: "background 0.15s",
+              borderRadius: "6px",
             }}
           >
             {loading ? "Provisioning Workspace..." : "Create Organization & Continue"}
-            <ArrowRight size={16} />
+            <ArrowRight size={15} />
           </button>
         </form>
 
-        <div style={{ marginTop: "24px", textAlign: "center", fontSize: "12px", color: "#737373" }}>
+        <div
+          style={{
+            marginTop: "22px",
+            paddingTop: "16px",
+            borderTop: "1px solid #f1f5f9",
+            textAlign: "center",
+            fontSize: "12px",
+            color: "#64748b",
+          }}
+        >
           Already have an account?{" "}
-          <Link to="/login" style={{ color: "#A78BFA", fontWeight: 600, textDecoration: "none" }}>
+          <Link to="/login" style={{ color: "#0d9488", fontWeight: 600, textDecoration: "none" }}>
             Sign In
           </Link>
         </div>

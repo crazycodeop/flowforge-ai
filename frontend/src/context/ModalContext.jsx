@@ -92,7 +92,7 @@ export function ModalProvider({ children }) {
     if (v === "danger") return <AlertTriangle size={18} color="#ef4444" style={{ flexShrink: 0 }} />;
     if (v === "warning") return <AlertTriangle size={18} color="#f59e0b" style={{ flexShrink: 0 }} />;
     if (v === "success") return <CheckCircle size={18} color="#10b981" style={{ flexShrink: 0 }} />;
-    return <Info size={18} color="#a78bfa" style={{ flexShrink: 0 }} />;
+    return <Info size={18} color="#0d9488" style={{ flexShrink: 0 }} />;
   };
 
   return (
@@ -116,13 +116,13 @@ export function ModalProvider({ children }) {
           <div
             style={{
               width: "min(460px, 94vw)",
-              background: "#161616",
-              border: "1px solid #2a2a2a",
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
               borderRadius: "8px",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.8)",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)",
               padding: "20px",
               position: "relative",
-              color: "#f5f5f5",
+              color: "#0f172a",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -130,7 +130,7 @@ export function ModalProvider({ children }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 {renderIcon()}
-                <h3 style={{ fontSize: "15px", fontWeight: 700, margin: 0, color: "#f5f5f5" }}>
+                <h3 style={{ fontSize: "15px", fontWeight: 700, margin: 0, color: "#0f172a" }}>
                   {modalState.title}
                 </h3>
               </div>
@@ -189,10 +189,10 @@ export function ModalProvider({ children }) {
                   style={{
                     width: "100%",
                     padding: "8px 12px",
-                    background: "#111111",
-                    border: "1px solid #333333",
+                    background: "#ffffff",
+                    border: "1px solid #e2e8f0",
                     borderRadius: "6px",
-                    color: "#f5f5f5",
+                    color: "#0f172a",
                     fontSize: "13px",
                     outline: "none",
                   }}

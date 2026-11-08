@@ -690,8 +690,8 @@ export default function Settings() {
                       style={{
                         padding: "14px",
                         borderRadius: "6px",
-                        background: isSelected ? "rgba(139, 92, 246, 0.12)" : "#161616",
-                        border: isSelected ? "1px solid #8b5cf6" : "1px solid #262626",
+                        background: isSelected ? "#f0fdfa" : "transparent",
+                        border: isSelected ? "1px solid #0d9488" : "1px solid var(--border-light)",
                         cursor: "pointer",
                         transition: "all 0.15s ease",
                         display: "flex",
@@ -702,7 +702,7 @@ export default function Settings() {
                     >
                       <div>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                          <span style={{ fontSize: "13px", fontWeight: 600, color: isSelected ? "#ffffff" : "#d4d4d4" }}>
+                          <span style={{ fontSize: "13px", fontWeight: 600, color: isSelected ? "#0d9488" : "var(--text-main)" }}>
                             {prov.name}
                           </span>
                           <span
@@ -711,32 +711,32 @@ export default function Settings() {
                               fontWeight: 600,
                               padding: "1px 5px",
                               borderRadius: "3px",
-                              background: isSelected ? "#8b5cf6" : "#222222",
-                              color: isSelected ? "#ffffff" : "#a3a3a3",
+                              background: isSelected ? "#0d9488" : "#f1f5f9",
+                              color: isSelected ? "#ffffff" : "#64748b",
                             }}
                           >
                             {prov.badge}
                           </span>
                         </div>
-                        <div style={{ fontSize: "11px", color: "#888888", marginBottom: "10px" }}>{prov.desc}</div>
+                        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "10px" }}>{prov.desc}</div>
                       </div>
 
                       {/* Status indicator */}
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         {isActive ? (
-                          <span style={{ fontSize: "11px", fontWeight: 600, color: "#34d399", display: "inline-flex", alignItems: "center", gap: "5px" }}>
-                            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399" }}></span>
+                          <span style={{ fontSize: "11px", fontWeight: 600, color: "#059669", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#059669" }}></span>
                             Active
                           </span>
                         ) : (
-                          <span style={{ fontSize: "11px", color: "#f87171", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "5px" }}>
-                            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#f87171" }}></span>
+                          <span style={{ fontSize: "11px", color: "#dc2626", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#dc2626" }}></span>
                             Key Required
                           </span>
                         )}
 
                         {isDefault && (
-                          <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "3px", background: "rgba(139, 92, 246, 0.2)", color: "#a78bfa", fontWeight: 600, border: "1px solid rgba(139, 92, 246, 0.3)" }}>
+                          <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "3px", background: "#f0fdfa", color: "#0d9488", fontWeight: 600, border: "1px solid #99f6e4" }}>
                             Default
                           </span>
                         )}
@@ -749,10 +749,10 @@ export default function Settings() {
 
             {/* Provider Configuration Form */}
             <form onSubmit={handleSaveAISettings} style={{ display: "flex", flexDirection: "column", gap: "14px", maxWidth: "560px", marginBottom: "20px" }}>
-              <div style={{ padding: "16px", background: "#161616", border: "1px solid #262626", borderRadius: "6px" }}>
+              <div style={{ padding: "16px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-                  <div style={{ fontSize: "13px", fontWeight: 600, color: "#ffffff" }}>
-                    Configuring: <span style={{ color: "#a78bfa" }}>{currentProvDetail.name}</span>
+                  <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)" }}>
+                    Configuring: <span style={{ color: "#0d9488" }}>{currentProvDetail.name}</span>
                   </div>
                   {currentProvDetail.is_active || currentProvDetail.id === "mock" ? (
                     <span style={{ fontSize: "11px", color: "#34d399", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "5px" }}>
@@ -888,7 +888,7 @@ export default function Settings() {
                     onClick={(e) => handleSaveAISettings(e, true)}
                     disabled={aiSaving}
                     className="btn btn-secondary btn-sm"
-                    style={{ padding: "8px 14px", fontSize: "11px", color: "#a78bfa" }}
+                    style={{ padding: "8px 14px", fontSize: "11px", color: "#0d9488" }}
                     title="Make this provider the default fallback for new nodes"
                   >
                     Set as Default Fallback

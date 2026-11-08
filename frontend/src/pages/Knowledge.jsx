@@ -293,8 +293,8 @@ export default function Knowledge() {
                     style={{
                       padding: "10px 12px",
                       borderRadius: "6px",
-                      background: isSelected ? "rgba(139, 92, 246, 0.15)" : "transparent",
-                      border: isSelected ? "1px solid #8b5cf6" : "1px solid transparent",
+                      background: isSelected ? "#f0fdfa" : "transparent",
+                      border: isSelected ? "1px solid #99f6e4" : "1px solid transparent",
                       cursor: "pointer",
                       transition: "all 0.15s ease",
                       display: "flex",
@@ -303,14 +303,14 @@ export default function Knowledge() {
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: "13px", fontWeight: 600, color: isSelected ? "#ffffff" : "var(--text-main)" }}>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: isSelected ? "#0d9488" : "var(--text-main)" }}>
                         {coll.name}
                       </div>
                       <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                         {coll.document_count || 0} indexed documents
                       </div>
                     </div>
-                    <ChevronRight size={14} color={isSelected ? "#8b5cf6" : "#555"} />
+                    <ChevronRight size={14} color={isSelected ? "#0d9488" : "#94a3b8"} />
                   </div>
                 );
               })}
@@ -352,9 +352,9 @@ export default function Knowledge() {
                   const passages = searchResults.passages || [];
 
                   return (
-                    <div style={{ marginTop: "14px", padding: "14px", background: "#111111", borderRadius: "6px", border: "1px solid #333" }}>
+                    <div style={{ marginTop: "14px", padding: "14px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                        <span style={{ fontSize: "11px", fontWeight: 600, color: "#8b5cf6" }}>
+                        <span style={{ fontSize: "11px", fontWeight: 600, color: "#0d9488" }}>
                           Semantic Match Results ({items.length} citation{items.length === 1 ? "" : "s"})
                         </span>
                         <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
@@ -369,15 +369,15 @@ export default function Knowledge() {
                       ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                           {items.map((src, idx) => (
-                            <div key={idx} style={{ padding: "10px 12px", background: "#161616", borderRadius: "4px", border: "1px solid #222" }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: 600, color: "#ffffff", marginBottom: "4px" }}>
+                            <div key={idx} style={{ padding: "10px 12px", background: "#ffffff", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: 600, color: "#0f172a", marginBottom: "4px" }}>
                                 <span>{src.title}</span>
-                                <span style={{ color: "#34d399", fontFamily: "var(--font-mono)", fontSize: "11px" }}>
+                                <span style={{ color: "#059669", fontFamily: "var(--font-mono)", fontSize: "11px" }}>
                                   Score: {src.score !== undefined ? src.score.toFixed(3) : "Matched"}
                                 </span>
                               </div>
                               {passages[idx] && (
-                                <div style={{ marginTop: "4px", padding: "6px 8px", background: "#111", borderRadius: "4px" }}>
+                                <div style={{ marginTop: "4px", padding: "6px 8px", background: "#f1f5f9", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
                                   <MarkdownView content={passages[idx]} />
                                 </div>
                               )}
@@ -426,18 +426,18 @@ export default function Knowledge() {
                         style={{
                           padding: "14px",
                           borderRadius: "6px",
-                          background: "#161616",
-                          border: "1px solid #262626",
+                          background: "#f8fafc",
+                          border: "1px solid #e2e8f0",
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <FileText size={15} color="#8b5cf6" />
-                            <span style={{ fontSize: "13px", fontWeight: 600, color: "#ffffff" }}>{doc.title}</span>
+                            <FileText size={15} color="#0d9488" />
+                            <span style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a" }}>{doc.title}</span>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                             {doc.metadata?.policy_id && (
-                              <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "#222", color: "#a3a3a3", fontFamily: "var(--font-mono)" }}>
+                              <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "#f1f5f9", color: "#475569", border: "1px solid #e2e8f0", fontFamily: "var(--font-mono)" }}>
                                 {doc.metadata.policy_id}
                               </span>
                             )}
@@ -500,7 +500,7 @@ export default function Knowledge() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: "rgba(0, 0, 0, 0.75)",
+            background: "rgba(15, 23, 42, 0.45)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -509,7 +509,7 @@ export default function Knowledge() {
           }}
         >
           <div className="card" style={{ width: "520px", maxWidth: "100%", padding: "20px" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: 600, margin: "0 0 6px 0", color: "#ffffff" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: 600, margin: "0 0 6px 0", color: "#0f172a" }}>
               Add Reference Document
             </h3>
             <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "16px" }}>
@@ -523,8 +523,8 @@ export default function Knowledge() {
                 style={{
                   padding: "16px",
                   borderRadius: "6px",
-                  background: uploadingFile ? "rgba(139, 92, 246, 0.08)" : "#161616",
-                  border: "1px dashed #3b3b3b",
+                  background: uploadingFile ? "#f0fdfa" : "#f8fafc",
+                  border: "1px dashed #cbd5e1",
                   textAlign: "center",
                   cursor: uploadingFile ? "not-allowed" : "pointer",
                   transition: "all 0.15s ease",
@@ -539,8 +539,8 @@ export default function Knowledge() {
                   disabled={uploadingFile}
                 />
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
-                  <UploadCloud size={24} color="#8b5cf6" />
-                  <span style={{ fontSize: "13px", fontWeight: 600, color: "#ffffff" }}>
+                  <UploadCloud size={24} color="#0d9488" />
+                  <span style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a" }}>
                     {uploadingFile ? "Analyzing Document & Translating..." : "Click to Upload Document or Scanned File"}
                   </span>
                   <span style={{ fontSize: "11px", color: "var(--text-muted)", maxWidth: "440px", lineHeight: 1.4 }}>
@@ -550,23 +550,23 @@ export default function Knowledge() {
               </div>
 
               {uploadingFile && (
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#a78bfa", padding: "8px 12px", background: "rgba(139, 92, 246, 0.1)", borderRadius: "4px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#0d9488", padding: "8px 12px", background: "#f0fdfa", border: "1px solid #99f6e4", borderRadius: "4px" }}>
                   <RefreshCw size={14} className="spin" />
                   <span>{uploadProgress || "Extracting text and translating to English..."}</span>
                 </div>
               )}
 
               {uploadedFileInfo && (
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#34d399", padding: "6px 10px", background: "rgba(16, 185, 129, 0.1)", borderRadius: "4px", border: "1px solid rgba(16, 185, 129, 0.25)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#059669", padding: "6px 10px", background: "#ecfdf5", borderRadius: "4px", border: "1px solid #a7f3d0" }}>
                   <FileCheck size={14} />
                   <span>{uploadedFileInfo}</span>
                 </div>
               )}
 
               <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "2px 0" }}>
-                <div style={{ flex: 1, height: "1px", background: "#262626" }}></div>
-                <span style={{ fontSize: "10px", color: "#666", textTransform: "uppercase", letterSpacing: "0.05em" }}>Review & Edit Document</span>
-                <div style={{ flex: 1, height: "1px", background: "#262626" }}></div>
+                <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }}></div>
+                <span style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Review & Edit Document</span>
+                <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }}></div>
               </div>
 
               <div>
@@ -597,9 +597,9 @@ export default function Knowledge() {
                       style={{
                         padding: "2px 8px",
                         fontSize: "11px",
-                        background: modalTab === "edit" ? "#222" : "transparent",
-                        color: modalTab === "edit" ? "#c084fc" : "#737373",
-                        border: modalTab === "edit" ? "1px solid #333" : "1px solid transparent",
+                        background: modalTab === "edit" ? "#f0fdfa" : "transparent",
+                        color: modalTab === "edit" ? "#0d9488" : "#64748b",
+                        border: modalTab === "edit" ? "1px solid #99f6e4" : "1px solid transparent",
                       }}
                     >
                       <Edit3 size={11} style={{ marginRight: "4px" }} /> Edit Raw
@@ -611,9 +611,9 @@ export default function Knowledge() {
                       style={{
                         padding: "2px 8px",
                         fontSize: "11px",
-                        background: modalTab === "preview" ? "#222" : "transparent",
-                        color: modalTab === "preview" ? "#c084fc" : "#737373",
-                        border: modalTab === "preview" ? "1px solid #333" : "1px solid transparent",
+                        background: modalTab === "preview" ? "#f0fdfa" : "transparent",
+                        color: modalTab === "preview" ? "#0d9488" : "#64748b",
+                        border: modalTab === "preview" ? "1px solid #99f6e4" : "1px solid transparent",
                       }}
                     >
                       <Eye size={11} style={{ marginRight: "4px" }} /> Preview Markdown
@@ -638,8 +638,8 @@ export default function Knowledge() {
                       maxHeight: "220px",
                       overflowY: "auto",
                       padding: "12px",
-                      background: "#111",
-                      border: "1px solid #262626",
+                      background: "#f8fafc",
+                      border: "1px solid #e2e8f0",
                       borderRadius: "6px",
                     }}
                   >

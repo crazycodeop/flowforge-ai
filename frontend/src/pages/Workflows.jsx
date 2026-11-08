@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  Workflow,
   Plus,
   Search,
   Trash2,
-  ExternalLink,
-  Layers,
   X,
   AlertCircle,
   Globe,
-  SlidersHorizontal,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useModal } from "../context/ModalContext";
@@ -179,7 +175,7 @@ export default function Workflows() {
         <div style={{ position: "relative", minWidth: "min(260px, 100%)", flex: "1 1 200px" }}>
           <Search
             size={14}
-            color="#737373"
+            color="#94a3b8"
             style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
           />
           <input
@@ -197,7 +193,7 @@ export default function Workflows() {
       <div
         className="table-container"
         style={{
-          background: "#141414",
+          background: "#ffffff",
           border: "1px solid var(--border-light)",
           borderRadius: "6px",
         }}
@@ -249,22 +245,22 @@ export default function Workflows() {
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                         <div
                           style={{
-                            width: "20px",
-                            height: "20px",
-                            borderRadius: "4px",
-                            background: "#1c1c1c",
-                            border: "1px solid #262626",
+                            width: "24px",
+                            height: "24px",
+                            borderRadius: "5px",
+                            background: "#f0fdfa",
+                            border: "1px solid #ccfbf1",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            color: "#8b5cf6",
+                            color: "#0d9488",
                             flexShrink: 0,
                           }}
                         >
-                          <Globe size={12} />
+                          <Globe size={13} />
                         </div>
                         <div>
-                          <span style={{ fontWeight: 600, color: "#f5f5f5" }}>
+                          <span style={{ fontWeight: 600, color: "#0f172a" }}>
                             {wf.name}
                           </span>
                           {wf.description && (
@@ -320,7 +316,7 @@ export default function Workflows() {
                           type="button"
                           onClick={(e) => handleDelete(wf.id, wf.name, e)}
                           className="btn btn-ghost btn-sm"
-                          style={{ padding: "3px 6px", color: "#ef4444" }}
+                          style={{ padding: "3px 6px", color: "#dc2626" }}
                           title="Delete workflow"
                         >
                           <Trash2 size={13} />
@@ -344,7 +340,7 @@ export default function Workflows() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: "rgba(0, 0, 0, 0.75)",
+            background: "rgba(15, 23, 42, 0.45)",
             backdropFilter: "blur(2px)",
             display: "flex",
             alignItems: "center",
@@ -358,22 +354,22 @@ export default function Workflows() {
             style={{
               width: "100%",
               maxWidth: "460px",
-              background: "#161616",
-              border: "1px solid #333333",
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
               borderRadius: "8px",
               padding: "clamp(16px, 4vw, 24px)",
-              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.7)",
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "#f5f5f5" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "#0f172a" }}>
                 Create New Workflow
               </h3>
               <button
                 type="button"
                 onClick={() => setIsCreateOpen(false)}
-                style={{ background: "transparent", border: "none", color: "#737373", cursor: "pointer" }}
+                style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer" }}
               >
                 <X size={16} />
               </button>
@@ -386,10 +382,10 @@ export default function Workflows() {
                   alignItems: "center",
                   gap: "8px",
                   padding: "8px 12px",
-                  background: "rgba(239, 68, 68, 0.12)",
-                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                  background: "#fef2f2",
+                  border: "1px solid #fecaca",
                   borderRadius: "6px",
-                  color: "#f87171",
+                  color: "#b91c1c",
                   fontSize: "12px",
                   marginBottom: "16px",
                 }}
@@ -401,7 +397,7 @@ export default function Workflows() {
 
             <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#a3a3a3", marginBottom: "6px" }}>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#475569", marginBottom: "6px" }}>
                   Workflow Name *
                 </label>
                 <input
@@ -416,7 +412,7 @@ export default function Workflows() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#a3a3a3", marginBottom: "6px" }}>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#475569", marginBottom: "6px" }}>
                   Description (Optional)
                 </label>
                 <textarea

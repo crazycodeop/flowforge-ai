@@ -1,19 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   PlayCircle,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  PauseCircle,
-  XCircle,
   RefreshCw,
   X,
   ChevronRight,
-  Coins,
-  Cpu,
   Search,
-  Activity,
   Trash2,
+  PauseCircle,
+  XCircle,
 } from "lucide-react";
 import { useModal } from "../context/ModalContext";
 import { api } from "../api/client";
@@ -199,7 +193,7 @@ export default function Executions() {
               onClick={handleDeleteAllRuns}
               className="btn btn-secondary btn-sm"
               disabled={deleting}
-              style={{ color: "#f87171", borderColor: "rgba(239, 68, 68, 0.3)" }}
+              style={{ color: "#dc2626", borderColor: "#fecaca" }}
               title="Delete all execution traces and history"
             >
               <Trash2 size={13} />
@@ -232,7 +226,7 @@ export default function Executions() {
         <div style={{ position: "relative", minWidth: "min(260px, 100%)", flex: "1 1 200px" }}>
           <Search
             size={14}
-            color="#737373"
+            color="#94a3b8"
             style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
           />
           <input
@@ -250,11 +244,12 @@ export default function Executions() {
       {filteredRuns.length === 0 ? (
         <div
           style={{
-            background: "#141414",
+            background: "#ffffff",
             border: "1px solid var(--border-light)",
             borderRadius: "6px",
             padding: "48px 24px",
             textAlign: "center",
+            boxShadow: "var(--card-shadow)",
           }}
         >
           <div
@@ -262,18 +257,18 @@ export default function Executions() {
               width: "40px",
               height: "40px",
               borderRadius: "50%",
-              background: "#1c1c1c",
-              border: "1px solid #262626",
+              background: "#f0fdfa",
+              border: "1px solid #ccfbf1",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               marginBottom: "12px",
-              color: "#8b5cf6",
+              color: "#0d9488",
             }}
           >
             <PlayCircle size={20} />
           </div>
-          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#f5f5f5" }}>No execution runs found</h3>
+          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#0f172a" }}>No execution runs found</h3>
           <p style={{ fontSize: "12px", color: "var(--text-muted)", maxWidth: "440px", margin: "6px auto 0" }}>
             {statusFilter === "ALL"
               ? "Trigger a workflow run from the Workflow Builder to record live background traces."
@@ -284,7 +279,7 @@ export default function Executions() {
         <div
           className="table-container"
           style={{
-            background: "#141414",
+            background: "#ffffff",
             border: "1px solid var(--border-light)",
             borderRadius: "6px",
           }}
@@ -309,10 +304,10 @@ export default function Executions() {
                     onClick={() => handleSelectRun(r)}
                     style={{
                       cursor: "pointer",
-                      background: isSelected ? "#1c1c1c" : "transparent",
+                      background: isSelected ? "#f0fdfa" : "transparent",
                     }}
                   >
-                    <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#f5f5f5" }}>
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#0f172a", fontWeight: 600 }}>
                       {r.id.slice(0, 8)}...
                     </td>
                     <td>{getStatusBadge(r.status)}</td>
@@ -331,9 +326,9 @@ export default function Executions() {
                           type="button"
                           onClick={(e) => handleDeleteRun(r.id, e)}
                           className="btn btn-ghost btn-sm"
-                          style={{ padding: "4px 6px", color: "#737373" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
-                          onMouseLeave={(e) => (e.currentTarget.style.color = "#737373")}
+                          style={{ padding: "4px 6px", color: "#94a3b8" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = "#dc2626")}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}
                           title="Delete execution"
                         >
                           <Trash2 size={12} />
@@ -364,7 +359,7 @@ export default function Executions() {
             style={{
               position: "absolute",
               inset: 0,
-              background: "rgba(0, 0, 0, 0.65)",
+              background: "rgba(15, 23, 42, 0.4)",
               animation: "fadeInOverlay 0.2s ease",
             }}
           />
@@ -375,9 +370,9 @@ export default function Executions() {
               width: "min(580px, 100vw)",
               maxWidth: "100%",
               height: "100%",
-              background: "#141414",
-              borderLeft: "1px solid #262626",
-              boxShadow: "-12px 0 35px rgba(0, 0, 0, 0.7)",
+              background: "#ffffff",
+              borderLeft: "1px solid #e2e8f0",
+              boxShadow: "-8px 0 24px rgba(0, 0, 0, 0.08)",
               display: "flex",
               flexDirection: "column",
               animation: "slideInRight 0.25s ease",
@@ -387,21 +382,21 @@ export default function Executions() {
             <div
               style={{
                 padding: "16px 20px",
-                borderBottom: "1px solid #262626",
+                borderBottom: "1px solid #e2e8f0",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: "#111111",
+                background: "#f8fafc",
               }}
             >
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#f5f5f5", margin: 0 }}>
+                  <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", margin: 0 }}>
                     Run: {selectedRun.id.slice(0, 8)}
                   </h3>
                   {getStatusBadge(selectedRun.status)}
                 </div>
-                <p style={{ fontSize: "11px", color: "#737373", fontFamily: "var(--font-mono)", margin: "3px 0 0 0", wordBreak: "break-all" }}>
+                <p style={{ fontSize: "11px", color: "#64748b", fontFamily: "var(--font-mono)", margin: "3px 0 0 0", wordBreak: "break-all" }}>
                   {selectedRun.id}
                 </p>
               </div>
@@ -410,16 +405,16 @@ export default function Executions() {
                   type="button"
                   onClick={(e) => handleDeleteRun(selectedRun.id, e)}
                   className="btn btn-ghost btn-sm"
-                  style={{ padding: "4px", color: "#737373" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "#737373")}
+                  style={{ padding: "4px", color: "#94a3b8" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#dc2626")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}
                   title="Delete execution run"
                 >
                   <Trash2 size={14} />
                 </button>
                 <button
                   onClick={() => setSelectedRun(null)}
-                  style={{ background: "transparent", border: "none", color: "#737373", cursor: "pointer", padding: "4px" }}
+                  style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", padding: "4px" }}
                   aria-label="Close drawer"
                 >
                   <X size={16} />
@@ -431,118 +426,118 @@ export default function Executions() {
             <div style={{ flex: 1, overflowY: "auto", padding: "clamp(14px, 3vw, 20px)", display: "flex", flexDirection: "column", gap: "20px" }}>
               {/* Run Metrics Bar */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "10px" }}>
-              <div style={{ padding: "12px", background: "#1a1a1a", border: "1px solid #262626", borderRadius: "6px" }}>
-                <div style={{ fontSize: "11px", color: "#737373" }}>Total Tokens</div>
-                <div style={{ fontSize: "16px", fontWeight: 700, color: "#f5f5f5", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
-                  {selectedRun.total_tokens || 0}
+                <div style={{ padding: "12px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px" }}>
+                  <div style={{ fontSize: "11px", color: "#64748b" }}>Total Tokens</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
+                    {selectedRun.total_tokens || 0}
+                  </div>
+                </div>
+                <div style={{ padding: "12px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px" }}>
+                  <div style={{ fontSize: "11px", color: "#64748b" }}>Est. Cost (USD)</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
+                    ${(selectedRun.total_cost_usd || 0).toFixed(4)}
+                  </div>
+                </div>
+                <div style={{ padding: "12px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px" }}>
+                  <div style={{ fontSize: "11px", color: "#64748b" }}>Status</div>
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: "#0f172a", marginTop: "4px" }}>
+                    {selectedRun.status}
+                  </div>
                 </div>
               </div>
-              <div style={{ padding: "12px", background: "#1a1a1a", border: "1px solid #262626", borderRadius: "6px" }}>
-                <div style={{ fontSize: "11px", color: "#737373" }}>Est. Cost (USD)</div>
-                <div style={{ fontSize: "16px", fontWeight: 700, color: "#f5f5f5", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
-                  ${(selectedRun.total_cost_usd || 0).toFixed(4)}
-                </div>
-              </div>
-              <div style={{ padding: "12px", background: "#1a1a1a", border: "1px solid #262626", borderRadius: "6px" }}>
-                <div style={{ fontSize: "11px", color: "#737373" }}>Status</div>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: "#f5f5f5", marginTop: "4px" }}>
-                  {selectedRun.status}
-                </div>
-              </div>
-            </div>
 
-            {/* Steps Timeline */}
-            <div>
-              <h4 style={{ fontSize: "12px", fontWeight: 600, textTransform: "uppercase", color: "#737373", letterSpacing: "0.05em", marginBottom: "10px" }}>
-                Step Execution Timeline
-              </h4>
-              {loadingDetail ? (
-                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Loading step details...</div>
-              ) : runSteps.length === 0 ? (
-                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>No steps recorded yet.</div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {sortedRunSteps.map((s, idx) => (
+              {/* Steps Timeline */}
+              <div>
+                <h4 style={{ fontSize: "12px", fontWeight: 600, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.05em", marginBottom: "10px" }}>
+                  Step Execution Timeline
+                </h4>
+                {loadingDetail ? (
+                  <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Loading step details...</div>
+                ) : runSteps.length === 0 ? (
+                  <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>No steps recorded yet.</div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {sortedRunSteps.map((s, idx) => (
+                      <div
+                        key={s.id}
+                        style={{
+                          padding: "12px",
+                          background: "#f8fafc",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "6px",
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8" }}>#{idx + 1}</span>
+                            <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>{s.node_id}</span>
+                            <span className="badge badge-draft" style={{ fontSize: "10px" }}>{s.node_type}</span>
+                          </div>
+                          {getStatusBadge(s.status)}
+                        </div>
+
+                        <div style={{ display: "flex", gap: "14px", fontSize: "11px", color: "var(--text-muted)", marginBottom: "6px", fontFamily: "var(--font-mono)" }}>
+                          <span>Latency: {s.latency_ms ? `${s.latency_ms}ms` : "-"}</span>
+                          <span>Tokens: {s.total_tokens || 0}</span>
+                          <span>Attempts: {s.attempt_count}</span>
+                        </div>
+
+                        {s.output_data && (
+                          <div style={{ marginTop: "6px" }}>
+                            <div style={{ fontSize: "11px", fontWeight: 600, color: "#475569", marginBottom: "3px" }}>Output:</div>
+                            <pre
+                              style={{
+                                margin: 0,
+                                padding: "8px 10px",
+                                background: "#ffffff",
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "4px",
+                                fontSize: "11px",
+                                color: "#0f172a",
+                                fontFamily: "var(--font-mono)",
+                                maxHeight: "130px",
+                                overflowY: "auto",
+                              }}
+                            >
+                              {JSON.stringify(s.output_data, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Audit Events */}
+              <div>
+                <h4 style={{ fontSize: "12px", fontWeight: 600, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.05em", marginBottom: "10px" }}>
+                  Chronological Audit Trail
+                </h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {runEvents.map((e) => (
                     <div
-                      key={s.id}
+                      key={e.id}
                       style={{
-                        padding: "12px",
-                        background: "#181818",
-                        border: "1px solid #262626",
-                        borderRadius: "6px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "11px",
+                        padding: "6px 10px",
+                        background: "#f8fafc",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "4px",
+                        fontFamily: "var(--font-mono)",
                       }}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <span style={{ fontSize: "11px", fontWeight: 700, color: "#737373" }}>#{idx + 1}</span>
-                          <span style={{ fontWeight: 600, fontSize: "13px", color: "#f5f5f5" }}>{s.node_id}</span>
-                          <span className="badge badge-draft" style={{ fontSize: "10px" }}>{s.node_type}</span>
-                        </div>
-                        {getStatusBadge(s.status)}
-                      </div>
-
-                      <div style={{ display: "flex", gap: "14px", fontSize: "11px", color: "var(--text-muted)", marginBottom: "6px", fontFamily: "var(--font-mono)" }}>
-                        <span>Latency: {s.latency_ms ? `${s.latency_ms}ms` : "-"}</span>
-                        <span>Tokens: {s.total_tokens || 0}</span>
-                        <span>Attempts: {s.attempt_count}</span>
-                      </div>
-
-                      {s.output_data && (
-                        <div style={{ marginTop: "6px" }}>
-                          <div style={{ fontSize: "11px", fontWeight: 600, color: "#a3a3a3", marginBottom: "3px" }}>Output:</div>
-                          <pre
-                            style={{
-                              margin: 0,
-                              padding: "8px 10px",
-                              background: "#0d0d0d",
-                              border: "1px solid #222222",
-                              borderRadius: "4px",
-                              fontSize: "11px",
-                              color: "#a5b4fc",
-                              fontFamily: "var(--font-mono)",
-                              maxHeight: "130px",
-                              overflowY: "auto",
-                            }}
-                          >
-                            {JSON.stringify(s.output_data, null, 2)}
-                          </pre>
-                        </div>
-                      )}
+                      <span style={{ fontWeight: 600, color: "#0d9488" }}>{e.event_type}</span>
+                      <span style={{ color: "#64748b" }}>{new Date(e.created_at).toLocaleTimeString()}</span>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-
-            {/* Audit Events */}
-            <div>
-              <h4 style={{ fontSize: "12px", fontWeight: 600, textTransform: "uppercase", color: "#737373", letterSpacing: "0.05em", marginBottom: "10px" }}>
-                Chronological Audit Trail
-              </h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                {runEvents.map((e) => (
-                  <div
-                    key={e.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "11px",
-                      padding: "6px 10px",
-                      background: "#181818",
-                      border: "1px solid #222222",
-                      borderRadius: "4px",
-                      fontFamily: "var(--font-mono)",
-                    }}
-                  >
-                    <span style={{ fontWeight: 600, color: "#8b5cf6" }}>{e.event_type}</span>
-                    <span style={{ color: "#737373" }}>{new Date(e.created_at).toLocaleTimeString()}</span>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
         </div>
-      </div>
       )}
     </div>
   );

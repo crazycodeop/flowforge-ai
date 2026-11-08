@@ -16,16 +16,46 @@ import SystemStatus from "./pages/SystemStatus";
 import UseCases from "./pages/UseCases";
 import Settings from "./pages/Settings";
 
+// FlowForge Portal (Application B — Client Application)
+import PortalShell from "./portal/PortalShell";
+import PortalDashboard from "./portal/PortalDashboard";
+import PortalNewRequest from "./portal/PortalNewRequest";
+import PortalRequests from "./portal/PortalRequests";
+import PortalRequestDetail from "./portal/PortalRequestDetail";
+import PortalApprovals from "./portal/PortalApprovals";
+import PortalLogin from "./portal/PortalLogin";
+import PortalProtectedRoute from "./portal/PortalProtectedRoute";
+
 export default function App() {
   return (
     <BrowserRouter>
       <ModalProvider>
         <Routes>
-          {/* Public Authentication Pages */}
+          {/* FlowForge Studio Authentication */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Authenticated Workspace Application */}
+          {/* FlowForge Client Portal Authentication */}
+          <Route path="/portal/login" element={<PortalLogin />} />
+
+          {/* FlowForge Portal (Client-Facing Application B) */}
+          <Route
+            path="/portal"
+            element={
+              <PortalProtectedRoute>
+                <PortalShell />
+              </PortalProtectedRoute>
+            }
+          >
+            <Route index element={<PortalDashboard />} />
+            <Route path="new" element={<PortalNewRequest />} />
+            <Route path="new/:workflowId" element={<PortalNewRequest />} />
+            <Route path="requests" element={<PortalRequests />} />
+            <Route path="requests/:id" element={<PortalRequestDetail />} />
+            <Route path="approvals" element={<PortalApprovals />} />
+          </Route>
+
+          {/* FlowForge Studio (Developer/Admin Application A) */}
           <Route
             path="/*"
             element={

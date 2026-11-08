@@ -6,6 +6,7 @@ from app.api.v1.evaluations import router as evaluations_router
 from app.api.v1.health import router as health_router
 from app.api.v1.knowledge import router as knowledge_router
 from app.api.v1.organizations import router as organizations_router
+from app.api.v1.portal import router as portal_router
 from app.api.v1.runs import router as runs_router
 from app.api.v1.settings import router as settings_router
 from app.api.v1.workflows import router as workflows_router
@@ -14,6 +15,7 @@ api_router = APIRouter()
 api_router.include_router(health_router, prefix="", tags=["Health"])
 api_router.include_router(workflows_router, prefix="", tags=["Workflows"])
 api_router.include_router(runs_router, prefix="", tags=["Executions"])
+api_router.include_router(portal_router, prefix="", tags=["Client Portal"])
 api_router.include_router(knowledge_router, prefix="", tags=["Knowledge & Retrieval"])
 api_router.include_router(approvals_router, prefix="", tags=["Human Approvals"])
 api_router.include_router(auth_router, prefix="", tags=["Authentication"])

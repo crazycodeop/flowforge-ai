@@ -20,7 +20,9 @@ class UserRegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6, max_length=128)
     full_name: str | None = None
-    role: str = Field(default="developer", pattern="^(developer|reviewer|admin)$")
+    role: str = Field(
+        default="developer", pattern="^(developer|reviewer|admin|manager|client|viewer)$"
+    )
 
 
 class UserLoginRequest(BaseModel):
@@ -40,6 +42,8 @@ class UserResponse(BaseModel):
     full_name: str | None
     role: str
     is_active: bool
+    organization_id: str | None = None
+    organization_name: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -93,10 +97,27 @@ def login_user(payload: UserLoginRequest, db: Session = Depends(get_db)):
             detail="User account is deactivated.",
         )
 
-    token = create_access_token(data={"sub": user.id, "email": user.email, "role": user.role})
-    return TokenResponse(
-        access_token=token, token_type="bearer", user=UserResponse.model_validate(user)
+    from app.api.deps import get_or_create_default_org
+
+    org, member = get_or_create_default_org(user, db)
+    token = create_access_token(
+        data={
+            "sub": user.id,
+            "email": user.email,
+            "role": user.role,
+            "org_id": org.id if org else None,
+        }
     )
+    user_data = UserResponse(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        role=user.role,
+        is_active=user.is_active,
+        organization_id=org.id if org else None,
+        organization_name=org.name if org else None,
+    )
+    return TokenResponse(access_token=token, token_type="bearer", user=user_data)
 
 
 @router.post("/google", response_model=TokenResponse)

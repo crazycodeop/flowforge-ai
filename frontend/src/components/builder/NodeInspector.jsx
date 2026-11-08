@@ -227,6 +227,7 @@ export default function NodeInspector({
   onUpdateNode,
   onDeleteNode,
   isOverlay = false,
+  availableUpstreamFields = [],
 }) {
   if (!node) return null;
 
@@ -285,8 +286,8 @@ export default function NodeInspector({
     <aside
       style={{
         width: isOverlay ? "min(340px, 92vw)" : "290px",
-        background: "#111111",
-        borderLeft: "1px solid #222222",
+        background: "#ffffff",
+        borderLeft: "1px solid #e2e8f0",
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
@@ -320,13 +321,13 @@ export default function NodeInspector({
               justifyContent: "center",
             }}
           >
-            <Icon size={13} color="#a78bfa" />
+            <Icon size={13} color="#0d9488" />
           </div>
           <div>
-            <div style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5", lineHeight: 1.2 }}>
+            <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", lineHeight: 1.2 }}>
               Configure Node
             </div>
-            <div style={{ fontSize: "10px", color: "#8b5cf6", fontWeight: 500 }}>
+            <div style={{ fontSize: "10px", color: "#0d9488", fontWeight: 500 }}>
               {tag}
             </div>
           </div>
@@ -509,7 +510,7 @@ export default function NodeInspector({
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <FieldLabel label="Temperature" tooltip="0.0 = deterministic & consistent, 1.0 = creative" />
-                <span style={{ fontSize: "10px", color: "#a3a3a3", fontFamily: "var(--font-mono)" }}>
+                <span style={{ fontSize: "10px", color: "#475569", fontFamily: "var(--font-mono)" }}>
                   {config.temperature ?? 0.0}
                 </span>
               </div>
@@ -520,7 +521,7 @@ export default function NodeInspector({
                 step="0.1"
                 value={config.temperature ?? 0.0}
                 onChange={(e) => handleConfigChange("temperature", parseFloat(e.target.value))}
-                style={{ width: "100%", accentColor: "#8b5cf6" }}
+                style={{ width: "100%", accentColor: "#0d9488" }}
               />
             </div>
           </>
@@ -569,7 +570,7 @@ export default function NodeInspector({
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <FieldLabel label="Temperature" />
-                <span style={{ fontSize: "10px", color: "#a3a3a3", fontFamily: "var(--font-mono)" }}>
+                <span style={{ fontSize: "10px", color: "#475569", fontFamily: "var(--font-mono)" }}>
                   {config.temperature ?? 0.0}
                 </span>
               </div>
@@ -580,7 +581,7 @@ export default function NodeInspector({
                 step="0.1"
                 value={config.temperature ?? 0.0}
                 onChange={(e) => handleConfigChange("temperature", parseFloat(e.target.value))}
-                style={{ width: "100%", accentColor: "#8b5cf6" }}
+                style={{ width: "100%", accentColor: "#0d9488" }}
               />
             </div>
           </>
@@ -734,8 +735,8 @@ export default function NodeInspector({
               <div
                 style={{
                   padding: "8px 10px",
-                  background: "#161616",
-                  border: "1px solid #242424",
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
                   borderRadius: "5px",
                   fontSize: "11px",
                 }}

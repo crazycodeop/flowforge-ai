@@ -241,5 +241,19 @@ def validate_workflow_graph(definition: WorkflowDefinition) -> ValidationResult:
                     f"Conditional node '{node.name}' ({node.id}) has unrouted branch handles: {', '.join(missing_handles)}"
                 )
 
+    # 11. Input Contract Validation
+    input_contract = getattr(definition, "input_contract", None)
+    if input_contract and hasattr(input_contract, "fields"):
+        seen_field_names: set[str] = set()
+        for field in input_contract.fields:
+            if field.name in seen_field_names:
+                errors.append(
+                    ValidationErrorDetail(
+                        code="DUPLICATE_INPUT_FIELD",
+                        message=f"Duplicate field name '{field.name}' in workflow input contract",
+                    )
+                )
+            seen_field_names.add(field.name)
+
     is_valid = len(errors) == 0
     return ValidationResult(is_valid=is_valid, errors=errors, warnings=warnings)

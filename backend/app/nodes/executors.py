@@ -295,9 +295,15 @@ class HumanApprovalExecutor(BaseNodeExecutor):
                     "status": existing.status,
                 }
 
+        from app.models.execution import WorkflowRun
+
+        parent_run = db.get(WorkflowRun, context.run_id) if db else None
+        org_id = parent_run.organization_id if parent_run else None
+
         new_req = ApprovalRequest(
             workflow_run_id=context.run_id,
             step_run_id=context.step_id,
+            organization_id=org_id,
             title=title,
             description=rendered_desc,
             required_role=required_role,

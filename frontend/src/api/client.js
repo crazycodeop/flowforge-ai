@@ -80,10 +80,14 @@ export const api = {
   },
 
   // --- Authentication ---
-  async login(email, password) {
+  async login(emailOrObj, password) {
     return request("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(
+        typeof emailOrObj === "object" && emailOrObj !== null
+          ? emailOrObj
+          : { email: emailOrObj, password }
+      ),
     });
   },
 
@@ -398,5 +402,46 @@ export const api = {
       throw new Error(err.detail || "Upload and extraction failed");
     }
     return res.json();
+  },
+  // --- Client Portal ---
+  async listPortalWorkflows() {
+    return request("/portal/workflows");
+  },
+
+  async getPortalWorkflowForm(workflowId) {
+    return request(`/portal/workflows/${workflowId}/form`);
+  },
+
+  async submitPortalRequest(workflowId, payload) {
+    return request(`/portal/workflows/${workflowId}/requests`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async parseNaturalLanguage(workflowId, prompt) {
+    return request(`/portal/workflows/${workflowId}/parse-nl`, {
+      method: "POST",
+      body: JSON.stringify({ prompt }),
+    });
+  },
+
+  async listPortalRequests(limit = 50, offset = 0) {
+    return request(`/portal/requests?limit=${limit}&offset=${offset}`);
+  },
+
+  async getPortalRequestDetail(runId) {
+    return request(`/portal/requests/${runId}`);
+  },
+
+  async listPortalPendingApprovals() {
+    return request("/portal/approvals/pending");
+  },
+
+  async decidePortalApproval(approvalId, decision, comment = null) {
+    return request(`/portal/approvals/${approvalId}/decision`, {
+      method: "POST",
+      body: JSON.stringify({ decision, comment }),
+    });
   },
 };

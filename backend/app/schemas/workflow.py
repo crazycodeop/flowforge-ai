@@ -1,9 +1,55 @@
 from datetime import datetime
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.nodes.base import NodeType
+
+
+class InputFieldType(StrEnum):
+    TEXT = "text"
+    EMAIL = "email"
+    NUMBER = "number"
+    MULTILINE = "multiline"
+    BOOLEAN = "boolean"
+    SELECT = "select"
+    FILE = "file"
+
+
+class InputFieldDefinition(BaseModel):
+    name: str = Field(
+        ...,
+        min_length=1,
+        max_length=64,
+        pattern="^[a-zA-Z0-9_]+$",
+        description="Machine field identifier",
+    )
+    label: str = Field(..., min_length=1, max_length=100, description="User-facing friendly label")
+    type: str = Field(
+        default="text",
+        description="Field data type: text, email, number, multiline, boolean, select, file",
+    )
+    description: str | None = Field(default=None, max_length=250)
+    required: bool = Field(default=True)
+    default_value: Any = None
+    placeholder: str | None = Field(default=None, max_length=100)
+    options: list[str] | None = Field(
+        default=None, description="Select options when type is select"
+    )
+
+
+class InputContract(BaseModel):
+    fields: list[InputFieldDefinition] = Field(default_factory=list)
+    allow_natural_language: bool = Field(
+        default=True,
+        description="Whether Portal users can submit unstructured natural language text",
+    )
+    system_instructions: str | None = Field(
+        default=None,
+        max_length=500,
+        description="Instructions for AI natural language extraction into schema",
+    )
 
 
 class RetryPolicy(BaseModel):
@@ -40,6 +86,7 @@ class WorkflowDefinition(BaseModel):
     schema_version: str = Field(default="1.0.0")
     name: str = Field(..., min_length=1, max_length=120)
     description: str | None = Field(default=None, max_length=1000)
+    input_contract: InputContract = Field(default_factory=InputContract)
     nodes: list[NodeDefinition] = Field(default_factory=list)
     edges: list[EdgeDefinition] = Field(default_factory=list)
     default_timeout_seconds: int = Field(default=3600, ge=10, le=86400)

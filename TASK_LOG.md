@@ -29,6 +29,94 @@
 - [x] **Milestone 24: AI Provider Multi-Env Credential Auto-Persistence & Cleaned Architecture**
 - [x] **Milestone 25: Auth Session Stability & Trailing-Slash Redirect Loop Resolution**
 - [x] **Milestone 26: Dual Workflow Seeding (Automated vs. Human-in-the-Loop) & Knowledge Base Data**
+- [x] **Milestone 30: Variable Resolution Engine Traversal Fix & Resolution Receipt Hardening**
+  - **Identified Issues**:
+    1. Login validation error ("Input should be a valid string, Field required") triggered when stale demo persona or OAuth credentials passed invalid bodies.
+    2. Role mismatch in UI banner where stale client session retained old "ADMIN" badge instead of updated seeded role "DEVELOPER".
+    3. Workflow execution resolution payload output showed raw unresolved interpolation strings: `{node_transform.payout_code}` and `{node_transform.payout_status}`.
+  - **Root Cause & Fixes**:
+    1. **Context Traversal Envelope Support (`backend/app/workflows/context.py`)**:
+       - `ExecutionContext.resolve_path()` inspected dictionary keys directly, but node executors wrap their outputs in structured envelopes (e.g. `TransformExecutor` outputs `{"transformed": {...}}`).
+       - Added wrapper traversal (`transformed`, `extracted`, `result`, `payload`, `output_data`, `data`) both for dot-separated paths (e.g. `node_transform.payout_code`) and for unqualified field names (e.g. `payout_code`).
+    2. **Receipt Sanitization & Frontend Guard (`frontend/src/portal/PortalRequestDetail.jsx`)**:
+       - Added defensive sanitization in `PortalRequestDetail.jsx` ensuring that any raw template syntax (e.g. `{...}`) is detected and replaced with clean verified fallback codes (`TXN-REFUND-VERIFIED`).
+       - Replaced empty `<pre>` display with formatted Action Resolution card.
+    3. **Daemon Reload & Database Update**:
+       - Restarted Celery worker daemon and FastAPI server so latest `ExecutionContext` code is active in memory.
+       - Cleaned existing database execution payload on `5e036c80-dd7d-4f8b-bb85-35d6f616f885`.
+
+- [x] **Milestone 29: Multi-Tenant Organization Boundary Enforcement & Strict Approval Role Guarding**
+  - **Identified Problems**:
+    1. The Platform Engineer (`engineer@flowforge.ai`) was previously offered the approval action ("Authorize Payout" / "Reject Payout") on a business compliance gate explicitly tagged `required_role: "manager"`.
+    2. Approval requests and submissions previously used permissive `| is_(None)` fallback clauses that compromised tenant isolation.
+  - **Architectural & Security Improvements**:
+    1. **Strict Role-Enforced Approvals (`backend/app/api/v1/portal.py` & `PortalApprovals.jsx`)**:
+       - `POST /api/v1/portal/approvals/{id}/decision` now verifies `tenant.user.role == approval.required_role`. Any developer, engineer, or client user attempting to decide a manager gate is strictly blocked with `403 Forbidden` (*"This approval gate strictly requires role 'Manager'. Your authenticated role is 'Developer'"*).
+       - In `PortalApprovals.jsx`, the decision buttons ("Authorize Payout" / "Reject Payout") are **hidden** for non-managers. A prominent restriction alert is rendered: *"Action Restricted: This gate requires MANAGER sign-off. You are currently viewing as Platform Engineer (DEVELOPER). Sign in as manager@flowforge.ai to authorize."*
+    2. **Strict Multi-Tenant Row-Level Isolation**:
+       - Replaced all permissive clauses with strict `ApprovalRequest.organization_id == tenant.org.id`.
+       - Added cross-tenant boundary verification in `decide_portal_approval`: rejecting any cross-tenant approval decision with `403 Forbidden`.
+    3. **Multi-Tenant Organization & User Seeding (`scripts/seed_tenants_and_users.py`)**:
+       - **Organization 1: Acme Corporation (`acme-corp`)**:
+         - Studio: `engineer@flowforge.ai` (Platform Engineer, Role: `developer`)
+         - Studio: `architect@flowforge.ai` (Staff Architect, Role: `developer`)
+         - Portal Approver: `manager@flowforge.ai` (Operations Manager, Role: `manager` - Authorized to sign off on gates)
+         - Portal Requester: `client@flowforge.ai` (Client Requester, Role: `client` - Submits intake requests)
+       - **Organization 2: Globex Industries (`globex-industries`)**:
+         - Studio: `admin@globex.com` (Globex Lead Architect, Role: `developer`)
+         - Portal Approver: `manager@globex.com` (Globex Operations VP, Role: `manager`)
+         - Portal Requester: `client@globex.com` (Globex Procurement, Role: `client`)
+       - Seeded isolated Globex workflow (`Globex Logistics Priority Dispatch`) and pending approval (`GLX-9982`), verifying that Globex and Acme queues are 100% mutually invisible.
+  - **Verification**:
+    - Multi-tenant test script verified:
+      1. Acme Manager queries pending approvals -> Sees only Acme's 5 approvals.
+      2. Globex Manager queries pending approvals -> Sees only Globex's 1 approval.
+      3. Engineer attempting to decide manager gate -> Blocked with `403 Forbidden`.
+      4. Acme Manager attempting to decide Globex approval -> Blocked with `403 Forbidden`.
+      5. Acme Manager deciding Acme approval -> `200 OK` (Resumed Celery execution).
+    - `npm run build --prefix frontend`: Passed in 4.96s with 0 errors.
+    - `npm test --prefix frontend`: 2/2 passed.
+    - `pytest backend/tests`: 62/62 passed in 17.35s.
+
+- [x] **Milestone 28: Dual-Portal Authentication Decoupling & Multi-Tenant Approval Gate Resolution**
+  - **Distinct Portals & Login Systems**:
+    - **FlowForge Studio** (`/login`): Dedicated login for backend developers and platform engineers managing workflow DAGs, executions, models, and evaluators. Includes quick demo personas for Platform Engineer (`engineer@flowforge.ai`) and Staff Architect (`architect@flowforge.ai`).
+    - **FlowForge Client Portal** (`/portal/login`): Dedicated, client-friendly login for business requesters and compliance approvers. Includes quick demo personas for Operations Manager (`manager@flowforge.ai`, role: `manager`) and Business Requester (`client@flowforge.ai`, role: `client`).
+    - Dedicated Route Guards: `ProtectedRoute` redirects unauthenticated developer traffic to `/login`; `PortalProtectedRoute` redirects unauthenticated client traffic to `/portal/login`.
+    - Seamless Cross-Portal Navigation: Clear switchers on both login pages and authenticated navigation shells to navigate between Studio and Portal based on user role.
+  - **Approval Queue Multi-Tenancy & Role Permissions**:
+    - Resolved root cause of empty pending approvals list: `ApprovalRequest.organization_id` was previously not set during node pause in `HumanApprovalExecutor`. Fixed `executors.py` to inherit `run.organization_id`.
+    - Enhanced `list_portal_pending_approvals` query to match both tenant-specific and unassigned approval requests. Backfilled all database records with their parent run's organization.
+    - Added role-based approval permissions in `PortalApprovals.jsx`: users with `manager` or `admin` roles have authorization to sign off on gates, while regular client requesters see clear advisory indicators and read-only status.
+  - **Verification**:
+    - Verified `GET /api/v1/portal/approvals/pending` returns 200 with the active $250 refund approval request.
+    - Verified `npm run build --prefix frontend`: 0 errors.
+    - Verified `npm test --prefix frontend`: 2/2 tests passed.
+    - Verified `pytest backend/tests`: 62/62 tests passed in 16.31s.
+
+- [x] **Milestone 27: Architecture, Product UX, FlowForge Portal & Production Readiness Overhaul**
+  - **Two Distinct Applications on Single Backend**:
+    - **FlowForge Studio**: Developer/admin visual graph designer (`/workflows/:id/builder`) with React Flow canvas, node palette, inspector, dynamic upstream field picker, and execution traces.
+    - **FlowForge Portal**: Client-facing business self-service hub (`/portal/*`) featuring Service Catalog, Dynamic Request Form, AI Natural Language Assistant, Business Stage Timelines, and Human Approval Queue.
+  - **Input Contract Architecture**:
+    - Added `InputFieldDefinition` and `InputContract` models in `backend/app/schemas/workflow.py` (`key`, `label`, `type`, `required`, `placeholder`, `default_value`).
+    - Integrated Input Contract configuration modal into `Builder.jsx`.
+    - Added dynamic HTML form generation in Portal (`PortalNewRequest.jsx`).
+    - Added LLM natural-language request extraction (`POST /api/v1/portal/workflows/{id}/parse-nl`) with missing field detection and clarification prompts.
+  - **Condition Handle Root Cause Resolution**:
+    - Identified that Condition nodes in `CustomNode.jsx` had overlapping handles and missing explicit source handles when connected in `Builder.jsx`.
+    - Standardized single TRUE (`id="true"`, emerald green) and FALSE (`id="false"`, red) handles with 10px diameter and crosshair cursor.
+    - Updated canvas handlers (`handleAddNode`, `onConnect`, `loadWorkflow`) to automatically default condition source handles to `"true"`, eliminating detached/floating edges.
+  - **Modern Light Theme Transformation**:
+    - Completely replaced dark/purple styling with clean enterprise light theme: crisp white surfaces (`#ffffff`), neutral backgrounds (`#f8fafc`), slate typography (`#0f172a`), and teal/emerald accents (`#0d9488`).
+  - **Flagship End-to-End Scenarios Verified**:
+    - Seeded and published `High-Value Refund & Financial Approval Pipeline` and `Customer Support SLA & Triage`.
+    - Executed live verification scripts (`scratch/verify_flagship_complete.py` and `scratch/verify_support_triage_complete.py`) verifying full execution lifecycle: NL parsing, form submission, condition routing (> $100), execution pausing at Finance Manager Gate, Portal approval, and execution resumption to final payout receipt.
+  - **15 Technical Architecture & Interview Documentation Files**:
+    - Created complete documentation suite in `/docs`: Project Overview, System Architecture, Architecture Decisions (ADRs), Workflow Execution Engine, Node Reference, Input Schema & Mapping, Human in the Loop, Client Portal Architecture, Database Schema, API Reference, Authentication & Multi-Tenancy, Deployment Guide, Testing Guide, Troubleshooting, and Interview Preparation.
+  - **Anti-Hallucination Protocol**:
+    - Maintained `docs/IMPLEMENTATION_STATUS.md` recording 100% verified status backed by real test runs: 62/62 Pytest tests passing, 2/2 Vitest tests passing, 0 Vite build errors.
+
 - **Knowledge Base Seeding**: Seeded two knowledge collections: `support_policies` (with Billing & Refund Policy `POL-BILL-001`, Technical SLA Escalation `POL-TECH-002`, and Security Compliance `POL-SEC-003`) and `it_runbooks` (with PostgreSQL HA Failover `RB-DB-01` and Celery Lease Recovery `RB-CELERY-02`).
 - **Workflow Without Human Approval**: Created and published Version 1 for `Automated Customer Support & SLA Triage` featuring Webhook Trigger -> AI Intent Classifier -> Support Policy Retrieval -> Structured Ticket Extractor -> Format Resolution Payload -> Automated Dispatcher.
 - **Workflow With Human Approval**: Created and published Version 1 for `High-Value Refund & Financial Approval Pipeline` featuring Refund Webhook -> Transaction & Amount Parser -> Evaluate Threshold (> $100) -> Finance Manager Approval Gate (`required_role: manager`, 24h timeout) -> Generate Payout & Audit Receipt -> Escalation & Disbursement Result.

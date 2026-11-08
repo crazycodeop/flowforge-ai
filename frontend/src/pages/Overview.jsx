@@ -5,14 +5,8 @@ import {
   Plus,
   Search,
   Globe,
-  MoreHorizontal,
-  Play,
   ArrowRight,
   UserPlus,
-  Sparkles,
-  Database,
-  Cpu,
-  Layers,
 } from "lucide-react";
 import { api } from "../api/client";
 
@@ -23,7 +17,7 @@ export default function Overview() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("active");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showBanner, setShowBanner] = useState(true);
+  const [showBanner] = useState(true);
 
   useEffect(() => {
     async function loadData() {
@@ -77,7 +71,7 @@ export default function Overview() {
 
   return (
     <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "28px" }}>
-      {/* Overview Top Header (Render-style) */}
+      {/* Overview Top Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text-main)", letterSpacing: "-0.02em", margin: 0 }}>
@@ -94,12 +88,13 @@ export default function Overview() {
               gap: "6px",
               background: "transparent",
               border: "none",
-              color: "#a3a3a3",
+              color: "#64748b",
               fontSize: "12px",
               cursor: "pointer",
+              transition: "color 0.15s ease",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#a3a3a3")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#0f172a")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
           >
             <UserPlus size={14} />
             <span>Invite your team</span>
@@ -107,12 +102,12 @@ export default function Overview() {
         </div>
       </div>
 
-      {/* Featured Banner Card (Render "Get organized with Projects" style) */}
+      {/* Featured Banner Card (Light Theme) */}
       {showBanner && (
         <div
           style={{
-            background: "#141414",
-            border: "1px solid #262626",
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
             borderRadius: "8px",
             padding: "clamp(16px, 3vw, 24px) clamp(16px, 3.5vw, 28px)",
             display: "flex",
@@ -121,38 +116,39 @@ export default function Overview() {
             flexWrap: "wrap",
             gap: "20px",
             position: "relative",
+            boxShadow: "var(--card-shadow)",
           }}
         >
-          <div style={{ maxWidth: "560px", flex: "1 1 300px" }}>
+          <div style={{ maxWidth: "600px", flex: "1 1 300px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
               <div
                 style={{
-                  width: "24px",
-                  height: "24px",
+                  width: "26px",
+                  height: "26px",
                   borderRadius: "6px",
-                  background: "rgba(139, 92, 246, 0.15)",
-                  border: "1px solid rgba(139, 92, 246, 0.3)",
+                  background: "#f0fdfa",
+                  border: "1px solid #99f6e4",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#a78bfa",
+                  color: "#0d9488",
                   flexShrink: 0,
                 }}
               >
-                <Workflow size={14} />
+                <Workflow size={15} />
               </div>
-              <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#f5f5f5", margin: 0 }}>
+              <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#0f172a", margin: 0 }}>
                 Get organized with Workflows
               </h2>
             </div>
-            <p style={{ fontSize: "13px", color: "#a3a3a3", margin: "0 0 16px 0", lineHeight: 1.5 }}>
+            <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 16px 0", lineHeight: 1.5 }}>
               Orchestrate multi-step AI pipelines with deterministic code execution, vector knowledge grounding, human-in-the-loop review gates, and automated benchmark evaluations.
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
               <button
                 type="button"
                 onClick={() => navigate("/workflows?action=new")}
-                className="btn btn-secondary"
+                className="btn btn-primary"
                 style={{ fontWeight: 600, fontSize: "12px", padding: "6px 14px" }}
               >
                 <Plus size={14} />
@@ -162,9 +158,9 @@ export default function Overview() {
                 to="/use-cases"
                 style={{
                   fontSize: "12px",
-                  color: "#8b5cf6",
+                  color: "#0d9488",
                   textDecoration: "none",
-                  fontWeight: 500,
+                  fontWeight: 600,
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "4px",
@@ -180,8 +176,8 @@ export default function Overview() {
           <div
             style={{
               display: "none",
-              background: "#0d0d0d",
-              border: "1px solid #222222",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
               borderRadius: "6px",
               padding: "16px 20px",
               minWidth: "280px",
@@ -190,22 +186,22 @@ export default function Overview() {
             }}
             className="overview-preview-box"
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #1f1f1f", paddingBottom: "6px" }}>
-              <span style={{ fontSize: "11px", fontWeight: 600, color: "#737373", textTransform: "uppercase" }}>Pipeline Engine</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #e2e8f0", paddingBottom: "6px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Pipeline Engine</span>
               <span className="status-dot status-dot-active" />
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#f5f5f5" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#8b5cf6" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#0f172a", fontWeight: 500 }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#0d9488" }} />
               <span>Customer Support Triage</span>
             </div>
-            <div style={{ display: "flex", gap: "6px", fontSize: "10px", color: "#737373" }}>
-              <span>Groq LPU</span> &bull; <span>Supabase Postgres</span> &bull; <span>Upstash</span>
+            <div style={{ display: "flex", gap: "6px", fontSize: "10px", color: "#64748b" }}>
+              <span>Gemini AI</span> &bull; <span>PostgreSQL</span> &bull; <span>Celery</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Workflows Section (Render "Ungrouped Services" style) */}
+      {/* Main Workflows Section */}
       <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
         {/* Section Heading & Filter Tabs */}
         <div>
@@ -214,7 +210,7 @@ export default function Overview() {
           </h2>
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
-            {/* Filter Pills (Render Segmented style) */}
+            {/* Filter Pills */}
             <div className="filter-pills-container">
               <button
                 type="button"
@@ -243,7 +239,7 @@ export default function Overview() {
             <div style={{ position: "relative", minWidth: "min(260px, 100%)", flex: "1 1 200px" }}>
               <Search
                 size={14}
-                color="#737373"
+                color="#94a3b8"
                 style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
               />
               <input
@@ -262,7 +258,7 @@ export default function Overview() {
         <div
           className="table-container"
           style={{
-            background: "#141414",
+            background: "#ffffff",
             border: "1px solid var(--border-light)",
             borderRadius: "6px",
           }}
@@ -314,22 +310,22 @@ export default function Overview() {
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                           <div
                             style={{
-                              width: "20px",
-                              height: "20px",
-                              borderRadius: "4px",
-                              background: "#1c1c1c",
-                              border: "1px solid #262626",
+                              width: "24px",
+                              height: "24px",
+                              borderRadius: "5px",
+                              background: "#f0fdfa",
+                              border: "1px solid #ccfbf1",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              color: "#8b5cf6",
+                              color: "#0d9488",
                               flexShrink: 0,
                             }}
                           >
-                            <Globe size={12} />
+                            <Globe size={13} />
                           </div>
                           <div>
-                            <span style={{ fontWeight: 600, color: "#f5f5f5", textDecoration: "none" }}>
+                            <span style={{ fontWeight: 600, color: "#0f172a", textDecoration: "none" }}>
                               {wf.name}
                             </span>
                             {wf.description && (
@@ -372,16 +368,17 @@ export default function Overview() {
                       <td>
                         <span
                           style={{
-                            padding: "2px 6px",
-                            background: "#1c1c1c",
-                            border: "1px solid #262626",
+                            padding: "2px 8px",
+                            background: "#f1f5f9",
+                            border: "1px solid #e2e8f0",
                             borderRadius: "4px",
                             fontSize: "11px",
-                            color: "#a3a3a3",
+                            color: "#475569",
                             fontFamily: "var(--font-mono)",
+                            fontWeight: 500,
                           }}
                         >
-                          Groq LPU
+                          Gemini 1.5
                         </span>
                       </td>
 

@@ -62,7 +62,8 @@ export default function Approvals() {
       {approvals.length === 0 ? (
         <div
           style={{
-            background: "#141414",
+            background: "#ffffff",
+            boxShadow: "var(--card-shadow)",
             border: "1px solid var(--border-light)",
             borderRadius: "6px",
             padding: "48px 24px",
@@ -74,8 +75,8 @@ export default function Approvals() {
               width: "40px",
               height: "40px",
               borderRadius: "50%",
-              background: "#1c1c1c",
-              border: "1px solid #262626",
+              background: "#f0fdfa",
+              border: "1px solid #e2e8f0",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -85,7 +86,7 @@ export default function Approvals() {
           >
             <ShieldCheck size={20} />
           </div>
-          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#f5f5f5" }}>Approval Queue Clear</h3>
+          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#0f172a" }}>Approval Queue Clear</h3>
           <p style={{ fontSize: "12px", color: "var(--text-muted)", maxWidth: "460px", margin: "6px auto 0" }}>
             No workflows are currently paused pending review. High-risk actions routed through Human Approval nodes will appear here.
           </p>
@@ -96,7 +97,8 @@ export default function Approvals() {
             <div
               key={req.id}
               style={{
-                background: "#141414",
+                background: "#ffffff",
+            boxShadow: "var(--card-shadow)",
                 border: "1px solid var(--border-light)",
                 borderRadius: "6px",
                 padding: "18px 20px",
@@ -105,7 +107,7 @@ export default function Approvals() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#f5f5f5", margin: 0 }}>
+                    <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#0f172a", margin: 0 }}>
                       {req.title}
                     </h3>
                     <span className="badge badge-warning" style={{ fontSize: "10px" }}>
@@ -127,8 +129,8 @@ export default function Approvals() {
                   style={{
                     fontSize: "12px",
                     padding: "10px 12px",
-                    background: "#1c1c1c",
-                    border: "1px solid #262626",
+                    background: "#f0fdfa",
+                    border: "1px solid #e2e8f0",
                     borderRadius: "4px",
                     color: "#cbd5e1",
                     marginBottom: "14px",

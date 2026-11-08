@@ -68,8 +68,8 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
     <aside
       style={{
         width: isOverlay ? "min(280px, 85vw)" : "210px",
-        background: "#111111",
-        borderRight: "1px solid #222222",
+        background: "#ffffff",
+        borderRight: "1px solid #e2e8f0",
         display: "flex",
         flexDirection: "column",
         height: "100%",
@@ -108,7 +108,7 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
             style={{
               background: "transparent",
               border: "none",
-              color: "#737373",
+              color: "#64748b",
               cursor: "pointer",
               padding: "4px",
               display: "flex",
@@ -150,8 +150,8 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
                     tabIndex={0}
                     style={{
                       padding: "8px 10px",
-                      background: "#161616",
-                      border: "1px solid #262626",
+                      background: "#ffffff",
+                      border: "1px solid #e2e8f0",
                       borderRadius: "6px",
                       cursor: "pointer",
                       display: "flex",
@@ -161,24 +161,24 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = "#383838";
-                      e.currentTarget.style.background = "#202020";
+                      e.currentTarget.style.background = "#f0fdfa";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = "#262626";
-                      e.currentTarget.style.background = "#161616";
+                      e.currentTarget.style.background = "#ffffff";
                     }}
                   >
-                    <div style={{ marginTop: "2px", color: "#8b5cf6", flexShrink: 0 }}>
+                    <div style={{ marginTop: "2px", color: "#0d9488", flexShrink: 0 }}>
                       <Icon size={14} />
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5" }}>
+                      <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>
                         {item.name}
                       </div>
                       <div
                         style={{
                           fontSize: "10px",
-                          color: "#737373",
+                          color: "#64748b",
                           lineHeight: "1.25",
                           marginTop: "2px",
                         }}

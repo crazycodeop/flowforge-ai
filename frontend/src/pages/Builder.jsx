@@ -187,6 +187,8 @@ function BuilderCanvas() {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
+  const [inputContract, setInputContract] = useState({ fields: [], allow_natural_language: true });
+  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState("saved"); // "saved", "saving", "unsaved", "error"
   const isInitialMount = useRef(true);
   const autoSaveTimerRef = useRef(null);
@@ -283,6 +285,15 @@ function BuilderCanvas() {
       setLoading(true);
       const data = await api.getWorkflow(id);
       setWorkflow(data);
+      const contract = data.draft_definition?.input_contract || {
+        fields: [
+          { name: "customer_name", label: "Customer Name", type: "text", required: true, placeholder: "Jane Doe" },
+          { name: "customer_email", label: "Customer Email", type: "email", required: true, placeholder: "jane@example.com" },
+          { name: "ticket_text", label: "Issue Description", type: "multiline", required: true, placeholder: "Describe issue..." }
+        ],
+        allow_natural_language: true
+      };
+      setInputContract(contract);
 
       const rawNodes = data.draft_definition?.nodes || [];
       const rawEdges = data.draft_definition?.edges || [];
@@ -304,14 +315,18 @@ function BuilderCanvas() {
       }));
 
       // Map to React Flow edge format
-      const flowEdges = rawEdges.map((e) => ({
-        id: e.id,
-        source: e.source_node_id,
-        target: e.target_node_id,
-        sourceHandle: e.source_handle || undefined,
-        animated: true,
-        style: { stroke: "#6366f1", strokeWidth: 1.5 },
-      }));
+      const flowEdges = rawEdges.map((e) => {
+        const srcNode = rawNodes.find((n) => n.id === e.source_node_id);
+        const resolvedHandle = e.source_handle || (srcNode?.type === "condition" ? "true" : undefined);
+        return {
+          id: e.id,
+          source: e.source_node_id,
+          target: e.target_node_id,
+          sourceHandle: resolvedHandle,
+          animated: true,
+          style: { stroke: "#0d9488", strokeWidth: 1.5 },
+        };
+      });
 
       setNodes(flowNodes);
       setEdges(flowEdges);
@@ -338,19 +353,26 @@ function BuilderCanvas() {
   );
 
   const onConnect = useCallback(
-    (connection) =>
+    (connection) => {
+      const srcNode = nodes.find((n) => n.id === connection.source);
+      let resolvedHandle = connection.sourceHandle;
+      if (srcNode?.data?.type === "condition" && !resolvedHandle) {
+        resolvedHandle = "true";
+      }
       setEdges((eds) =>
         addEdge(
           {
             ...connection,
+            sourceHandle: resolvedHandle,
             id: `edge_${Date.now()}`,
             animated: true,
-            style: { stroke: "#6366f1", strokeWidth: 1.5 },
+            style: { stroke: "#0d9488", strokeWidth: 1.5 },
           },
           eds
         )
-      ),
-    []
+      );
+    },
+    [nodes]
   );
 
   const onNodeClick = useCallback((_, node) => {
@@ -387,13 +409,16 @@ function BuilderCanvas() {
 
     setNodes((nds) => [...nds, newNode]);
     if (selected) {
+      const isSrcCondition = selected.data?.type === "condition";
       setEdges((eds) => [
         ...eds,
         {
           id: `e_${selected.id}_${newId}`,
           source: selected.id,
           target: newId,
+          sourceHandle: isSrcCondition ? "true" : undefined,
           animated: true,
+          style: { stroke: "#0d9488", strokeWidth: 1.5 },
         },
       ]);
     }
@@ -501,11 +526,51 @@ function BuilderCanvas() {
       schema_version: "1.0.0",
       name: workflow?.name || "Workflow",
       description: workflow?.description || null,
+      input_contract: inputContract,
       nodes: serializedNodes,
       edges: serializedEdges,
       default_timeout_seconds: 3600,
     };
   };
+
+
+  // Upstream fields for data mapping in NodeInspector
+  const availableUpstreamFields = useMemo(() => {
+    const list = [];
+    (inputContract?.fields || []).forEach((f) => {
+      list.push({
+        source: "Workflow Input",
+        name: f.name,
+        label: `Input: ${f.label || f.name}`,
+        path: f.name,
+      });
+    });
+
+    nodes.forEach((n) => {
+      const nType = n.data.type;
+      const nName = n.data.name || n.id;
+      if (nType === "ai_classify") {
+        list.push({ source: nName, name: "category", label: `${nName} → Category`, path: `steps.${n.id}.category` });
+        list.push({ source: nName, name: "confidence", label: `${nName} → Confidence`, path: `steps.${n.id}.confidence` });
+      } else if (nType === "structured_extract") {
+        const props = n.data.config?.schema_definition?.properties || { amount: {}, order_id: {} };
+        Object.keys(props).forEach((k) => {
+          list.push({ source: nName, name: k, label: `${nName} → ${k}`, path: `steps.${n.id}.${k}` });
+        });
+      } else if (nType === "retrieval") {
+        list.push({ source: nName, name: "passages", label: `${nName} → Passages`, path: `steps.${n.id}.passages` });
+      } else if (nType === "condition") {
+        list.push({ source: nName, name: "selected_branch", label: `${nName} → Selected Branch`, path: `steps.${n.id}.selected_branch` });
+      } else if (nType === "transform") {
+        const rules = n.data.config?.mapping_rules || {};
+        Object.keys(rules).forEach((k) => {
+          list.push({ source: nName, name: k, label: `${nName} → ${k}`, path: `steps.${n.id}.${k}` });
+        });
+      }
+    });
+
+    return list;
+  }, [inputContract, nodes]);
 
   // Save draft
   const handleSaveDraft = async () => {
@@ -608,8 +673,8 @@ function BuilderCanvas() {
       <div
         style={{
           minHeight: "44px",
-          background: "#111111",
-          borderBottom: "1px solid #222222",
+          background: "#ffffff",
+          borderBottom: "1px solid #e2e8f0",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -628,7 +693,7 @@ function BuilderCanvas() {
             style={{
               fontWeight: 600,
               fontSize: "13px",
-              color: "#f5f5f5",
+              color: "#0f172a",
               maxWidth: isMobile ? "120px" : "240px",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -655,7 +720,7 @@ function BuilderCanvas() {
             </span>
           )}
           {autoSaveStatus === "saving" && (
-            <span style={{ fontSize: "10px", color: "#a78bfa", display: "inline-flex", alignItems: "center", gap: "3px", padding: "1px 6px", borderRadius: "10px", background: "rgba(167, 139, 250, 0.12)", border: "1px solid rgba(167, 139, 250, 0.25)" }}>
+            <span style={{ fontSize: "10px", color: "#0d9488", display: "inline-flex", alignItems: "center", gap: "3px", padding: "1px 6px", borderRadius: "10px", background: "#f0fdfa", border: "1px solid #99f6e4" }}>
               <RefreshCw size={10} className="spin" /> Saving...
             </span>
           )}
@@ -674,7 +739,7 @@ function BuilderCanvas() {
               style={{ padding: "4px 8px", fontSize: "11px" }}
               title="Add Node to Canvas"
             >
-              <Plus size={13} color="#8b5cf6" />
+              <Plus size={13} color="#0d9488" />
               <span className="desktop-only">Nodes</span>
             </button>
           )}
@@ -688,7 +753,7 @@ function BuilderCanvas() {
               style={{ padding: "4px 8px", fontSize: "11px" }}
               title="Configure Selected Node"
             >
-              <Sliders size={13} color="#a78bfa" />
+              <Sliders size={13} color="#0d9488" />
               <span className="desktop-only">Config</span>
             </button>
           )}
@@ -714,7 +779,7 @@ function BuilderCanvas() {
             style={{ padding: isMobile ? "5px 7px" : "4px 10px", fontSize: "12px" }}
             title="Validate Workflow Graph"
           >
-            <CheckCircle size={14} color="#8b5cf6" />
+            <CheckCircle size={14} color="#0d9488" />
             <span className={isMobile ? "desktop-only" : ""}>Validate</span>
           </button>
           <button
@@ -758,7 +823,7 @@ function BuilderCanvas() {
         <div
           onDragOver={onDragOver}
           onDrop={onDrop}
-          style={{ flex: 1, height: "100%", background: "#0b0b0b", position: "relative" }}
+          style={{ flex: 1, height: "100%", background: "#f8fafc", position: "relative" }}
         >
           <ReactFlow
             nodes={nodesWithHandlers}
@@ -771,10 +836,10 @@ function BuilderCanvas() {
             onNodesDelete={onNodesDelete}
             deleteKeyCode={["Backspace", "Delete"]}
             nodeTypes={nodeTypes}
-            colorMode="dark"
+            colorMode="light"
             fitView
           >
-            <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#383838" bgColor="#0b0b0b" />
+            <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#cbd5e1" bgColor="#f8fafc" />
             <Controls
               style={{
                 bottom: isMobile ? 12 : 20,
@@ -784,12 +849,12 @@ function BuilderCanvas() {
             {/* Show MiniMap only on screens >= 768px to prevent blocking touch canvas on mobile */}
             {!isMobile && (
               <MiniMap
-                nodeColor="#8b5cf6"
-                maskColor="rgba(11, 11, 11, 0.7)"
+                nodeColor="#0d9488"
+                maskColor="rgba(241, 245, 249, 0.7)"
                 style={{
                   borderRadius: "6px",
-                  border: "1px solid #262626",
-                  backgroundColor: "#111111",
+                  border: "1px solid #e2e8f0",
+                  backgroundColor: "#ffffff",
                 }}
               />
             )}
@@ -803,6 +868,7 @@ function BuilderCanvas() {
             onClose={() => setSelectedNodeId(null)}
             onUpdateNode={handleUpdateNode}
             onDeleteNode={handleDeleteNode}
+            availableUpstreamFields={availableUpstreamFields}
           />
         )}
       </div>
@@ -857,8 +923,8 @@ function BuilderCanvas() {
             bottom: 0,
             left: isDesktop ? "210px" : 0,
             right: isDesktop && selectedNode ? "290px" : 0,
-            background: "#141414",
-            borderTop: "1px solid #262626",
+            background: "#ffffff",
+            borderTop: "1px solid #e2e8f0",
             boxShadow: "0 -4px 15px rgba(0, 0, 0, 0.5)",
             padding: "14px 18px",
             maxHeight: "180px",
@@ -873,7 +939,7 @@ function BuilderCanvas() {
               ) : (
                 <AlertTriangle size={15} color="#ef4444" />
               )}
-              <span style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5" }}>
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>
                 {validationResult.is_valid
                   ? "Graph Validation Passed (Ready to Publish)"
                   : `Graph Validation Failed (${validationResult.errors.length} errors)`}
@@ -962,7 +1028,7 @@ function BuilderCanvas() {
                       )
                     }
                     className="btn btn-ghost btn-sm"
-                    style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid #333", color: "#a78bfa" }}
+                    style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid #e2e8f0", color: "#0d9488" }}
                   >
                     + Refund Demo ($89.99)
                   </button>

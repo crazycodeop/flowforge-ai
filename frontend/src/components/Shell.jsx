@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Workflow,
+  Globe,
   PlayCircle,
   ShieldCheck,
   Gauge,
@@ -31,7 +32,7 @@ import { useModal } from "../context/ModalContext";
  * FlowForge AI application shell featuring Render's flat visual styling:
  * - 50px compact top navigation bar with thin 1px dividers
  * - 240px dark charcoal sidebar with crisp 32px navigation rows
- * - Deep purple (#7E22CE) active item indicator
+ * - Primary teal (#0d9488) active item indicator
  * - Functional workspace switcher and search palette
  * - Pure FlowForge AI workflow orchestration content and terminology
  * @param {{ children: React.ReactNode }} props
@@ -210,6 +211,7 @@ export default function Shell({ children }) {
 
   // Pure FlowForge AI Navigation Items
   const workspaceNavItems = [
+    { label: "Client Portal", path: "/portal", icon: Globe },
     { label: "Overview", path: "/", icon: LayoutDashboard },
     { label: "Workflows", path: "/workflows", icon: Workflow },
     { label: "Executions", path: "/executions", icon: PlayCircle },
@@ -359,14 +361,14 @@ export default function Shell({ children }) {
               marginTop: "auto",
               marginBottom: "10px",
               padding: "12px",
-              background: "#121212",
-              border: "1px solid #222222",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
               borderRadius: "5px",
               position: "relative",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
-              <span style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5" }}>
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>
                 AI Orchestration
               </span>
               <button
@@ -385,7 +387,7 @@ export default function Shell({ children }) {
               to="/use-cases"
               style={{
                 fontSize: "11px",
-                color: "#c084fc",
+                color: "#0d9488",
                 textDecoration: "none",
                 fontWeight: 500,
                 display: "inline-flex",
@@ -410,8 +412,8 @@ export default function Shell({ children }) {
       <header
         style={{
           height: "50px",
-          background: "#0b0b0b",
-          borderBottom: "1px solid #1f1f1f",
+          background: "#ffffff",
+          borderBottom: "1px solid #e2e8f0",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -449,8 +451,8 @@ export default function Shell({ children }) {
               width: "24px",
               height: "24px",
               borderRadius: "4px",
-              background: "#161616",
-              border: "1px solid #2a2a2a",
+              background: "#f8fafc",
+              border: "1px solid #cbd5e1",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -459,7 +461,7 @@ export default function Shell({ children }) {
             }}
             title="FlowForge AI"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
@@ -475,7 +477,7 @@ export default function Shell({ children }) {
                 gap: "7px",
                 background: "transparent",
                 border: "none",
-                color: "#f5f5f5",
+                color: "#0f172a",
                 fontSize: "13px",
                 fontWeight: 500,
                 cursor: "pointer",
@@ -523,8 +525,8 @@ export default function Shell({ children }) {
                   top: "calc(100% + 4px)",
                   left: 0,
                   width: "240px",
-                  background: "#161616",
-                  border: "1px solid #2a2a2a",
+                  background: "#f8fafc",
+                  border: "1px solid #cbd5e1",
                   borderRadius: "6px",
                   padding: "6px",
                   boxShadow: "0 10px 25px rgba(0, 0, 0, 0.7)",
@@ -550,19 +552,19 @@ export default function Shell({ children }) {
                         background: isCurrent ? "#222222" : "transparent",
                         border: "none",
                         borderRadius: "4px",
-                        color: "#f5f5f5",
+                        color: "#0f172a",
                         fontSize: "12px",
                         cursor: "pointer",
                         textAlign: "left",
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: "6px", overflow: "hidden" }}>
-                        <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: isCurrent ? "#a855f7" : "#555" }} />
+                        <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: isCurrent ? "#0d9488" : "#94a3b8" }} />
                         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {org.name}
                         </span>
                       </div>
-                      {isCurrent && <Check size={13} color="#a855f7" />}
+                      {isCurrent && <Check size={13} color="#0d9488" />}
                     </button>
                   );
                 })}
@@ -584,7 +586,7 @@ export default function Shell({ children }) {
                     background: "transparent",
                     border: "none",
                     borderRadius: "4px",
-                    color: "#a855f7",
+                    color: "#0d9488",
                     fontSize: "12px",
                     fontWeight: 500,
                     cursor: "pointer",
@@ -607,7 +609,7 @@ export default function Shell({ children }) {
           <div className="desktop-only" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#858585" }}>
             <span style={{ color: "#a3a3a3" }}>FlowForge AI</span>
             <span>&gt;</span>
-            <span style={{ color: "#f5f5f5", fontWeight: 500 }}>{getBreadcrumbTitle()}</span>
+            <span style={{ color: "#0f172a", fontWeight: 500 }}>{getBreadcrumbTitle()}</span>
           </div>
         </div>
 
@@ -622,7 +624,7 @@ export default function Shell({ children }) {
               alignItems: "center",
               gap: "7px",
               padding: "4px 8px",
-              background: "#141414",
+              background: "#ffffff",
               border: "1px solid #262626",
               borderRadius: "4px",
               color: "#858585",
@@ -756,8 +758,8 @@ export default function Shell({ children }) {
           className="desktop-only"
           style={{
             width: collapsed ? "54px" : "240px",
-            background: "#0b0b0b",
-            borderRight: "1px solid #1f1f1f",
+            background: "#ffffff",
+            borderRight: "1px solid #e2e8f0",
             display: isMobile ? "none" : "flex",
             flexDirection: "column",
             flexShrink: 0,
@@ -774,7 +776,7 @@ export default function Shell({ children }) {
           {/* Refined Sidebar Footer: Perfectly aligned navigation link & operational bar */}
           <div
             style={{
-              borderTop: "1px solid #1f1f1f",
+              borderTop: "1px solid #e2e8f0",
               paddingTop: "6px",
               marginTop: "auto",
               display: "flex",
@@ -813,7 +815,7 @@ export default function Shell({ children }) {
                   gap: "8px",
                   marginTop: "4px",
                   paddingTop: "6px",
-                  borderTop: "1px solid #161616",
+                  borderTop: "1px solid #e2e8f0",
                 }}
               >
                 <div
@@ -833,7 +835,7 @@ export default function Shell({ children }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "#161616",
+                    background: "#f8fafc",
                     border: "1px solid #262626",
                     borderRadius: "4px",
                     color: "#858585",
@@ -846,7 +848,7 @@ export default function Shell({ children }) {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.color = "#858585";
-                    e.currentTarget.style.backgroundColor = "#161616";
+                    e.currentTarget.style.backgroundColor = "#f1f5f9";
                   }}
                 >
                   <ChevronRight size={13} />
@@ -860,7 +862,7 @@ export default function Shell({ children }) {
                   justifyContent: "space-between",
                   padding: "6px 10px",
                   marginTop: "4px",
-                  borderTop: "1px solid #161616",
+                  borderTop: "1px solid #e2e8f0",
                 }}
               >
                 <div
@@ -888,7 +890,7 @@ export default function Shell({ children }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "#161616",
+                    background: "#f8fafc",
                     border: "1px solid #262626",
                     borderRadius: "4px",
                     color: "#858585",
@@ -903,7 +905,7 @@ export default function Shell({ children }) {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.color = "#858585";
-                    e.currentTarget.style.backgroundColor = "#161616";
+                    e.currentTarget.style.backgroundColor = "#f1f5f9";
                     e.currentTarget.style.borderColor = "#262626";
                   }}
                 >
@@ -936,8 +938,8 @@ export default function Shell({ children }) {
                 left: 0,
                 bottom: 0,
                 width: "min(280px, 85vw)",
-                background: "#0b0b0b",
-                borderRight: "1px solid #1f1f1f",
+                background: "#ffffff",
+                borderRight: "1px solid #e2e8f0",
                 display: "flex",
                 flexDirection: "column",
                 padding: "16px 12px",
@@ -946,7 +948,7 @@ export default function Shell({ children }) {
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", padding: "0 4px" }}>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "#f5f5f5" }}>FlowForge AI</span>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>FlowForge AI</span>
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
@@ -972,7 +974,7 @@ export default function Shell({ children }) {
             overflowY: "auto",
             overflowX: "hidden",
             padding: isBuilder ? "0px" : "clamp(18px, 2.5vw, 32px) clamp(16px, 3.5vw, 42px)",
-            background: "#0b0b0b",
+            background: "#ffffff",
             position: "relative",
           }}
         >
@@ -1000,8 +1002,8 @@ export default function Shell({ children }) {
           <div
             style={{
               width: "min(520px, 94vw)",
-              background: "#161616",
-              border: "1px solid #2a2a2a",
+              background: "#f8fafc",
+              border: "1px solid #cbd5e1",
               borderRadius: "6px",
               boxShadow: "0 20px 40px rgba(0, 0, 0, 0.8)",
               overflow: "hidden",
@@ -1020,7 +1022,7 @@ export default function Shell({ children }) {
                   flex: 1,
                   background: "transparent",
                   border: "none",
-                  color: "#f5f5f5",
+                  color: "#0f172a",
                   fontSize: "13px",
                   outline: "none",
                 }}
@@ -1071,7 +1073,7 @@ export default function Shell({ children }) {
                         e.currentTarget.style.backgroundColor = "transparent";
                       }}
                     >
-                      <Icon size={14} color="#a855f7" />
+                      <Icon size={14} color="#0d9488" />
                       <span>{item.title}</span>
                     </button>
                   );
@@ -1099,14 +1101,14 @@ export default function Shell({ children }) {
           <div
             style={{
               width: "min(440px, 94vw)",
-              background: "#161616",
-              border: "1px solid #2a2a2a",
+              background: "#f8fafc",
+              border: "1px solid #cbd5e1",
               borderRadius: "6px",
               padding: "20px",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ fontSize: "15px", fontWeight: 700, margin: "0 0 12px 0", color: "#f5f5f5" }}>
+            <h3 style={{ fontSize: "15px", fontWeight: 700, margin: "0 0 12px 0", color: "#0f172a" }}>
               Create New Workspace
             </h3>
             <form onSubmit={handleCreateOrg}>

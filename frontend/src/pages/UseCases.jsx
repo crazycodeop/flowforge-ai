@@ -77,9 +77,9 @@ export default function UseCases() {
             alignItems: "center",
             gap: "6px",
             padding: "4px 10px",
-            background: "rgba(139, 92, 246, 0.15)",
-            color: "#a78bfa",
-            border: "1px solid rgba(139, 92, 246, 0.3)",
+            background: "#f0fdfa",
+            color: "#0d9488",
+            border: "1px solid #99f6e4",
             borderRadius: "6px",
             fontSize: "12px",
             fontWeight: 600,
@@ -145,22 +145,22 @@ export default function UseCases() {
               onClick={() => setSelectedCase(item.id)}
               style={{
                 padding: "20px",
-                background: isSelected ? "#1c1c1c" : "var(--surface-card)",
-                border: isSelected ? "1px solid #8b5cf6" : "1px solid var(--border-light)",
+                background: isSelected ? "#f0fdfa" : "var(--surface-card)",
+                border: isSelected ? "1px solid #0d9488" : "1px solid var(--border-light)",
                 borderRadius: "8px",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                <Icon size={20} color={isSelected ? "#8b5cf6" : "#737373"} />
+                <Icon size={20} color={isSelected ? "#0d9488" : "#94a3b8"} />
                 <span
                   style={{
                     fontSize: "11px",
                     fontWeight: 600,
                     padding: "2px 8px",
                     borderRadius: "4px",
-                    background: isSelected ? "#4c1d95" : "var(--surface-subtle)",
+                    background: isSelected ? "#0d9488" : "var(--surface-subtle)",
                     color: isSelected ? "#ffffff" : "var(--text-muted)",
                   }}
                 >
@@ -186,8 +186,8 @@ export default function UseCases() {
             className="card"
             style={{
               padding: "28px",
-              background: "#161616",
-              border: "1px solid #262626",
+              background: "#ffffff",
+              border: "1px solid var(--border-light)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>

@@ -1,33 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { Gauge, Sparkles, CheckCircle2, XCircle, Play, RefreshCw, Layers } from "lucide-react";
+import {
+  Sparkles,
+  Play,
+  RefreshCw,
+  Gauge,
+} from "lucide-react";
 import { api } from "../api/client";
-import { useModal } from "../context/ModalContext";
 
 export default function Evaluations() {
-  const modal = useModal();
   const [datasets, setDatasets] = useState([]);
   const [runs, setRuns] = useState([]);
-  const [workflows, setWorkflows] = useState([]);
+  const [selectedRun, setSelectedRun] = useState(null);
   const [loading, setLoading] = useState(true);
   const [runningBenchmark, setRunningBenchmark] = useState(false);
-  const [selectedRun, setSelectedRun] = useState(null);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [dsList, runsList, wfList] = await Promise.all([
-        api.listEvaluationDatasets(),
-        api.listEvaluationRuns(),
-        api.listWorkflows(),
+      const [dsData, runsData] = await Promise.all([
+        api.listDatasets().catch(() => []),
+        api.listEvalRuns().catch(() => []),
       ]);
-      setDatasets(dsList || []);
-      setRuns(runsList || []);
-      setWorkflows(wfList || []);
-      if (runsList && runsList.length > 0 && !selectedRun) {
-        setSelectedRun(runsList[0]);
+      setDatasets(dsData || []);
+      setRuns(runsData || []);
+      if (runsData && runsData.length > 0 && !selectedRun) {
+        setSelectedRun(runsData[0]);
       }
-    } catch {
-      // Default to empty
     } finally {
       setLoading(false);
     }
@@ -37,37 +35,28 @@ export default function Evaluations() {
     fetchData();
   }, []);
 
-  const handleSeedBenchmark = async () => {
-    try {
-      await api.seedEvaluationBenchmark();
-      await fetchData();
-    } catch (err) {
-      await modal.alert({ title: "Benchmark Seeding Failed", message: err.message, variant: "danger" });
-    }
-  };
-
   const handleRunBenchmark = async (datasetId) => {
-    if (workflows.length === 0) {
-      await modal.alert({ title: "Workflow Required", message: "No workflows found. Please create or publish a workflow first.", variant: "warning" });
-      return;
-    }
     try {
       setRunningBenchmark(true);
-      const targetWf = workflows[0];
-      const result = await api.triggerEvaluationRun({
-        dataset_id: datasetId,
-        workflow_id: targetWf.id,
-      });
-      setSelectedRun(result);
+      const res = await api.runBenchmark(datasetId);
       await fetchData();
-    } catch (err) {
-      await modal.alert({ title: "Benchmark Execution Failed", message: err.message, variant: "danger" });
+      setSelectedRun(res);
     } finally {
       setRunningBenchmark(false);
     }
   };
 
-  const latestRun = runs[0];
+  const handleSeedBenchmark = async () => {
+    try {
+      setLoading(true);
+      await api.seedStandardBenchmark();
+      await fetchData();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const latestRun = runs[0] || null;
 
   return (
     <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -75,7 +64,7 @@ export default function Evaluations() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
         <div>
           <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text-main)", letterSpacing: "-0.02em", margin: "0 0 4px 0" }}>
-            AI Evaluations & Benchmarks
+            Model Evaluation & Benchmarking
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "13px", margin: 0 }}>
             Benchmark classification accuracy, latency percentiles, and token expenditure across test suites.
@@ -83,7 +72,7 @@ export default function Evaluations() {
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           <button onClick={handleSeedBenchmark} className="btn btn-secondary btn-sm">
-            <Sparkles size={13} color="#8b5cf6" />
+            <Sparkles size={13} color="#0d9488" />
             <span>Seed Standard Benchmark</span>
           </button>
           <button onClick={fetchData} className="btn btn-secondary btn-sm" disabled={loading}>
@@ -93,18 +82,18 @@ export default function Evaluations() {
         </div>
       </div>
 
-      {/* Metrics Highlights (Render-style flat cards) */}
+      {/* Metrics Highlights */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(180px, 100%), 1fr))", gap: "12px" }}>
-        <div style={{ padding: "16px 20px", background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
+        <div style={{ padding: "16px 20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.04em" }}>
             Benchmark Accuracy
           </div>
-          <div style={{ fontSize: "24px", fontWeight: 700, marginTop: "6px", color: "#10b981", fontFamily: "var(--font-mono)" }}>
+          <div style={{ fontSize: "24px", fontWeight: 700, marginTop: "6px", color: "#059669", fontFamily: "var(--font-mono)" }}>
             {latestRun ? `${(latestRun.accuracy_score * 100).toFixed(1)}%` : "-"}
           </div>
         </div>
 
-        <div style={{ padding: "16px 20px", background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
+        <div style={{ padding: "16px 20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.04em" }}>
             Avg Roundtrip Latency
           </div>
@@ -113,7 +102,7 @@ export default function Evaluations() {
           </div>
         </div>
 
-        <div style={{ padding: "16px 20px", background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
+        <div style={{ padding: "16px 20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.04em" }}>
             Total Benchmark Cost
           </div>
@@ -122,7 +111,7 @@ export default function Evaluations() {
           </div>
         </div>
 
-        <div style={{ padding: "16px 20px", background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
+        <div style={{ padding: "16px 20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.04em" }}>
             Configured Suites
           </div>
@@ -135,44 +124,43 @@ export default function Evaluations() {
       {datasets.length === 0 ? (
         <div
           style={{
-            background: "#141414",
-            border: "1px solid var(--border-light)",
-            borderRadius: "6px",
             padding: "48px 24px",
             textAlign: "center",
+            background: "#ffffff",
+            border: "1px dashed var(--border-light)",
+            borderRadius: "8px",
           }}
         >
           <div
             style={{
               width: "40px",
               height: "40px",
-              borderRadius: "50%",
-              background: "#1c1c1c",
-              border: "1px solid #262626",
+              borderRadius: "8px",
+              background: "#f0fdfa",
+              border: "1px solid #ccfbf1",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               marginBottom: "12px",
-              color: "#8b5cf6",
+              color: "#0d9488",
             }}
           >
             <Gauge size={20} />
           </div>
-          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#f5f5f5" }}>No evaluation datasets configured</h3>
+          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#0f172a" }}>No evaluation datasets configured</h3>
           <p style={{ fontSize: "12px", color: "var(--text-muted)", maxWidth: "460px", margin: "6px auto 16px" }}>
             Click &quot;Seed Standard Benchmark&quot; to initialize the official customer-support triage test suite with 5 labelled evaluation scenarios.
           </p>
           <button onClick={handleSeedBenchmark} className="btn btn-primary btn-sm">
-            <Sparkles size={13} />
-            <span>Seed Standard Benchmark</span>
+            Seed Standard Benchmark
           </button>
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))", gap: "20px" }}>
           {/* Datasets & History */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <div style={{ background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#f5f5f5", marginBottom: "12px" }}>
+            <div style={{ background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px", boxShadow: "var(--card-shadow)" }}>
+              <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", marginBottom: "12px" }}>
                 Benchmark Datasets
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -184,13 +172,13 @@ export default function Evaluations() {
                       justifyContent: "space-between",
                       alignItems: "center",
                       padding: "10px 12px",
-                      background: "#181818",
-                      border: "1px solid #262626",
+                      background: "#f8fafc",
+                      border: "1px solid #e2e8f0",
                       borderRadius: "5px",
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: "13px", color: "#f5f5f5" }}>{d.name}</div>
+                      <div style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>{d.name}</div>
                       <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{d.test_case_count} labelled test cases</div>
                     </div>
                     <button
@@ -207,8 +195,8 @@ export default function Evaluations() {
               </div>
             </div>
 
-            <div style={{ background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#f5f5f5", marginBottom: "12px" }}>
+            <div style={{ background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px", boxShadow: "var(--card-shadow)" }}>
+              <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", marginBottom: "12px" }}>
                 Evaluation History
               </h3>
               {runs.length === 0 ? (
@@ -225,15 +213,16 @@ export default function Evaluations() {
                           padding: "8px 12px",
                           borderRadius: "5px",
                           cursor: "pointer",
-                          background: isSelected ? "#1e1e1e" : "transparent",
-                          border: isSelected ? "1px solid #383838" : "1px solid #222222",
+                          background: isSelected ? "#f0fdfa" : "transparent",
+                          border: isSelected ? "1px solid #99f6e4" : "1px solid #e2e8f0",
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
+                          transition: "all 0.15s ease",
                         }}
                       >
                         <div>
-                          <div style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5", fontFamily: "var(--font-mono)" }}>
+                          <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", fontFamily: "var(--font-mono)" }}>
                             Run: {r.id.slice(0, 8)}...
                           </div>
                           <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
@@ -246,7 +235,7 @@ export default function Evaluations() {
                               fontSize: "13px",
                               fontWeight: 700,
                               fontFamily: "var(--font-mono)",
-                              color: (r.accuracy_score || 0) >= 0.8 ? "#10b981" : "#ef4444",
+                              color: (r.accuracy_score || 0) >= 0.8 ? "#059669" : "#dc2626",
                             }}
                           >
                             {((r.accuracy_score || 0) * 100).toFixed(1)}%
@@ -264,8 +253,8 @@ export default function Evaluations() {
           </div>
 
           {/* Selected Run Details Inspector */}
-          <div style={{ background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px" }}>
-            <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#f5f5f5", marginBottom: "12px" }}>
+          <div style={{ background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px", boxShadow: "var(--card-shadow)" }}>
+            <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", marginBottom: "12px" }}>
               Test Case Assertions ({selectedRun?.results?.length || 0} Scenarios)
             </h3>
 
@@ -279,12 +268,12 @@ export default function Evaluations() {
                     style={{
                       padding: "10px 12px",
                       borderRadius: "5px",
-                      border: "1px solid #262626",
-                      background: "#181818",
+                      border: "1px solid #e2e8f0",
+                      background: "#f8fafc",
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#f5f5f5" }}>Scenario #{i + 1}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>Scenario #{i + 1}</span>
                       {c.passed ? (
                         <span className="badge badge-published" style={{ fontSize: "10px" }}>
                           ✓ Passed
@@ -296,7 +285,7 @@ export default function Evaluations() {
                       )}
                     </div>
 
-                    <div style={{ fontSize: "12px", color: "#a3a3a3", marginBottom: "4px" }}>
+                    <div style={{ fontSize: "12px", color: "#475569", marginBottom: "4px" }}>
                       Input: &quot;{c.input?.ticket_text || JSON.stringify(c.input)}&quot;
                     </div>
 
@@ -305,7 +294,7 @@ export default function Evaluations() {
                     </div>
 
                     {c.failure_reasons && c.failure_reasons.length > 0 && (
-                      <div style={{ marginTop: "6px", fontSize: "11px", color: "#f87171" }}>
+                      <div style={{ marginTop: "6px", fontSize: "11px", color: "#dc2626" }}>
                         {c.failure_reasons.join(", ")}
                       </div>
                     )}

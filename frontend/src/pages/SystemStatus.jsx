@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Server, Database, Cpu, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Server, Database, Cpu, RefreshCw } from "lucide-react";
 import { api } from "../api/client";
 
 export default function SystemStatus() {
@@ -46,10 +46,10 @@ export default function SystemStatus() {
         <div
           style={{
             padding: "10px 14px",
-            background: "rgba(239, 68, 68, 0.12)",
-            border: "1px solid rgba(239, 68, 68, 0.25)",
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
             borderRadius: "6px",
-            color: "#f87171",
+            color: "#b91c1c",
             fontSize: "12px",
           }}
         >
@@ -59,11 +59,11 @@ export default function SystemStatus() {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: "16px" }}>
         {/* PostgreSQL Card */}
-        <div style={{ padding: "20px", background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
+        <div style={{ padding: "20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Database size={16} color="#8b5cf6" />
-              <span style={{ fontWeight: 600, color: "#f5f5f5", fontSize: "13px" }}>Supabase PostgreSQL</span>
+              <Database size={16} color="#0d9488" />
+              <span style={{ fontWeight: 600, color: "#0f172a", fontSize: "13px" }}>Supabase PostgreSQL</span>
             </div>
             <span className={`badge ${readiness?.database?.healthy ? "badge-published" : "badge-danger"}`}>
               {readiness?.database?.healthy ? "Online" : "Offline"}
@@ -72,17 +72,17 @@ export default function SystemStatus() {
           <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.4 }}>
             {readiness?.database?.details || "Connecting..."}
           </p>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", borderTop: "1px solid #222222", paddingTop: "8px", fontFamily: "var(--font-mono)" }}>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", borderTop: "1px solid #e2e8f0", paddingTop: "8px", fontFamily: "var(--font-mono)" }}>
             Pooler Active • SSL Mode Required
           </div>
         </div>
 
         {/* Redis Card */}
-        <div style={{ padding: "20px", background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
+        <div style={{ padding: "20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Cpu size={16} color="#06b6d4" />
-              <span style={{ fontWeight: 600, color: "#f5f5f5", fontSize: "13px" }}>Upstash Redis Broker</span>
+              <Cpu size={16} color="#0284c7" />
+              <span style={{ fontWeight: 600, color: "#0f172a", fontSize: "13px" }}>Upstash Redis Broker</span>
             </div>
             <span className={`badge ${readiness?.redis?.healthy ? "badge-published" : "badge-danger"}`}>
               {readiness?.redis?.healthy ? "Online" : "Offline"}
@@ -91,17 +91,17 @@ export default function SystemStatus() {
           <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.4 }}>
             {readiness?.redis?.details || "Connecting..."}
           </p>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", borderTop: "1px solid #222222", paddingTop: "8px", fontFamily: "var(--font-mono)" }}>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", borderTop: "1px solid #e2e8f0", paddingTop: "8px", fontFamily: "var(--font-mono)" }}>
             TLS Encrypted • Prefetch Locked to 1
           </div>
         </div>
 
         {/* Celery Pipeline Card */}
-        <div style={{ padding: "20px", background: "#141414", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
+        <div style={{ padding: "20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Server size={16} color="#10b981" />
-              <span style={{ fontWeight: 600, color: "#f5f5f5", fontSize: "13px" }}>Celery Distributed Workers</span>
+              <Server size={16} color="#059669" />
+              <span style={{ fontWeight: 600, color: "#0f172a", fontSize: "13px" }}>Celery Distributed Workers</span>
             </div>
             <span className={`badge ${readiness?.celery?.healthy ? "badge-published" : "badge-danger"}`}>
               {readiness?.celery?.healthy ? "Ready" : "Offline"}
@@ -110,7 +110,7 @@ export default function SystemStatus() {
           <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.4 }}>
             {readiness?.celery?.details || "Connecting..."}
           </p>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", borderTop: "1px solid #222222", paddingTop: "8px", fontFamily: "var(--font-mono)" }}>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", borderTop: "1px solid #e2e8f0", paddingTop: "8px", fontFamily: "var(--font-mono)" }}>
             Task Queue Ready • Dynamic Lease Recovery
           </div>
         </div>
