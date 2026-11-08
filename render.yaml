@@ -11,7 +11,7 @@ services:
     plan: free
     ipAllowList: []
 
-  # 2. FlowForge AI Unified Backend (FastAPI + Background Celery Worker)
+  # 2. FlowForge AI Unified Backend (FastAPI + Embedded Celery Worker)
   - type: web
     name: flowforge-api
     runtime: python
@@ -64,20 +64,3 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
-
-  # 3. FlowForge AI Frontend (Studio & Client Portal Static SPA)
-  - type: web
-    name: flowforge-frontend
-    runtime: static
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: flowforge-api
-          property: host
