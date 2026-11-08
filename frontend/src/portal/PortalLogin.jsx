@@ -15,6 +15,9 @@ export default function PortalLogin() {
     // If user is already authenticated, redirect to portal dashboard
     if (localStorage.getItem("token")) {
       navigate("/portal");
+    } else {
+      // Silently pre-warm the backend to mitigate Render cold-start latency
+      api.getHealth().catch(() => {});
     }
   }, [navigate]);
 
