@@ -8,17 +8,20 @@ FlowForge AI is an enterprise-grade visual workflow orchestration platform that 
 
 ## 🌟 Table of Contents
 1. [Product Overview & Business Value](#-product-overview--business-value)
-2. [High-Level System Architecture](#-high-level-system-architecture)
-3. [Execution Lifecycle Sequence](#-execution-lifecycle-sequence)
-4. [DAG Orchestration Engine Internals](#-dag-orchestration-engine-internals)
-5. [AI Subsystem & Deterministic Guardrails](#-ai-subsystem--deterministic-guardrails)
-6. [Multi-Tenant SaaS Architecture & Security](#-multi-tenant-saas-architecture--security)
-7. [Database Schema & Tenancy Model](#-database-schema--tenancy-model)
-8. [REST API v1 Specification Catalog](#-rest-api-v1-specification-catalog)
-9. [Enterprise Guided Blueprints & Use Cases](#-enterprise-guided-blueprints--use-cases)
-10. [Staff Engineer System Design Interview Q&A](#-staff-engineer-system-design-interview-qa)
-11. [Quick Start & Local Execution](#-quick-start--local-execution)
-12. [Testing & Verification](#-testing--verification)
+2. [Dual-Portal Application Architecture](#-dual-portal-application-architecture)
+3. [Client Portal & Self-Service Workflows](#-client-portal--self-service-workflows)
+4. [High-Level System Architecture](#-high-level-system-architecture)
+5. [Execution Lifecycle Sequence](#-execution-lifecycle-sequence)
+6. [DAG Orchestration Engine Internals](#-dag-orchestration-engine-internals)
+7. [AI Subsystem & Deterministic Guardrails](#-ai-subsystem--deterministic-guardrails)
+8. [Multi-Tenant SaaS Architecture & Security](#-multi-tenant-saas-architecture--security)
+9. [Database Schema & Tenancy Model](#-database-schema--tenancy-model)
+10. [REST API v1 Specification Catalog](#-rest-api-v1-specification-catalog)
+11. [Enterprise Guided Blueprints & Use Cases](#-enterprise-guided-blueprints--use-cases)
+12. [Cloud Production Deployment (Vercel + Render)](#-cloud-production-deployment-vercel--render)
+13. [Staff Engineer System Design Interview Q&A](#-staff-engineer-system-design-interview-qa)
+14. [Quick Start & Local Execution](#-quick-start--local-execution)
+15. [Testing & Verification](#-testing--verification)
 
 ---
 
@@ -32,6 +35,85 @@ FlowForge AI bridges the gap between non-deterministic Large Language Models (LL
 - **Continuous Benchmarking**: Automated evaluation suites track classification accuracy, latency percentiles, and token costs across releases.
 
 ---
+
+
+
+---
+
+## 🖥️ Dual-Portal Application Architecture
+
+FlowForge AI features a cleanly decoupled **dual-application frontend architecture** designed to serve both technical workflow builders and non-technical business requesters:
+
+```mermaid
+flowchart TD
+    subgraph FlowForgePlatform["FlowForge AI Dual-Portal Platform"]
+        subgraph StudioApp["1. FlowForge Studio (Developer Console) - /login"]
+            Canvas["Visual DAG Canvas (React Flow)"]
+            Inspector["Granular Node Inspector (All 9 Types)"]
+            AuditTrail["Technical Execution Trace & Raw Payloads"]
+            Benchmarking["Automated Evaluation Suites (ROUGE / Latency)"]
+            AudienceStudio["Target Audience: Platform Engineers, AI Architects, Developers"]
+        end
+        
+        subgraph ClientPortalApp["2. FlowForge Client Portal (Business App) - /portal/login"]
+            Catalog["Service Catalog & Workflow Discovery"]
+            NLAssistant["AI Natural Language Intake Assistant"]
+            StageTimeline["High-Level Business Stage Timeline"]
+            AuditReceipt["Action Resolution & Compliance Receipts"]
+            ApprovalInbox["Role-Gated Manager Approvals Queue"]
+            AudiencePortal["Target Audience: End Clients, Operations Managers, Business Requesters"]
+        end
+    end
+```
+
+### 1. FlowForge Studio (`/`)
+- **Visual DAG Authoring**: Interactive graph builder powered by React Flow with real-time cycle detection and node validation.
+- **Node Catalog**: Comprehensive suite covering `trigger`, `structured_extract`, `ai_classify`, `retrieval` (RAG), `condition`, `transform`, `human_approval`, and `output`.
+- **Execution Inspector**: Step-by-step latency waterfall, token counters, USD cost analytics, and memory state inspection.
+- **Evaluation Benchmarks**: Run batch evaluation datasets against live workflow versions to benchmark accuracy and regressions.
+
+### 2. FlowForge Client Portal (`/portal`)
+- **Zero-Code Simplicity**: Abstracts away DAG topologies, edges, and schemas into intuitive business services.
+- **Dynamic Input Contracts**: Forms are dynamically generated from workflow `input_contract` specifications.
+- **Natural Language Extraction**: Users can paste raw customer emails or unstructured text; the integrated AI assistant automatically parses fields into form inputs.
+- **Strict Role-Gated Approvals**: Operations Managers can review and digitally sign off on high-value transactions, while developers and requesters are restricted from approving financial actions.
+
+---
+
+## 👥 Client Portal & Self-Service Workflows
+
+The Client Portal provides a streamlined experience for internal operators and external customers:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Business Requester
+    actor Manager as Operations Manager
+    participant Portal as FlowForge Portal (/portal)
+    participant API as FastAPI Gateway
+    participant Engine as Orchestration Engine
+
+    Client->>Portal: 1. Paste unformatted claim ("Refund $250 for broken goods...")
+    Portal->>API: 2. POST /api/v1/portal/workflows/{id}/parse-nl
+    API-->>Portal: 3. Return structured parameters (order_id, amount, reason)
+    Client->>Portal: 4. Submit Verified Request
+    Portal->>API: 5. POST /api/v1/portal/workflows/{id}/requests
+    API->>Engine: 6. Enqueue run & pause at Human Approval Gate
+    
+    Manager->>Portal: 7. Open /portal/approvals (Role: Manager)
+    Manager->>Portal: 8. Authorize Payout ($250 USD)
+    Portal->>API: 9. POST /api/v1/portal/approvals/{id}/decision (APPROVED)
+    API->>Engine: 10. Resume execution & generate Resolution Receipt
+    
+    Client->>Portal: 11. View Request Detail & Resolution Receipt
+    Note over Client,Portal: Displays: Audit Receipt Code (TXN-REFUND-VERIFIED),<br/>Amount ($250.00 USD), and Policy Basis (POL-BILL-001)
+```
+
+### Key Client Portal Capabilities:
+1. **AI Natural Language Assistant**: Transforms messy, ambiguous requests into strictly validated typed parameters.
+2. **Deterministic Variable Interpolation**: Resolves nested properties (e.g. `{node_transform.payout_code}`) dynamically across execution envelopes.
+3. **Audit Receipts**: Issues cryptographic confirmation codes and policy citations for customer records.
+4. **Tenant Isolation**: Row-level filtering ensures clients only view requests belonging to their active organization.
 
 ## 🏛️ High-Level System Architecture
 
@@ -410,7 +492,7 @@ Open your browser at `http://localhost:5173`.
 
 ## 🧪 Testing & Verification
 
-### Run Backend Test Suite (53 Tests)
+### Run Backend Test Suite (62 Tests — 100% Pass Rate)
 ```bash
 .venv/bin/pytest backend/tests -v
 ```
