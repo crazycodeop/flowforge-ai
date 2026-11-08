@@ -54,8 +54,8 @@ export default function CustomNode({ id, data, selected }) {
   return (
     <div
       style={{
-        background: "#ffffff",
-        border: selected ? "2px solid #0d9488" : "1px solid #cbd5e1",
+        background: "var(--surface-card)",
+        border: selected ? "2px solid #0d9488" : "1px solid var(--border-light)",
         borderRadius: "6px",
         boxShadow: selected
           ? "0 0 0 3px rgba(13, 148, 136, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08)"
@@ -74,8 +74,8 @@ export default function CustomNode({ id, data, selected }) {
           style={{
             background: "#ffffff",
             border: "2px solid #0d9488",
-            width: "10px",
-            height: "10px",
+            width: "12px",
+            height: "12px",
             top: "-6px",
             cursor: "crosshair",
           }}
@@ -89,15 +89,15 @@ export default function CustomNode({ id, data, selected }) {
           alignItems: "center",
           justifyContent: "space-between",
           padding: "8px 10px",
-          background: selected ? "#f0fdfa" : "#f8fafc",
-          borderBottom: "1px solid #e2e8f0",
+          background: selected ? "var(--accent-primary-bg)" : "var(--surface-subtle)",
+          borderBottom: "1px solid var(--border-light)",
           borderTopLeftRadius: "5px",
           borderTopRightRadius: "5px",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <Icon size={14} color="#0d9488" />
-          <span style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)" }}>
             {data.label || data.name || "Node"}
           </span>
         </div>
@@ -108,8 +108,8 @@ export default function CustomNode({ id, data, selected }) {
               fontWeight: 600,
               padding: "2px 5px",
               borderRadius: "3px",
-              background: "#e2e8f0",
-              color: "#334155",
+              background: "var(--surface-subtle)",
+              color: "var(--text-secondary)",
               textTransform: "uppercase",
               letterSpacing: "0.03em",
             }}
@@ -153,7 +153,7 @@ export default function CustomNode({ id, data, selected }) {
       </div>
 
       {/* Node Body Details */}
-      <div style={{ padding: "8px 10px", background: "#ffffff" }}>
+      <div style={{ padding: "8px 10px", background: "var(--surface-card)" }}>
         {data.description ? (
           <div style={{ fontSize: "11px", color: "#64748b", lineHeight: 1.3, marginBottom: "4px" }}>
             {data.description}
@@ -246,8 +246,8 @@ export default function CustomNode({ id, data, selected }) {
                 left: "50%",
                 background: "#059669",
                 border: "2px solid #ffffff",
-                width: "10px",
-                height: "10px",
+                width: "12px",
+                height: "12px",
                 bottom: "-6px",
                 cursor: "crosshair",
                 boxShadow: "0 0 4px rgba(5, 150, 105, 0.4)",
@@ -266,8 +266,8 @@ export default function CustomNode({ id, data, selected }) {
                 left: "50%",
                 background: "#dc2626",
                 border: "2px solid #ffffff",
-                width: "10px",
-                height: "10px",
+                width: "12px",
+                height: "12px",
                 bottom: "-6px",
                 cursor: "crosshair",
                 boxShadow: "0 0 4px rgba(220, 38, 38, 0.4)",
@@ -282,8 +282,8 @@ export default function CustomNode({ id, data, selected }) {
           style={{
             background: "#ffffff",
             border: "2px solid #0d9488",
-            width: "10px",
-            height: "10px",
+            width: "12px",
+            height: "12px",
             bottom: "-6px",
             cursor: "crosshair",
           }}

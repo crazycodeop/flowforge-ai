@@ -24,9 +24,12 @@ import {
   ChevronRight,
   LogOut,
   MessageSquare,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useModal } from "../context/ModalContext";
+import { useTheme } from "../context/ThemeContext";
 
 /**
  * FlowForge AI application shell featuring Render's flat visual styling:
@@ -47,6 +50,7 @@ export default function Shell({ children }) {
   );
 
   // Responsive breakpoint states
+  const { theme, toggleTheme } = useTheme();
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.innerWidth < 768
   );
@@ -412,8 +416,8 @@ export default function Shell({ children }) {
       <header
         style={{
           height: "50px",
-          background: "#ffffff",
-          borderBottom: "1px solid #e2e8f0",
+          background: "var(--topbar-bg)",
+          borderBottom: "1px solid var(--topbar-border)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -477,7 +481,7 @@ export default function Shell({ children }) {
                 gap: "7px",
                 background: "transparent",
                 border: "none",
-                color: "#0f172a",
+                color: "var(--text-main)",
                 fontSize: "13px",
                 fontWeight: 500,
                 cursor: "pointer",
@@ -602,14 +606,14 @@ export default function Shell({ children }) {
           {/* Thin Vertical Divider */}
           <div
             className="desktop-only"
-            style={{ width: "1px", height: "16px", background: "#222222", margin: "0 2px" }}
+            style={{ width: "1px", height: "16px", background: "var(--border-light)", margin: "0 2px" }}
           />
 
           {/* FlowForge Breadcrumbs */}
           <div className="desktop-only" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#858585" }}>
             <span style={{ color: "#a3a3a3" }}>FlowForge AI</span>
             <span>&gt;</span>
-            <span style={{ color: "#0f172a", fontWeight: 500 }}>{getBreadcrumbTitle()}</span>
+            <span style={{ color: "var(--text-main)", fontWeight: 500 }}>{getBreadcrumbTitle()}</span>
           </div>
         </div>
 
@@ -622,32 +626,60 @@ export default function Shell({ children }) {
             style={{
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: "7px",
-              padding: isMobile ? "6px" : "4px 8px",
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              borderRadius: "4px",
-              color: "#64748b",
+              padding: isMobile ? "0" : "4px 8px",
+              width: isMobile ? "32px" : "auto",
+              height: "32px",
+              background: "var(--surface-card)",
+              border: "1px solid var(--border-light)",
+              borderRadius: "6px",
+              color: "var(--text-muted)",
               fontSize: "12px",
               cursor: "pointer",
+              boxSizing: "border-box",
             }}
             title="Search (⌘K)"
           >
-            <Search size={13} />
+            <Search size={14} />
             <span className="desktop-only">Search</span>
             <span
               className="desktop-only"
               style={{
                 fontSize: "10px",
                 padding: "1px 4px",
-                background: "#f1f5f9",
+                background: "var(--surface-subtle)",
                 borderRadius: "3px",
-                color: "#64748b",
-                border: "1px solid #e2e8f0",
+                color: "var(--text-muted)",
+                border: "1px solid var(--border-light)",
               }}
             >
               ⌘ K
             </span>
+          </button>
+
+          {/* Theme Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            style={{
+              width: "32px",
+              height: "32px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "6px",
+              background: "var(--surface-card)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+              boxSizing: "border-box",
+              padding: 0,
+            }}
+            title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {theme === "dark" ? <Sun size={14} color="#fbbf24" /> : <Moon size={14} />}
           </button>
 
           {/* + New Workflow Button */}
@@ -655,10 +687,21 @@ export default function Shell({ children }) {
             type="button"
             onClick={() => navigate("/workflows?action=new")}
             className="btn btn-secondary btn-sm"
-            style={{ fontWeight: 600, padding: isMobile ? "6px 8px" : "4px 10px", display: "flex", alignItems: "center", gap: "5px" }}
+            style={{
+              fontWeight: 600,
+              padding: isMobile ? "0" : "4px 10px",
+              width: isMobile ? "32px" : "auto",
+              height: "32px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "5px",
+              borderRadius: "6px",
+              boxSizing: "border-box",
+            }}
             title="New Workflow"
           >
-            <Plus size={13} />
+            <Plus size={14} />
             {!isMobile && <span>New Workflow</span>}
           </button>
 
@@ -704,18 +747,19 @@ export default function Shell({ children }) {
           <div
             onClick={() => navigate("/settings")}
             style={{
-              width: "24px",
-              height: "24px",
+              width: "32px",
+              height: "32px",
               borderRadius: "50%",
               background: "#fef08a",
               color: "#713f12",
-              fontSize: "11px",
+              fontSize: "12px",
               fontWeight: 700,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
               flexShrink: 0,
+              boxSizing: "border-box",
             }}
             title={`${userProfile.full_name || "User"} (${userProfile.email || "Account"})`}
           >
@@ -728,15 +772,18 @@ export default function Shell({ children }) {
             onClick={handleLogout}
             style={{
               background: "transparent",
-              border: "none",
-              color: "#737373",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-muted)",
               cursor: "pointer",
-              padding: "4px",
-              display: "flex",
+              padding: 0,
+              width: "32px",
+              height: "32px",
+              display: isMobile ? "none" : "flex",
               alignItems: "center",
               justifyContent: "center",
-              borderRadius: "4px",
+              borderRadius: "6px",
               transition: "all 0.15s ease",
+              boxSizing: "border-box",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.color = "#ef4444";
@@ -763,8 +810,8 @@ export default function Shell({ children }) {
           className="desktop-only"
           style={{
             width: collapsed ? "54px" : "240px",
-            background: "#ffffff",
-            borderRight: "1px solid #e2e8f0",
+            background: "var(--sidebar-bg)",
+            borderRight: "1px solid var(--sidebar-border)",
             display: isMobile ? "none" : "flex",
             flexDirection: "column",
             flexShrink: 0,
@@ -979,7 +1026,7 @@ export default function Shell({ children }) {
             overflowY: "auto",
             overflowX: "hidden",
             padding: isBuilder ? "0px" : isMobile ? "14px 12px 24px 12px" : "clamp(18px, 2.5vw, 32px) clamp(16px, 3.5vw, 42px)",
-            background: "#ffffff",
+            background: "var(--main-bg)",
             position: "relative",
           }}
         >

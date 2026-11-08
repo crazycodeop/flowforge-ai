@@ -29,6 +29,29 @@
 - [x] **Milestone 24: AI Provider Multi-Env Credential Auto-Persistence & Cleaned Architecture**
 - [x] **Milestone 25: Auth Session Stability & Trailing-Slash Redirect Loop Resolution**
 - [x] **Milestone 26: Dual Workflow Seeding (Automated vs. Human-in-the-Loop) & Knowledge Base Data**
+- [x] **Milestone 32: Complete Dark Mode Theme System & Mobile Workflow Editor UX Overhaul**
+  - **Identified Problems**:
+    1. Navbar buttons had mismatched dimensions on mobile (Plus button was visibly larger than Search and other utility buttons).
+    2. Workflow Editor on mobile was difficult to control due to cramped subheader wrapping, lack of touch-friendly node addition (HTML5 drag-and-drop doesn't work on touch screens), and desktop-centric side drawers.
+    3. User requested Dark Mode maintaining 100% visibility and high contrast across all text, icons, cards, and canvas nodes.
+  - **Solutions & Implementations**:
+    1. **Navbar Sizing & Visual Consistency (`Shell.jsx`)**:
+       - Standardized all mobile header utility controls (Search, Add Workflow, Theme Toggle, User Avatar) to an exact 32px x 32px box with 6px border radius, identical border tokens, and centered icons.
+    2. **Dark Mode Theme Architecture (`ThemeContext.jsx` & `index.css`)**:
+       - Created global `ThemeContext` supporting `"light"` and `"dark"` with persistent `localStorage` synchronization and OS `prefers-color-scheme` fallback.
+       - Integrated 1-click Sun/Moon toggle buttons in Studio and Portal top headers.
+       - Crafted dark token palette with deep slate canvas background (`#090d16`), elevated card surfaces (`#131b2e`), luminous teal accents (`#14b8a6`), and hardened high-contrast rules for all text and SVG icons.
+    3. **Professional Mobile Workflow Editor Overhaul (`Builder.jsx`, `CustomNode.jsx`, `NodePalette.jsx`, `NodeInspector.jsx`)**:
+       - **Single-Line Subheader**: Locked to a clean 48px row on mobile with back arrow, workflow name, status badge, and symmetrical 32px action buttons (`Validate`, `Save`, `Publish`, `Run`).
+       - **Floating Mobile Action Dock**: Floating blur pill at the bottom of the canvas with `+ Add Step`, `Config`, `Delete`, and `Fit View` buttons right under the user's thumb.
+       - **Slide-Up Bottom Sheets**: Replaced awkward side-drawers on mobile with modern slide-up bottom sheets (`maxHeight: 75vh/85vh`) featuring grab handles and smooth transitions (`slideInUp`).
+       - **1-Tap Node Creation**: Tapping any node in the palette bottom sheet immediately places it on the canvas and centers the viewport.
+       - **Themed ReactFlow Canvas**: Dots background and `colorMode` adapt automatically to current active theme.
+  - **Verification**:
+    - Vitest unit tests: 2/2 passed (`src/App.test.jsx`).
+    - Vite production build: built successfully in 4.20s with 0 errors.
+    - Pytest backend suite: 62/62 passed in 19.11s.
+
 - [x] **Milestone 31: Full Mobile Responsiveness & Touch UX Hardening (320px–768px)**
   - **Identified Problems**:
     1. Navigation and topbars across FlowForge Studio and FlowForge Client Portal were crowded and caused horizontal page overflow on mobile devices (<= 400px viewports).

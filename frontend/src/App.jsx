@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Shell from "./components/Shell";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ModalProvider } from "./context/ModalContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Overview from "./pages/Overview";
@@ -29,7 +30,8 @@ import PortalProtectedRoute from "./portal/PortalProtectedRoute";
 export default function App() {
   return (
     <BrowserRouter>
-      <ModalProvider>
+      <ThemeProvider>
+        <ModalProvider>
         <Routes>
           {/* FlowForge Studio Authentication */}
           <Route path="/login" element={<Login />} />
@@ -80,6 +82,7 @@ export default function App() {
           />
         </Routes>
       </ModalProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

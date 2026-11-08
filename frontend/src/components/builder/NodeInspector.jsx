@@ -73,7 +73,7 @@ function FieldLabel({ label, tooltip }) {
         gap: "4px",
         fontSize: "11px",
         fontWeight: 600,
-        color: "#888888",
+        color: "var(--text-muted)",
         marginBottom: "4px",
       }}
     >
@@ -286,8 +286,8 @@ export default function NodeInspector({
     <aside
       style={{
         width: isOverlay ? "min(340px, 92vw)" : "290px",
-        background: "#ffffff",
-        borderLeft: "1px solid #e2e8f0",
+        background: "var(--sidebar-bg)",
+        borderLeft: "1px solid var(--sidebar-border)",
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
@@ -306,7 +306,7 @@ export default function NodeInspector({
           alignItems: "center",
           marginBottom: "14px",
           paddingBottom: "8px",
-          borderBottom: "1px solid #222222",
+          borderBottom: "1px solid var(--border-light)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -324,7 +324,7 @@ export default function NodeInspector({
             <Icon size={13} color="#0d9488" />
           </div>
           <div>
-            <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", lineHeight: 1.2 }}>
+            <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)", lineHeight: 1.2 }}>
               Configure Node
             </div>
             <div style={{ fontSize: "10px", color: "#0d9488", fontWeight: 500 }}>

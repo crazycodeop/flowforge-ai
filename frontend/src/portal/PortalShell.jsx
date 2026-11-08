@@ -18,6 +18,7 @@ export default function PortalShell() {
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.innerWidth < 768
   );
@@ -291,6 +292,17 @@ export default function PortalShell() {
               </div>
             )}
 
+            {/* Theme Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="theme-toggle-btn"
+              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === "dark" ? <Sun size={14} color="#fbbf24" /> : <Moon size={14} />}
+            </button>
+
             {/* Quick Sign Out Header Button */}
             <button
               type="button"
@@ -334,8 +346,8 @@ export default function PortalShell() {
               left: 0,
               bottom: 0,
               width: "min(300px, 85vw)",
-              background: "#ffffff",
-              borderRight: "1px solid #e2e8f0",
+              background: "var(--sidebar-bg)",
+              borderRight: "1px solid var(--sidebar-border)",
               display: "flex",
               flexDirection: "column",
               padding: "18px 16px",

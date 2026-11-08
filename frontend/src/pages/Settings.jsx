@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { api } from "../api/client";
 import { useModal } from "../context/ModalContext";
+import { useTheme } from "../context/ThemeContext";
 
 /**
  * FlowForge AI Workspace Settings page.
@@ -28,6 +29,7 @@ import { useModal } from "../context/ModalContext";
  */
 export default function Settings() {
   const modal = useModal();
+  const { setTheme: setAppTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("profile");
 
   // Profile State
@@ -323,6 +325,7 @@ export default function Settings() {
     setSnapToGrid(newSnap);
     setShowMiniMap(newMini);
     localStorage.setItem("ff_theme", newTheme);
+    try { setAppTheme(newTheme); } catch(e) {}
     localStorage.setItem("ff_grid_style", newGrid);
     localStorage.setItem("ff_snap_grid", String(newSnap));
     localStorage.setItem("ff_minimap", String(newMini));
@@ -956,7 +959,8 @@ export default function Settings() {
                 onChange={(e) => handleSaveAppearance(e.target.value, gridStyle, snapToGrid, showMiniMap)}
                 className="input"
               >
-                <option value="dark">Render Dark (Default)</option>
+                <option value="light">Studio Light</option>
+                <option value="dark">Render Dark</option>
               </select>
             </div>
 

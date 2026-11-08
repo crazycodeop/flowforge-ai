@@ -27,9 +27,12 @@ import {
   Play,
   Plus,
   Sliders,
+  Maximize2,
+  Trash2,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useModal } from "../context/ModalContext";
+import { useTheme } from "../context/ThemeContext";
 import CustomNode from "../components/builder/CustomNode";
 import NodePalette from "../components/builder/NodePalette";
 import NodeInspector from "../components/builder/NodeInspector";
@@ -377,6 +380,9 @@ function BuilderCanvas() {
 
   const onNodeClick = useCallback((_, node) => {
     setSelectedNodeId(node.id);
+    if (window.innerWidth <= 768) {
+      setIsInspectorOpen(true);
+    }
   }, []);
 
   const onPaneClick = useCallback(() => {
@@ -425,6 +431,7 @@ function BuilderCanvas() {
     setSelectedNodeId(newId);
     if (!isDesktop) {
       setIsPaletteOpen(false);
+      setIsInspectorOpen(false);
     }
   };
 
@@ -672,15 +679,16 @@ function BuilderCanvas() {
       {/* Builder Subheader */}
       <div
         style={{
-          minHeight: "44px",
-          background: "#ffffff",
-          borderBottom: "1px solid #e2e8f0",
+          height: isMobile ? "48px" : "44px",
+          minHeight: isMobile ? "48px" : "44px",
+          background: "var(--topbar-bg)",
+          borderBottom: "1px solid var(--topbar-border)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           padding: "0 clamp(8px, 2vw, 16px)",
           zIndex: 10,
-          flexWrap: "wrap",
+          flexWrap: isMobile ? "nowrap" : "wrap",
           gap: "8px",
         }}
       >
@@ -693,7 +701,7 @@ function BuilderCanvas() {
             style={{
               fontWeight: 600,
               fontSize: "13px",
-              color: "#0f172a",
+              color: "var(--text-main)",
               maxWidth: isMobile ? "120px" : "240px",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -776,36 +784,73 @@ function BuilderCanvas() {
           <button
             onClick={handleValidate}
             className="btn btn-secondary btn-sm"
-            style={{ padding: isMobile ? "5px 7px" : "4px 10px", fontSize: "12px" }}
+            style={{
+              padding: isMobile ? "0" : "4px 10px",
+              width: isMobile ? "32px" : "auto",
+              height: "32px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "6px",
+              boxSizing: "border-box",
+            }}
             title="Validate Workflow Graph"
           >
             <CheckCircle size={14} color="#0d9488" />
-            <span className={isMobile ? "desktop-only" : ""}>Validate</span>
+            <span className="desktop-only">Validate</span>
           </button>
           <button
             onClick={handleSaveDraft}
             disabled={saving}
             className="btn btn-secondary btn-sm"
-            style={{ padding: isMobile ? "5px 7px" : "4px 10px", fontSize: "12px" }}
+            style={{
+              padding: isMobile ? "0" : "4px 10px",
+              width: isMobile ? "32px" : "auto",
+              height: "32px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "6px",
+              boxSizing: "border-box",
+            }}
             title="Save Draft Definition"
           >
             <Save size={14} />
-            <span className={isMobile ? "desktop-only" : ""}>{saving ? "Saving..." : "Save"}</span>
+            <span className="desktop-only">{saving ? "Saving..." : "Save"}</span>
           </button>
           <button
             onClick={handlePublish}
             disabled={publishing}
             className="btn btn-secondary btn-sm"
-            style={{ padding: isMobile ? "5px 7px" : "4px 10px", fontSize: "12px" }}
+            style={{
+              padding: isMobile ? "0" : "4px 10px",
+              width: isMobile ? "32px" : "auto",
+              height: "32px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "6px",
+              boxSizing: "border-box",
+            }}
             title="Publish Immutable Version"
           >
             <UploadCloud size={14} />
-            <span className={isMobile ? "desktop-only" : ""}>{publishing ? "Publishing..." : "Publish"}</span>
+            <span className="desktop-only">{publishing ? "Publishing..." : "Publish"}</span>
           </button>
           <button
             onClick={() => setIsRunModalOpen(true)}
             className="btn btn-primary btn-sm"
-            style={{ padding: isMobile ? "5px 9px" : "4px 12px", fontSize: "12px" }}
+            style={{
+              height: "32px",
+              padding: isMobile ? "0 10px" : "4px 12px",
+              fontSize: "12px",
+              fontWeight: 600,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              borderRadius: "6px",
+              boxSizing: "border-box",
+            }}
             title="Trigger Run"
           >
             <Play size={14} />
@@ -823,7 +868,7 @@ function BuilderCanvas() {
         <div
           onDragOver={onDragOver}
           onDrop={onDrop}
-          style={{ flex: 1, height: "100%", background: "#f8fafc", position: "relative" }}
+          style={{ flex: 1, height: "100%", background: "var(--main-bg)", position: "relative" }}
         >
           <ReactFlow
             nodes={nodesWithHandlers}
@@ -836,13 +881,19 @@ function BuilderCanvas() {
             onNodesDelete={onNodesDelete}
             deleteKeyCode={["Backspace", "Delete"]}
             nodeTypes={nodeTypes}
-            colorMode="light"
+            colorMode={theme === "dark" ? "dark" : "light"}
             fitView
           >
-            <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#cbd5e1" bgColor="#f8fafc" />
+            <Background
+              variant={BackgroundVariant.Dots}
+              gap={20}
+              size={1.5}
+              color={theme === "dark" ? "#334155" : "#cbd5e1"}
+              bgColor={theme === "dark" ? "#090d16" : "#f8fafc"}
+            />
             <Controls
               style={{
-                bottom: isMobile ? 12 : 20,
+                bottom: isMobile ? 70 : 20,
                 left: isMobile ? 12 : 20,
               }}
             />
@@ -859,6 +910,72 @@ function BuilderCanvas() {
               />
             )}
           </ReactFlow>
+
+          {/* Mobile Floating Action Dock */}
+          {isMobile && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "16px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 35,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                background: "var(--surface-card)",
+                border: "1px solid var(--border-light)",
+                borderRadius: "30px",
+                padding: "6px 12px",
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setIsPaletteOpen(true)}
+                className="btn btn-primary btn-sm"
+                style={{ borderRadius: "20px", padding: "6px 14px", fontWeight: 600, fontSize: "12px", gap: "6px" }}
+              >
+                <Plus size={14} />
+                <span>Add Step</span>
+              </button>
+
+              {selectedNode ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsInspectorOpen(true)}
+                    className="btn btn-secondary btn-sm"
+                    style={{ borderRadius: "20px", padding: "6px 12px", fontSize: "12px", gap: "5px" }}
+                  >
+                    <Sliders size={13} color="#0d9488" />
+                    <span>Config</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteNode(selectedNode.id)}
+                    className="btn btn-secondary btn-sm"
+                    style={{ borderRadius: "20px", padding: "6px 10px", color: "#dc2626" }}
+                    title="Delete step"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fitView({ duration: 300 })}
+                  className="btn btn-secondary btn-sm"
+                  style={{ borderRadius: "20px", padding: "6px 12px", fontSize: "12px", gap: "5px" }}
+                  title="Fit canvas to view"
+                >
+                  <Maximize2 size={13} />
+                  <span>Fit View</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right Node Inspector: In-flow on desktop */}
@@ -873,9 +990,9 @@ function BuilderCanvas() {
         )}
       </div>
 
-      {/* Mobile/Tablet Off-Canvas Node Palette Drawer */}
+      {/* Mobile/Tablet Off-Canvas Node Palette Bottom Sheet */}
       {!isDesktop && isPaletteOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
           <div
             onClick={() => setIsPaletteOpen(false)}
             style={{
@@ -885,17 +1002,42 @@ function BuilderCanvas() {
               animation: "fadeInOverlay 0.2s ease",
             }}
           />
-          <div style={{ position: "relative", zIndex: 101, height: "100%", animation: "slideInLeft 0.25s ease" }}>
-            <NodePalette onAddNode={handleAddNode} onClose={() => setIsPaletteOpen(false)} isOverlay />
+          <div
+            style={{
+              position: "relative",
+              zIndex: 101,
+              width: "100%",
+              maxHeight: "75vh",
+              background: "var(--sidebar-bg)",
+              borderTop: "1px solid var(--border-light)",
+              borderRadius: "16px 16px 0 0",
+              boxShadow: "0 -10px 25px rgba(0, 0, 0, 0.3)",
+              animation: "slideInUp 0.25s ease",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "var(--border-dark)", margin: "8px auto 4px auto", flexShrink: 0 }} />
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              <NodePalette
+                onAddNode={(type, name) => {
+                  handleAddNode(type, name);
+                  setIsPaletteOpen(false);
+                }}
+                onClose={() => setIsPaletteOpen(false)}
+                isOverlay
+              />
+            </div>
           </div>
         </div>
       )}
 
-      {/* Mobile/Tablet Off-Canvas Node Inspector Drawer */}
-      {!isDesktop && selectedNode && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", justifyContent: "flex-end" }}>
+      {/* Mobile/Tablet Off-Canvas Node Inspector Bottom Sheet */}
+      {!isDesktop && selectedNode && isInspectorOpen && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
           <div
-            onClick={() => setSelectedNodeId(null)}
+            onClick={() => setIsInspectorOpen(false)}
             style={{
               position: "absolute",
               inset: 0,
@@ -903,14 +1045,35 @@ function BuilderCanvas() {
               animation: "fadeInOverlay 0.2s ease",
             }}
           />
-          <div style={{ position: "relative", zIndex: 101, height: "100%", animation: "slideInRight 0.25s ease" }}>
-            <NodeInspector
-              node={selectedNode}
-              onClose={() => setSelectedNodeId(null)}
-              onUpdateNode={handleUpdateNode}
-              onDeleteNode={handleDeleteNode}
-              isOverlay
-            />
+          <div
+            style={{
+              position: "relative",
+              zIndex: 101,
+              width: "100%",
+              maxHeight: "85vh",
+              background: "var(--sidebar-bg)",
+              borderTop: "1px solid var(--border-light)",
+              borderRadius: "16px 16px 0 0",
+              boxShadow: "0 -10px 25px rgba(0, 0, 0, 0.3)",
+              animation: "slideInUp 0.25s ease",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ width: "36px", height: "4px", borderRadius: "2px", background: "var(--border-dark)", margin: "8px auto 4px auto", flexShrink: 0 }} />
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              <NodeInspector
+                node={selectedNode}
+                onClose={() => setIsInspectorOpen(false)}
+                onUpdateNode={handleUpdateNode}
+                onDeleteNode={(nodeId) => {
+                  handleDeleteNode(nodeId);
+                  setIsInspectorOpen(false);
+                }}
+                isOverlay
+              />
+            </div>
           </div>
         </div>
       )}

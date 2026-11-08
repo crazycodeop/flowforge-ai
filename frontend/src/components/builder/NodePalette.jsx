@@ -68,8 +68,8 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
     <aside
       style={{
         width: isOverlay ? "min(280px, 85vw)" : "210px",
-        background: "#ffffff",
-        borderRight: "1px solid #e2e8f0",
+        background: "var(--sidebar-bg)",
+        borderRight: "1px solid var(--sidebar-border)",
         display: "flex",
         flexDirection: "column",
         height: "100%",
@@ -108,7 +108,7 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
             style={{
               background: "transparent",
               border: "none",
-              color: "#64748b",
+              color: "var(--text-muted)",
               cursor: "pointer",
               padding: "4px",
               display: "flex",
@@ -150,8 +150,8 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
                     tabIndex={0}
                     style={{
                       padding: "8px 10px",
-                      background: "#ffffff",
-                      border: "1px solid #e2e8f0",
+                      background: "var(--surface-card)",
+                      border: "1px solid var(--border-light)",
                       borderRadius: "6px",
                       cursor: "pointer",
                       display: "flex",
@@ -161,24 +161,24 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = "#383838";
-                      e.currentTarget.style.background = "#f0fdfa";
+                      e.currentTarget.style.background = "var(--accent-primary-bg)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#262626";
-                      e.currentTarget.style.background = "#ffffff";
+                      e.currentTarget.style.borderColor = "var(--border-light)";
+                      e.currentTarget.style.background = "var(--surface-card)";
                     }}
                   >
                     <div style={{ marginTop: "2px", color: "#0d9488", flexShrink: 0 }}>
                       <Icon size={14} />
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>
+                      <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)" }}>
                         {item.name}
                       </div>
                       <div
                         style={{
                           fontSize: "10px",
-                          color: "#64748b",
+                          color: "var(--text-muted)",
                           lineHeight: "1.25",
                           marginTop: "2px",
                         }}
