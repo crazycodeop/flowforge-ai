@@ -10,6 +10,7 @@ import {
   BookOpen,
   Sparkles,
   Settings as SettingsIcon,
+  ExternalLink,
   Search,
   Plus,
   ChevronsUpDown,
@@ -55,6 +56,7 @@ export default function Shell({ children }) {
     () => typeof window !== "undefined" && window.innerWidth < 768
   );
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   // Workspace selector state
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
@@ -365,14 +367,14 @@ export default function Shell({ children }) {
               marginTop: "auto",
               marginBottom: "10px",
               padding: "12px",
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
+              background: "var(--surface-card)",
+              border: "1px solid var(--border-light)",
               borderRadius: "5px",
               position: "relative",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px" }}>
-              <span style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)" }}>
                 AI Orchestration
               </span>
               <button
@@ -529,15 +531,15 @@ export default function Shell({ children }) {
                   top: "calc(100% + 4px)",
                   left: 0,
                   width: "240px",
-                  background: "#f8fafc",
-                  border: "1px solid #cbd5e1",
+                  background: "var(--surface-card)",
+                  border: "1px solid var(--border-light)",
                   borderRadius: "6px",
                   padding: "6px",
-                  boxShadow: "0 10px 25px rgba(0, 0, 0, 0.7)",
+                  boxShadow: "0 10px 25px rgba(0, 0, 0, 0.35)",
                   zIndex: 100,
                 }}
               >
-                <div style={{ fontSize: "10px", fontWeight: 600, color: "#737373", textTransform: "uppercase", padding: "6px 8px 4px 8px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", padding: "6px 8px 4px 8px" }}>
                   Workspaces
                 </div>
                 {organizations.map((org) => {
@@ -553,10 +555,10 @@ export default function Shell({ children }) {
                         alignItems: "center",
                         justifyContent: "space-between",
                         padding: "6px 8px",
-                        background: isCurrent ? "#f1f5f9" : "transparent",
+                        background: isCurrent ? "var(--surface-subtle)" : "transparent",
                         border: "none",
                         borderRadius: "4px",
-                        color: "#0f172a",
+                        color: "var(--text-main)",
                         fontSize: "12px",
                         cursor: "pointer",
                         textAlign: "left",
@@ -573,7 +575,7 @@ export default function Shell({ children }) {
                   );
                 })}
 
-                <div style={{ borderTop: "1px solid #262626", margin: "6px 0" }} />
+                <div style={{ borderTop: "1px solid var(--border-light)", margin: "6px 0" }} />
 
                 <button
                   type="button"
@@ -747,27 +749,139 @@ export default function Shell({ children }) {
             </button>
           )}
 
-          {/* User Avatar Circle */}
-          <div
-            onClick={() => navigate("/settings")}
-            style={{
-              width: "32px",
-              height: "32px",
-              borderRadius: "50%",
-              background: "#fef08a",
-              color: "#713f12",
-              fontSize: "12px",
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              flexShrink: 0,
-              boxSizing: "border-box",
-            }}
-            title={`${userProfile.full_name || "User"} (${userProfile.email || "Account"})`}
-          >
-            {userInitials.charAt(0)}
+          {/* User Avatar Circle with Account Menu */}
+          <div style={{ position: "relative" }}>
+            <div
+              onClick={() => setUserMenuOpen((prev) => !prev)}
+              style={{
+                width: "32px",
+                height: "32px",
+                borderRadius: "50%",
+                background: "#fef08a",
+                color: "#713f12",
+                fontSize: "12px",
+                fontWeight: 700,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                flexShrink: 0,
+                boxSizing: "border-box",
+                outline: userMenuOpen ? "2px solid var(--accent-primary)" : "none",
+                outlineOffset: "1px",
+              }}
+              title={`${userProfile.full_name || "User"} (${userProfile.email || "Account"})`}
+            >
+              {userInitials.charAt(0)}
+            </div>
+
+            {userMenuOpen && (
+              <>
+                <div
+                  onClick={() => setUserMenuOpen(false)}
+                  style={{ position: "fixed", inset: 0, zIndex: 140 }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 8px)",
+                    right: 0,
+                    width: "220px",
+                    background: "var(--surface-card)",
+                    border: "1px solid var(--border-light)",
+                    borderRadius: "8px",
+                    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.35)",
+                    padding: "6px",
+                    zIndex: 150,
+                    animation: "fadeInOverlay 0.15s ease",
+                  }}
+                >
+                  <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--border-light)", marginBottom: "4px" }}>
+                    <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {userProfile.full_name || "Operator"}
+                    </div>
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {userProfile.email || "account"}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); navigate("/settings"); }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "8px 10px",
+                      borderRadius: "6px",
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--text-main)",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--surface-subtle)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  >
+                    <SettingsIcon size={14} color="var(--text-muted)" />
+                    <span>Workspace Settings</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); navigate("/portal"); }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "8px 10px",
+                      borderRadius: "6px",
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--text-main)",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--surface-subtle)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  >
+                    <ExternalLink size={14} color="var(--text-muted)" />
+                    <span>Client Portal</span>
+                  </button>
+
+                  <div style={{ borderTop: "1px solid var(--border-light)", margin: "4px 0" }} />
+
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); handleLogout(); }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "8px 10px",
+                      borderRadius: "6px",
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--status-danger-text)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--status-danger-bg)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  >
+                    <LogOut size={14} />
+                    <span>Sign Out of Studio</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Quick Sign Out Header Button */}
@@ -982,6 +1096,7 @@ export default function Shell({ children }) {
                 position: "absolute",
                 inset: 0,
                 background: "rgba(0, 0, 0, 0.75)",
+                backdropFilter: "blur(2px)",
                 animation: "fadeInOverlay 0.2s ease",
               }}
             />
@@ -993,29 +1108,143 @@ export default function Shell({ children }) {
                 top: 0,
                 left: 0,
                 bottom: 0,
-                width: "min(280px, 85vw)",
-                background: "#ffffff",
-                borderRight: "1px solid #e2e8f0",
+                width: "min(300px, 85vw)",
+                background: "var(--sidebar-bg)",
+                borderRight: "1px solid var(--sidebar-border)",
                 display: "flex",
                 flexDirection: "column",
-                padding: "16px 12px",
+                padding: "16px 14px",
                 animation: "slideInLeft 0.25s ease",
                 zIndex: 130,
+                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3)",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", padding: "0 4px" }}>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>FlowForge AI</span>
+              {/* Drawer Brand Header with FlowForge Logo & Close Button */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingBottom: "14px",
+                  borderBottom: "1px solid var(--border-light)",
+                  marginBottom: "14px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+                  <div
+                    style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "6px",
+                      background: "var(--surface-card)",
+                      border: "1px solid var(--border-light)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-main)", lineHeight: 1.2 }}>FlowForge AI</div>
+                    <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>Developer Studio</div>
+                  </div>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{ background: "transparent", border: "none", color: "#858585", cursor: "pointer", padding: "4px" }}
-                  aria-label="Close menu"
+                  className="header-icon-btn"
+                  style={{ width: "28px", height: "28px" }}
+                  aria-label="Close navigation menu"
                 >
-                  <X size={16} />
+                  <X size={15} />
                 </button>
               </div>
 
-              {renderNavLinks(true)}
+              {/* Navigation Links Scrollable Body */}
+              <div style={{ flex: 1, overflowY: "auto", margin: "0 -4px", padding: "0 4px" }}>
+                {renderNavLinks(true)}
+              </div>
+
+              {/* Drawer Footer with User Identity & Sign Out Button */}
+              <div
+                style={{
+                  borderTop: "1px solid var(--border-light)",
+                  paddingTop: "12px",
+                  marginTop: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                {/* User Card */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "8px 10px",
+                    borderRadius: "6px",
+                    background: "var(--surface-subtle)",
+                    border: "1px solid var(--border-light)",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "50%",
+                      background: "#fef08a",
+                      color: "#713f12",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {userInitials.charAt(0)}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {userProfile.full_name || "Operator"}
+                    </div>
+                    <div style={{ fontSize: "10px", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {userProfile.email || "developer"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sign Out Button (Prominent & Clear) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="btn btn-secondary"
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "7px",
+                    padding: "8px 12px",
+                    fontSize: "12px",
+                    color: "var(--status-danger-text)",
+                    borderColor: "var(--status-danger-border)",
+                    background: "var(--status-danger-bg)",
+                  }}
+                >
+                  <LogOut size={14} />
+                  <span>Sign Out of Studio</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -1058,16 +1287,16 @@ export default function Shell({ children }) {
           <div
             style={{
               width: "min(520px, 94vw)",
-              background: "#f8fafc",
-              border: "1px solid #cbd5e1",
+              background: "var(--surface-card)",
+              border: "1px solid var(--border-light)",
               borderRadius: "6px",
-              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.8)",
+              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.5)",
               overflow: "hidden",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid #222222" }}>
-              <Search size={14} color="#737373" style={{ marginRight: "10px" }} />
+            <div style={{ display: "flex", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid var(--border-light)" }}>
+              <Search size={14} color="var(--text-muted)" style={{ marginRight: "10px" }} />
               <input
                 type="text"
                 placeholder="Search workflows, runs, settings... (ESC to close)"
@@ -1078,7 +1307,7 @@ export default function Shell({ children }) {
                   flex: 1,
                   background: "transparent",
                   border: "none",
-                  color: "#0f172a",
+                  color: "var(--text-main)",
                   fontSize: "13px",
                   outline: "none",
                 }}
@@ -1115,17 +1344,15 @@ export default function Shell({ children }) {
                         background: "transparent",
                         border: "none",
                         borderRadius: "4px",
-                        color: "#a3a3a3",
+                        color: "var(--text-main)",
                         fontSize: "13px",
                         cursor: "pointer",
                         textAlign: "left",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.color = "#ffffff";
-                        e.currentTarget.style.backgroundColor = "#222222";
+                        e.currentTarget.style.backgroundColor = "var(--surface-subtle)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.color = "#a3a3a3";
                         e.currentTarget.style.backgroundColor = "transparent";
                       }}
                     >
@@ -1157,14 +1384,14 @@ export default function Shell({ children }) {
           <div
             style={{
               width: "min(440px, 94vw)",
-              background: "#f8fafc",
-              border: "1px solid #cbd5e1",
+              background: "var(--surface-card)",
+              border: "1px solid var(--border-light)",
               borderRadius: "6px",
               padding: "20px",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ fontSize: "15px", fontWeight: 700, margin: "0 0 12px 0", color: "#0f172a" }}>
+            <h3 style={{ fontSize: "15px", fontWeight: 700, margin: "0 0 12px 0", color: "var(--text-main)" }}>
               Create New Workspace
             </h3>
             <form onSubmit={handleCreateOrg}>

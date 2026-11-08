@@ -359,7 +359,7 @@ export default function PortalShell() {
                 justifyContent: "space-between",
                 alignItems: "center",
                 paddingBottom: "14px",
-                borderBottom: "1px solid #f1f5f9",
+                borderBottom: "1px solid var(--border-light)",
                 marginBottom: "14px",
               }}
             >
@@ -381,10 +381,10 @@ export default function PortalShell() {
                   FF
                 </div>
                 <div>
-                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }}>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-main)", lineHeight: 1.2 }}>
                     FlowForge
                   </div>
-                  <div style={{ fontSize: "10px", color: "#0d9488", fontWeight: 600, textTransform: "uppercase" }}>
+                  <div style={{ fontSize: "10px", color: "var(--accent-primary)", fontWeight: 600, textTransform: "uppercase" }}>
                     Client Portal
                   </div>
                 </div>
@@ -408,8 +408,8 @@ export default function PortalShell() {
             {/* User Persona Profile in Drawer */}
             <div
               style={{
-                background: "#f8fafc",
-                border: "1px solid #e2e8f0",
+                background: "var(--surface-card)",
+                border: "1px solid var(--border-light)",
                 borderRadius: "8px",
                 padding: "10px 12px",
                 marginBottom: "16px",
@@ -441,7 +441,7 @@ export default function PortalShell() {
                   style={{
                     fontSize: "12px",
                     fontWeight: 600,
-                    color: "#0f172a",
+                    color: "var(--text-main)",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -511,9 +511,9 @@ export default function PortalShell() {
                       borderRadius: "6px",
                       fontSize: "13px",
                       fontWeight: isActive ? 600 : 500,
-                      color: isActive ? "#0d9488" : "#334155",
-                      background: isActive ? "#f0fdfa" : "transparent",
-                      border: isActive ? "1px solid #99f6e4" : "1px solid transparent",
+                      color: isActive ? "var(--accent-primary)" : "var(--text-main)",
+                      background: isActive ? "var(--accent-primary-bg)" : "transparent",
+                      border: isActive ? "1px solid var(--accent-primary-border)" : "1px solid transparent",
                       textDecoration: "none",
                       transition: "all 0.15s ease",
                     }}
@@ -529,7 +529,7 @@ export default function PortalShell() {
             </div>
 
             {/* Switcher & Sign Out at Bottom of Drawer */}
-            <div style={{ marginTop: "auto", paddingTop: "14px", borderTop: "1px solid #f1f5f9", display: "flex", flexDirection: "column", gap: "6px" }}>
+            <div style={{ marginTop: "auto", paddingTop: "14px", borderTop: "1px solid var(--border-light)", display: "flex", flexDirection: "column", gap: "6px" }}>
               {(user?.role === "admin" || user?.role === "developer") && (
                 <Link
                   to="/"

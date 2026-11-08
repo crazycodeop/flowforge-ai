@@ -17,6 +17,7 @@ import {
   Eye,
   EyeOff,
   Save,
+  LogOut,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useModal } from "../context/ModalContext";
@@ -693,8 +694,8 @@ export default function Settings() {
                       style={{
                         padding: "14px",
                         borderRadius: "6px",
-                        background: isSelected ? "#f0fdfa" : "transparent",
-                        border: isSelected ? "1px solid #0d9488" : "1px solid var(--border-light)",
+                        background: isSelected ? "var(--accent-primary-bg)" : "transparent",
+                        border: isSelected ? "1px solid var(--accent-primary)" : "1px solid var(--border-light)",
                         cursor: "pointer",
                         transition: "all 0.15s ease",
                         display: "flex",
@@ -714,8 +715,8 @@ export default function Settings() {
                               fontWeight: 600,
                               padding: "1px 5px",
                               borderRadius: "3px",
-                              background: isSelected ? "#0d9488" : "#f1f5f9",
-                              color: isSelected ? "#ffffff" : "#64748b",
+                              background: isSelected ? "var(--accent-primary)" : "var(--surface-subtle)",
+                              color: isSelected ? "#ffffff" : "var(--text-muted)",
                             }}
                           >
                             {prov.badge}
@@ -752,7 +753,7 @@ export default function Settings() {
 
             {/* Provider Configuration Form */}
             <form onSubmit={handleSaveAISettings} style={{ display: "flex", flexDirection: "column", gap: "14px", maxWidth: "560px", marginBottom: "20px" }}>
-              <div style={{ padding: "16px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
+              <div style={{ padding: "16px", background: "var(--surface-card)", border: "1px solid var(--border-light)", borderRadius: "6px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
                   <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)" }}>
                     Configuring: <span style={{ color: "#0d9488" }}>{currentProvDetail.name}</span>
@@ -979,30 +980,102 @@ export default function Settings() {
               </select>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--border-light)" }}>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: "13px" }}>Snap Nodes to Grid</div>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Aligns workflow step blocks cleanly to 16px grid increments.</div>
+            {/* Snap Nodes Toggle */}
+            <div
+              onClick={() => handleSaveAppearance(theme, gridStyle, !snapToGrid, showMiniMap)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "16px",
+                padding: "12px 0",
+                borderTop: "1px solid var(--border-light)",
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: "13px", color: "var(--text-main)" }}>Snap Nodes to Grid</div>
+                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px", lineHeight: 1.4, wordBreak: "break-word" }}>
+                  Aligns workflow step blocks cleanly to 16px grid increments.
+                </div>
               </div>
-              <input
-                type="checkbox"
-                checked={snapToGrid}
-                onChange={(e) => handleSaveAppearance(theme, gridStyle, e.target.checked, showMiniMap)}
-                style={{ width: "16px", height: "16px", cursor: "pointer" }}
-              />
+              <div
+                role="switch"
+                aria-checked={snapToGrid}
+                style={{
+                  width: "40px",
+                  height: "22px",
+                  borderRadius: "11px",
+                  background: snapToGrid ? "var(--accent-primary)" : "var(--surface-subtle)",
+                  border: `1px solid ${snapToGrid ? "var(--accent-primary)" : "var(--border-light)"}`,
+                  position: "relative",
+                  flexShrink: 0,
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "2px",
+                    left: snapToGrid ? "20px" : "2px",
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    background: snapToGrid ? "#ffffff" : "var(--text-muted)",
+                    transition: "left 0.2s ease, background 0.2s ease",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+                  }}
+                />
+              </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--border-light)" }}>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: "13px" }}>Show Minimap on Desktop</div>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Renders interactive radar overview in the bottom right of the canvas.</div>
+            {/* Show Minimap Toggle */}
+            <div
+              onClick={() => handleSaveAppearance(theme, gridStyle, snapToGrid, !showMiniMap)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "16px",
+                padding: "12px 0",
+                borderTop: "1px solid var(--border-light)",
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: "13px", color: "var(--text-main)" }}>Show Minimap on Desktop</div>
+                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px", lineHeight: 1.4, wordBreak: "break-word" }}>
+                  Renders interactive radar overview in the bottom right of the canvas.
+                </div>
               </div>
-              <input
-                type="checkbox"
-                checked={showMiniMap}
-                onChange={(e) => handleSaveAppearance(theme, gridStyle, snapToGrid, e.target.checked)}
-                style={{ width: "16px", height: "16px", cursor: "pointer" }}
-              />
+              <div
+                role="switch"
+                aria-checked={showMiniMap}
+                style={{
+                  width: "40px",
+                  height: "22px",
+                  borderRadius: "11px",
+                  background: showMiniMap ? "var(--accent-primary)" : "var(--surface-subtle)",
+                  border: `1px solid ${showMiniMap ? "var(--accent-primary)" : "var(--border-light)"}`,
+                  position: "relative",
+                  flexShrink: 0,
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "2px",
+                    left: showMiniMap ? "20px" : "2px",
+                    width: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    background: showMiniMap ? "#ffffff" : "var(--text-muted)",
+                    transition: "left 0.2s ease, background 0.2s ease",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1085,6 +1158,37 @@ export default function Settings() {
               </button>
             </div>
           </form>
+
+          {/* Active Session & Sign Out */}
+          <div style={{ marginTop: "32px", paddingTop: "20px", borderTop: "1px solid var(--border-light)" }}>
+            <h3 style={{ fontSize: "14px", fontWeight: 600, margin: "0 0 4px 0", color: "var(--text-main)" }}>
+              Active Session
+            </h3>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
+              Sign out of this browser session to clear your security token.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("flowforge_user");
+                window.location.href = "/login";
+              }}
+              className="btn btn-secondary btn-sm"
+              style={{
+                color: "var(--status-danger-text)",
+                borderColor: "var(--status-danger-border)",
+                background: "var(--status-danger-bg)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontWeight: 600,
+              }}
+            >
+              <LogOut size={13} />
+              <span>Sign Out of Studio</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
