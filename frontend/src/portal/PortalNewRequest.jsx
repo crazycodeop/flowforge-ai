@@ -38,6 +38,13 @@ export default function PortalNewRequest() {
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth <= 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const [submitError, setSubmitError] = useState(null);
 
   // Load available workflows
@@ -246,10 +253,10 @@ export default function PortalNewRequest() {
       </div>
 
       {/* Main Request Submission Panel */}
-      <div className="card" style={{ padding: "24px" }}>
+      <div className="card" style={{ padding: isMobile ? "16px" : "24px" }}>
         {/* Service Header Info */}
         <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "16px", marginBottom: "20px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", gap: "10px" }}>
             <div>
               <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>{formDef?.workflow_name}</div>
               <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>{formDef?.description}</div>
@@ -258,7 +265,7 @@ export default function PortalNewRequest() {
           </div>
 
           {/* Submission Mode Toggle (Structured Form vs AI Natural Language) */}
-          <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "8px", marginTop: "16px" }}>
             <button
               type="button"
               onClick={() => setActiveTab("form")}
@@ -322,8 +329,8 @@ export default function PortalNewRequest() {
               style={{ fontSize: "13px", resize: "vertical", marginBottom: "10px" }}
             />
 
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", gap: "8px" }}>
+            <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", gap: "10px" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                 <button
                   type="button"
                   onClick={() =>
@@ -355,7 +362,7 @@ export default function PortalNewRequest() {
                 onClick={handleParseNL}
                 disabled={nlParsing || !nlPrompt.trim()}
                 className="btn btn-sm btn-primary"
-                style={{ gap: "6px" }}
+                style={{ gap: "6px", width: isMobile ? "100%" : "auto", justifyContent: "center" }}
               >
                 {nlParsing ? <Sparkles size={13} className="spin" /> : <Sparkles size={13} />}
                 <span>{nlParsing ? "Extracting..." : "Analyze & Extract Fields"}</span>
@@ -517,22 +524,23 @@ export default function PortalNewRequest() {
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
+              flexDirection: isMobile ? "column-reverse" : "row",
+              alignItems: "stretch",
+              justifyContent: isMobile ? "stretch" : "flex-end",
               gap: "12px",
               borderTop: "1px solid #f1f5f9",
               paddingTop: "16px",
               marginTop: "8px",
             }}
           >
-            <Link to="/portal" className="btn btn-secondary">
+            <Link to="/portal" className="btn btn-secondary" style={{ textAlign: "center" }}>
               Cancel
             </Link>
             <button
               type="submit"
               disabled={submitting}
               className="btn btn-primary"
-              style={{ minWidth: "160px", gap: "8px" }}
+              style={{ minWidth: isMobile ? "100%" : "160px", gap: "8px", justifyContent: "center" }}
             >
               {submitting ? (
                 <Sparkles size={14} className="spin" />

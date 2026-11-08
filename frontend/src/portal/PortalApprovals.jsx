@@ -31,6 +31,13 @@ export default function PortalApprovals() {
   const [decisionModal, setDecisionModal] = useState(null); // { approval, decision: "APPROVED" | "REJECTED", comment: "" }
   const [submitting, setSubmitting] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth <= 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const loadApprovals = async () => {
     try {
@@ -74,7 +81,7 @@ export default function PortalApprovals() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", gap: "12px" }}>
         <div>
           <div style={{ fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>Pending Human Approvals</div>
           <div style={{ fontSize: "13px", color: "#64748b" }}>
@@ -85,7 +92,7 @@ export default function PortalApprovals() {
           type="button"
           onClick={loadApprovals}
           className="btn btn-secondary btn-sm"
-          style={{ gap: "6px" }}
+          style={{ gap: "6px", width: isMobile ? "100%" : "auto", justifyContent: "center" }}
         >
           <RefreshCw size={13} className={loading ? "spin" : ""} />
           <span>Refresh Queue</span>
@@ -136,12 +143,12 @@ export default function PortalApprovals() {
                 key={app.id}
                 className="card"
                 style={{
-                  padding: "20px 24px",
+                  padding: isMobile ? "14px 14px" : "20px 24px",
                   borderLeft: "4px solid #d97706",
                   boxShadow: "0 2px 6px rgba(0, 0, 0, 0.04)",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "14px" }}>
+                <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "flex-start", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", gap: "10px", marginBottom: "14px" }}>
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <span className="badge badge-warning">Required Role: {app.required_role.toUpperCase()}</span>
@@ -177,7 +184,7 @@ export default function PortalApprovals() {
                     padding: "14px 16px",
                     marginBottom: "16px",
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                    gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(200px, 1fr))",
                     gap: "12px",
                     fontSize: "12px",
                   }}
@@ -249,7 +256,7 @@ export default function PortalApprovals() {
                             <span>Authorized as <strong>{currentUser?.full_name?.split("(")[0]?.trim() || "Operations Manager"} (MANAGER)</strong>: You have approval authority for this gate.</span>
                           </div>
 
-                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "stretch", width: isMobile ? "100%" : "auto", gap: "10px" }}>
                             <button
                               type="button"
                               onClick={() => setDecisionModal({ approval: app, decision: "REJECTED", comment: "" })}
@@ -260,6 +267,7 @@ export default function PortalApprovals() {
                                 borderColor: "#fecaca",
                                 gap: "6px",
                                 cursor: "pointer",
+                                justifyContent: "center",
                               }}
                             >
                               <XCircle size={14} />
@@ -270,7 +278,7 @@ export default function PortalApprovals() {
                               type="button"
                               onClick={() => setDecisionModal({ approval: app, decision: "APPROVED", comment: "" })}
                               className="btn btn-sm btn-primary"
-                              style={{ gap: "6px", cursor: "pointer" }}
+                              style={{ gap: "6px", cursor: "pointer", justifyContent: "center" }}
                             >
                               <CheckCircle2 size={14} />
                               <span>Authorize Payout</span>

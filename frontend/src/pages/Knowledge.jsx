@@ -251,7 +251,7 @@ export default function Knowledge() {
             fontSize: "12px",
             marginBottom: "20px",
             background: statusMessage.type === "success" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-            color: statusMessage.type === "success" ? "#34d399" : "#f87171",
+            color: statusMessage.type === "success" ? "#047857" : "#b91c1c",
             border: statusMessage.type === "success" ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(239, 68, 68, 0.25)",
           }}
         >
@@ -261,7 +261,7 @@ export default function Knowledge() {
       )}
 
       {/* Main Grid: Collections Sidebar + Document Explorer */}
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: "20px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", gap: "20px" }}>
         {/* Collections List */}
         <div className="card" style={{ padding: "16px", height: "fit-content" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>

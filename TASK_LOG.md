@@ -29,6 +29,32 @@
 - [x] **Milestone 24: AI Provider Multi-Env Credential Auto-Persistence & Cleaned Architecture**
 - [x] **Milestone 25: Auth Session Stability & Trailing-Slash Redirect Loop Resolution**
 - [x] **Milestone 26: Dual Workflow Seeding (Automated vs. Human-in-the-Loop) & Knowledge Base Data**
+- [x] **Milestone 31: Full Mobile Responsiveness & Touch UX Hardening (320px–768px)**
+  - **Identified Problems**:
+    1. Navigation and topbars across FlowForge Studio and FlowForge Client Portal were crowded and caused horizontal page overflow on mobile devices (<= 400px viewports).
+    2. Sidebars were fixed-width on small screens without a slide-over mobile drawer navigation pattern.
+    3. Action buttons, search bars, service cards, and metric grids had rigid horizontal layouts that squeezed and clipped on touchscreens.
+    4. Touch targets on interactive buttons were below the mobile accessibility minimum (< 38px).
+  - **Solutions & Implementations**:
+    1. **Global Responsive Design System (`frontend/src/index.css`)**:
+       - Added media queries for mobile (`max-width: 768px`) and compact devices (`max-width: 480px`).
+       - Enforced safe-area insets (`env(safe-area-inset-*)`), smooth touch scroll wrappers (`.table-container`), and iOS auto-zoom prevention (`font-size: 14px !important` on inputs).
+    2. **Portal Mobile Shell & Drawer (`frontend/src/portal/PortalShell.jsx`)**:
+       - Added mobile hamburger menu with sliding backdrop navigation drawer (`mobileMenuOpen`).
+       - Responsive top header displaying user persona avatar, workspace identity, and drawer toggle.
+       - Mobile drawer includes user profile card, navigation links, quick links to Studio, and sign-out.
+    3. **Portal Pages Overhaul (`PortalDashboard.jsx`, `PortalNewRequest.jsx`, `PortalRequests.jsx`, `PortalRequestDetail.jsx`, `PortalApprovals.jsx`)**:
+       - Dashboards stack metric cards into 2-column or 1-column layouts with full-width primary action banners.
+       - Request creation form supports stacked tabs, wrapping sample prompt chips, and full-width touch submit buttons.
+       - Approvals page features responsive cards, wrapping evidence grids, and full-width touch buttons.
+    4. **Studio Shell & Pages (`Shell.jsx`, `Overview.jsx`, `Approvals.jsx`, `Knowledge.jsx`, `Login.jsx`, `PortalLogin.jsx`)**:
+       - Icon-only header controls on mobile viewports for search and workflow creation.
+       - Responsive padding via `clamp()` and auto-fit grid columns.
+  - **Verification**:
+    - Vitest unit tests: 2/2 passed (`src/App.test.jsx`).
+    - Vite production build: built successfully in 4.51s with 0 errors.
+    - Pytest backend test suite: 62 passed in 19.93s.
+
 - [x] **Milestone 30: Variable Resolution Engine Traversal Fix & Resolution Receipt Hardening**
   - **Identified Issues**:
     1. Login validation error ("Input should be a valid string, Field required") triggered when stale demo persona or OAuth credentials passed invalid bodies.

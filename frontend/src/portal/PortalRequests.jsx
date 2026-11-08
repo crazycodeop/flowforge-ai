@@ -18,6 +18,13 @@ export default function PortalRequests() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth <= 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const loadRequests = async () => {
     try {
@@ -53,14 +60,14 @@ export default function PortalRequests() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", gap: "12px" }}>
         <div>
           <div style={{ fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>My Inquiries & Requests</div>
           <div style={{ fontSize: "13px", color: "#64748b" }}>
             Track real-time progress, review AI triage stages, and inspect verified resolution receipts.
           </div>
         </div>
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", width: isMobile ? "100%" : "auto" }}>
           <button
             type="button"
             onClick={loadRequests}
@@ -111,7 +118,7 @@ export default function PortalRequests() {
           </button>
         </div>
 
-        <div style={{ position: "relative", width: "260px" }}>
+        <div style={{ position: "relative", width: isMobile ? "100%" : "260px" }}>
           <Search size={14} color="#94a3b8" style={{ position: "absolute", left: "10px", top: "10px" }} />
           <input
             type="text"

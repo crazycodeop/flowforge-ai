@@ -19,6 +19,9 @@ export default function PortalDashboard() {
   const [requests, setRequests] = useState([]);
   const [pendingApprovals, setPendingApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < 768
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -42,8 +45,12 @@ export default function PortalDashboard() {
       }
     }
     loadData();
+
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
     return () => {
       isMounted = false;
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -51,25 +58,27 @@ export default function PortalDashboard() {
   const processingCount = requests.filter((r) => r.status === "RUNNING" || r.status === "PENDING").length;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "16px" : "24px" }}>
       {/* Hero Welcome Banner */}
       <div
         style={{
           background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)",
           borderRadius: "8px",
-          padding: "24px 28px",
+          padding: isMobile ? "18px 16px" : "24px 28px",
           color: "#ffffff",
           display: "flex",
-          alignItems: "center",
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "stretch" : "center",
           justifyContent: "space-between",
+          gap: isMobile ? "14px" : "20px",
           boxShadow: "0 4px 12px rgba(13, 148, 136, 0.15)",
         }}
       >
         <div>
-          <div style={{ fontSize: "20px", fontWeight: 700, marginBottom: "4px" }}>
+          <div style={{ fontSize: isMobile ? "18px" : "20px", fontWeight: 700, marginBottom: "4px" }}>
             Welcome to the FlowForge Client Portal
           </div>
-          <div style={{ fontSize: "13px", opacity: 0.9, maxWidth: "600px" }}>
+          <div style={{ fontSize: isMobile ? "12px" : "13px", opacity: 0.9, maxWidth: "600px", lineHeight: 1.4 }}>
             Submit business inquiries, trigger AI-powered automated resolutions, track processing statuses, and review compliance approvals without technical complexity.
           </div>
         </div>
@@ -80,10 +89,13 @@ export default function PortalDashboard() {
             background: "#ffffff",
             color: "#0f766e",
             fontWeight: 600,
-            padding: "8px 16px",
+            padding: isMobile ? "10px 16px" : "8px 16px",
             border: "none",
             gap: "8px",
             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+            justifyContent: "center",
+            width: isMobile ? "100%" : "auto",
+            flexShrink: 0,
           }}
         >
           <PlusCircle size={16} />
@@ -95,58 +107,58 @@ export default function PortalDashboard() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "16px",
+          gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: isMobile ? "10px" : "16px",
         }}
       >
-        <div className="card" style={{ padding: "16px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "8px" }}>
-            <span style={{ fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>Active Requests</span>
-            <Clock size={16} color="#0284c7" />
+        <div className="card" style={{ padding: isMobile ? "12px 14px" : "16px 20px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "6px" }}>
+            <span style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, textTransform: "uppercase" }}>Active Requests</span>
+            <Clock size={15} color="#0284c7" />
           </div>
-          <div style={{ fontSize: "26px", fontWeight: 700, color: "#0f172a" }}>{processingCount}</div>
-          <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>In flight or awaiting dispatch</div>
+          <div style={{ fontSize: isMobile ? "22px" : "26px", fontWeight: 700, color: "#0f172a" }}>{processingCount}</div>
+          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>In flight / queued</div>
         </div>
 
-        <div className="card" style={{ padding: "16px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "8px" }}>
-            <span style={{ fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>Pending Approvals</span>
-            <ShieldCheck size={16} color="#d97706" />
+        <div className="card" style={{ padding: isMobile ? "12px 14px" : "16px 20px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "6px" }}>
+            <span style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, textTransform: "uppercase" }}>Approvals</span>
+            <ShieldCheck size={15} color="#d97706" />
           </div>
-          <div style={{ fontSize: "26px", fontWeight: 700, color: "#d97706" }}>{pendingApprovals.length}</div>
-          <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>Awaiting human authorization</div>
+          <div style={{ fontSize: isMobile ? "22px" : "26px", fontWeight: 700, color: "#d97706" }}>{pendingApprovals.length}</div>
+          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Awaiting review</div>
         </div>
 
-        <div className="card" style={{ padding: "16px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "8px" }}>
-            <span style={{ fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>Completed Requests</span>
-            <CheckCircle2 size={16} color="#059669" />
+        <div className="card" style={{ padding: isMobile ? "12px 14px" : "16px 20px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "6px" }}>
+            <span style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, textTransform: "uppercase" }}>Completed</span>
+            <CheckCircle2 size={15} color="#059669" />
           </div>
-          <div style={{ fontSize: "26px", fontWeight: 700, color: "#059669" }}>{completedCount}</div>
-          <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>Successfully resolved</div>
+          <div style={{ fontSize: isMobile ? "22px" : "26px", fontWeight: 700, color: "#059669" }}>{completedCount}</div>
+          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Resolved</div>
         </div>
 
-        <div className="card" style={{ padding: "16px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "8px" }}>
-            <span style={{ fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>Avg Resolution Time</span>
-            <Sparkles size={16} color="#0d9488" />
+        <div className="card" style={{ padding: isMobile ? "12px 14px" : "16px 20px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "6px" }}>
+            <span style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, textTransform: "uppercase" }}>Avg SLA Time</span>
+            <Sparkles size={15} color="#0d9488" />
           </div>
-          <div style={{ fontSize: "26px", fontWeight: 700, color: "#0f172a" }}>18.4s</div>
-          <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>Fast deterministic & AI DAG speed</div>
+          <div style={{ fontSize: isMobile ? "22px" : "26px", fontWeight: 700, color: "#0f172a" }}>18.4s</div>
+          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Autonomous turnaround</div>
         </div>
       </div>
 
       {/* Available Automated Services Catalog */}
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-          <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>Available Automated Services</div>
+          <div style={{ fontSize: isMobile ? "15px" : "16px", fontWeight: 700, color: "#0f172a" }}>Available Automated Services</div>
           <Link to="/portal/new" style={{ fontSize: "12px", color: "#0d9488", textDecoration: "none", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
             <span>View All</span>
             <ArrowRight size={13} />
           </Link>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(clamp(260px, 100%, 340px), 1fr))", gap: "14px" }}>
           {workflows.map((wf) => {
             const isRefund = wf.name.toLowerCase().includes("refund");
             const Icon = isRefund ? Shield : Zap;
@@ -158,7 +170,7 @@ export default function PortalDashboard() {
                 key={wf.id}
                 className="card"
                 style={{
-                  padding: "20px",
+                  padding: isMobile ? "16px" : "20px",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
@@ -184,7 +196,7 @@ export default function PortalDashboard() {
                     <span className="badge badge-published">v{wf.latest_version} Published</span>
                   </div>
 
-                  <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", marginBottom: "6px" }}>
+                  <div style={{ fontSize: isMobile ? "14px" : "15px", fontWeight: 700, color: "#0f172a", marginBottom: "6px" }}>
                     {wf.name}
                   </div>
                   <div style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.4, marginBottom: "16px" }}>
@@ -192,14 +204,24 @@ export default function PortalDashboard() {
                   </div>
                 </div>
 
-                <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div
+                  style={{
+                    borderTop: "1px solid #f1f5f9",
+                    paddingTop: "12px",
+                    display: "flex",
+                    flexDirection: isMobile ? "column" : "row",
+                    alignItems: isMobile ? "stretch" : "center",
+                    justifyContent: "space-between",
+                    gap: "8px",
+                  }}
+                >
                   <span style={{ fontSize: "11px", color: "#64748b" }}>
-                    {fieldCount} input field{fieldCount !== 1 ? "s" : ""} • AI Assistant Enabled
+                    {fieldCount} input field{fieldCount !== 1 ? "s" : ""} • AI Enabled
                   </span>
                   <Link
                     to={`/portal/new/${wf.id}`}
                     className="btn btn-sm btn-primary"
-                    style={{ fontSize: "12px" }}
+                    style={{ fontSize: "12px", justifyContent: "center" }}
                   >
                     <span>Submit Request</span>
                     <ArrowRight size={12} />
@@ -218,24 +240,37 @@ export default function PortalDashboard() {
             background: "#fffbeb",
             border: "1px solid #fde68a",
             borderRadius: "6px",
-            padding: "14px 18px",
+            padding: isMobile ? "12px 14px" : "14px 18px",
             display: "flex",
-            alignItems: "center",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "stretch" : "center",
             justifyContent: "space-between",
+            gap: isMobile ? "10px" : "16px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <AlertCircle size={18} color="#d97706" />
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+            <AlertCircle size={18} color="#d97706" style={{ flexShrink: 0, marginTop: "2px" }} />
             <div>
               <div style={{ fontSize: "13px", fontWeight: 600, color: "#92400e" }}>
                 You have {pendingApprovals.length} pending approval request{pendingApprovals.length !== 1 ? "s" : ""} awaiting decision
               </div>
-              <div style={{ fontSize: "11px", color: "#b45309" }}>
+              <div style={{ fontSize: "11px", color: "#b45309", marginTop: "2px" }}>
                 Review AI-generated evidence, verify refund thresholds, and authorize payouts.
               </div>
             </div>
           </div>
-          <Link to="/portal/approvals" className="btn btn-sm" style={{ background: "#d97706", color: "#ffffff", border: "none" }}>
+          <Link
+            to="/portal/approvals"
+            className="btn btn-sm"
+            style={{
+              background: "#d97706",
+              color: "#ffffff",
+              border: "none",
+              justifyContent: "center",
+              width: isMobile ? "100%" : "auto",
+              flexShrink: 0,
+            }}
+          >
             <span>Review Queue</span>
             <ArrowRight size={12} />
           </Link>
@@ -245,7 +280,7 @@ export default function PortalDashboard() {
       {/* Recent Client Requests */}
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-          <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>Recent Inquiries & Requests</div>
+          <div style={{ fontSize: isMobile ? "15px" : "16px", fontWeight: 700, color: "#0f172a" }}>Recent Inquiries & Requests</div>
           <Link to="/portal/requests" style={{ fontSize: "12px", color: "#0d9488", textDecoration: "none", fontWeight: 600 }}>
             View Full History →
           </Link>
@@ -281,8 +316,8 @@ export default function PortalDashboard() {
                       <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#0d9488", fontWeight: 600 }}>
                         {r.id.slice(0, 8)}...
                       </td>
-                      <td style={{ fontWeight: 600, color: "#0f172a" }}>{r.workflow_name}</td>
-                      <td style={{ color: "#64748b", maxWidth: "340px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <td style={{ fontWeight: 600, color: "#0f172a", whiteSpace: "nowrap" }}>{r.workflow_name}</td>
+                      <td style={{ color: "#64748b", maxWidth: isMobile ? "180px" : "340px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {r.summary_preview || "Processing request..."}
                       </td>
                       <td>
@@ -293,16 +328,16 @@ export default function PortalDashboard() {
                           <span className="badge badge-primary">⟳ Processing</span>
                         )}
                       </td>
-                      <td style={{ color: "#64748b", fontSize: "12px" }}>
+                      <td style={{ color: "#64748b", fontSize: "12px", whiteSpace: "nowrap" }}>
                         {new Date(r.submitted_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </td>
                       <td>
                         <Link
                           to={`/portal/requests/${r.id}`}
                           className="btn btn-sm btn-secondary"
-                          style={{ fontSize: "11px", gap: "4px" }}
+                          style={{ fontSize: "11px", gap: "4px", whiteSpace: "nowrap" }}
                         >
-                          <span>Track Status</span>
+                          <span>Track</span>
                           <ArrowRight size={11} />
                         </Link>
                       </td>

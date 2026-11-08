@@ -549,7 +549,7 @@ export default function Shell({ children }) {
                         alignItems: "center",
                         justifyContent: "space-between",
                         padding: "6px 8px",
-                        background: isCurrent ? "#222222" : "transparent",
+                        background: isCurrent ? "#f1f5f9" : "transparent",
                         border: "none",
                         borderRadius: "4px",
                         color: "#0f172a",
@@ -623,14 +623,15 @@ export default function Shell({ children }) {
               display: "flex",
               alignItems: "center",
               gap: "7px",
-              padding: "4px 8px",
-              background: "#ffffff",
-              border: "1px solid #262626",
+              padding: isMobile ? "6px" : "4px 8px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
               borderRadius: "4px",
-              color: "#858585",
+              color: "#64748b",
               fontSize: "12px",
               cursor: "pointer",
             }}
+            title="Search (⌘K)"
           >
             <Search size={13} />
             <span className="desktop-only">Search</span>
@@ -639,9 +640,10 @@ export default function Shell({ children }) {
               style={{
                 fontSize: "10px",
                 padding: "1px 4px",
-                background: "#222222",
+                background: "#f1f5f9",
                 borderRadius: "3px",
-                color: "#a3a3a3",
+                color: "#64748b",
+                border: "1px solid #e2e8f0",
               }}
             >
               ⌘ K
@@ -653,10 +655,11 @@ export default function Shell({ children }) {
             type="button"
             onClick={() => navigate("/workflows?action=new")}
             className="btn btn-secondary btn-sm"
-            style={{ fontWeight: 600, padding: "4px 10px" }}
+            style={{ fontWeight: 600, padding: isMobile ? "6px 8px" : "4px 10px", display: "flex", alignItems: "center", gap: "5px" }}
+            title="New Workflow"
           >
             <Plus size={13} />
-            <span>New Workflow</span>
+            {!isMobile && <span>New Workflow</span>}
           </button>
 
           {/* Blueprints Link */}
@@ -676,24 +679,26 @@ export default function Shell({ children }) {
           </Link>
 
           {/* System Diagnostics Button */}
-          <button
-            type="button"
-            onClick={() => navigate("/system")}
-            aria-label="System Diagnostics"
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "#858585",
-              cursor: "pointer",
-              padding: "4px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            title="System Diagnostics & Readiness"
-          >
-            <HelpCircle size={15} />
-          </button>
+          {!isMobile && (
+            <button
+              type="button"
+              onClick={() => navigate("/system")}
+              aria-label="System Diagnostics"
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#858585",
+                cursor: "pointer",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              title="System Diagnostics & Readiness"
+            >
+              <HelpCircle size={15} />
+            </button>
+          )}
 
           {/* User Avatar Circle */}
           <div
@@ -973,7 +978,7 @@ export default function Shell({ children }) {
             height: "100%",
             overflowY: "auto",
             overflowX: "hidden",
-            padding: isBuilder ? "0px" : "clamp(18px, 2.5vw, 32px) clamp(16px, 3.5vw, 42px)",
+            padding: isBuilder ? "0px" : isMobile ? "14px 12px 24px 12px" : "clamp(18px, 2.5vw, 32px) clamp(16px, 3.5vw, 42px)",
             background: "#ffffff",
             position: "relative",
           }}

@@ -20,6 +20,13 @@ export default function PortalRequestDetail() {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth <= 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const fetchDetail = async () => {
     try {
@@ -68,7 +75,7 @@ export default function PortalRequestDetail() {
   const isFailed = detail.status === "FAILED";
 
   return (
-    <div style={{ maxWidth: "860px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "24px" }}>
+    <div style={{ maxWidth: "860px", margin: "0 auto", display: "flex", flexDirection: "column", gap: isMobile ? "16px" : "24px" }}>
       {/* Top Header */}
       <div>
         <Link
@@ -87,9 +94,9 @@ export default function PortalRequestDetail() {
           <span>Back to All Requests</span>
         </Link>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", gap: "12px" }}>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
               <div style={{ fontSize: "22px", fontWeight: 700, color: "#0f172a" }}>{detail.workflow_name}</div>
               {isCompleted && <span className="badge badge-success">✓ Completed</span>}
               {isPaused && <span className="badge badge-warning">⏸ Awaiting Approval</span>}
@@ -117,7 +124,7 @@ export default function PortalRequestDetail() {
       </div>
 
       {/* Simplified Business Execution Timeline */}
-      <div className="card" style={{ padding: "24px", background: "#ffffff", border: "1px solid #e2e8f0" }}>
+      <div className="card" style={{ padding: isMobile ? "16px" : "24px", background: "#ffffff", border: "1px solid #e2e8f0" }}>
         <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", marginBottom: "16px" }}>
           Execution Progress & Stage Timeline
         </div>
@@ -339,7 +346,7 @@ export default function PortalRequestDetail() {
                     borderRadius: "6px",
                     padding: "16px",
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                    gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(200px, 1fr))",
                     gap: "14px",
                     fontSize: "12px",
                     marginBottom: "16px",
@@ -375,6 +382,7 @@ export default function PortalRequestDetail() {
                         border: "1px solid #e2e8f0",
                         fontWeight: 600,
                         color: "#0d9488",
+                        wordBreak: "break-all",
                       }}
                     >
                       {receiptCode}
@@ -423,11 +431,11 @@ export default function PortalRequestDetail() {
       )}
 
       {/* Submitted Request Information Card */}
-      <div className="card" style={{ padding: "20px 24px", background: "#ffffff", border: "1px solid #e2e8f0" }}>
+      <div className="card" style={{ padding: isMobile ? "16px" : "20px 24px", background: "#ffffff", border: "1px solid #e2e8f0" }}>
         <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", marginBottom: "12px" }}>
           Customer Submission Parameters
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
           {Object.entries(detail.inputs || {}).map(([key, val]) => (
             <div key={key} style={{ fontSize: "12px" }}>
               <div style={{ color: "#64748b", textTransform: "capitalize", fontWeight: 500 }}>

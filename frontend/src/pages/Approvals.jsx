@@ -130,9 +130,9 @@ export default function Approvals() {
                     fontSize: "12px",
                     padding: "10px 12px",
                     background: "#f0fdfa",
-                    border: "1px solid #e2e8f0",
+                    border: "1px solid #99f6e4",
                     borderRadius: "4px",
-                    color: "#cbd5e1",
+                    color: "#0f766e",
                     marginBottom: "14px",
                   }}
                 >

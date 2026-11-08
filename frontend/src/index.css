@@ -578,3 +578,122 @@ body {
   padding: 6px 12px;
   border-radius: 0 4px 4px 0;
 }
+
+/* ========================================================================== */
+/* Mobile & Small Device Comprehensive Responsive System                     */
+/* ========================================================================== */
+
+@media (max-width: 768px) {
+  /* Safe-area padding for mobile notches */
+  body {
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+
+  /* Compact button & touch sizing */
+  .btn {
+    min-height: 38px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .btn-sm {
+    min-height: 32px;
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  /* Form inputs touch targets */
+  .input, select, textarea {
+    min-height: 38px;
+    font-size: 14px !important; /* Prevents auto-zoom on iOS Safari */
+  }
+
+  /* Table density & smooth horizontal swipe */
+  .table-container {
+    border-radius: 6px;
+    margin: 0 -2px;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  /* Filter pills touch scroll */
+  .filter-pills-container {
+    width: 100%;
+    padding: 4px;
+    gap: 4px;
+    scrollbar-width: none; /* Firefox */
+  }
+  .filter-pills-container::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+
+  .filter-pill {
+    padding: 6px 12px;
+    min-height: 32px;
+    font-size: 12px;
+  }
+
+  /* Card padding on mobile */
+  .card {
+    padding: 14px 16px !important;
+  }
+
+  /* Responsive utility classes */
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .mobile-full-width {
+    width: 100% !important;
+  }
+
+  .mobile-wrap {
+    flex-wrap: wrap !important;
+  }
+
+  .mobile-text-left {
+    text-align: left !important;
+  }
+
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .show-on-mobile {
+    display: block !important;
+  }
+
+  /* Modals on mobile devices */
+  .modal-dialog,
+  [role="dialog"] {
+    width: min(480px, 94vw) !important;
+    max-height: 88vh !important;
+    margin: auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra compact viewports (iPhone SE / Galaxy Fold) */
+  .btn {
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .table th,
+  .table td {
+    padding: 7px 8px;
+    font-size: 11px;
+  }
+
+  .filter-pill {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}

@@ -67,7 +67,7 @@ export default function PortalLogin() {
           background: "#ffffff",
           border: "1px solid #e2e8f0",
           borderRadius: "12px",
-          padding: "36px 32px",
+          padding: "clamp(24px, 5vw, 36px) clamp(16px, 5vw, 32px)",
           boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.02)",
         }}
       >
