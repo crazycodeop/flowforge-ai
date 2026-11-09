@@ -86,8 +86,8 @@ export default function PortalDashboard() {
           to="/portal/new"
           className="btn"
           style={{
-            background: "#ffffff",
-            color: "#0f766e",
+            background: "var(--surface-card)",
+            color: "var(--accent-primary)",
             fontWeight: 600,
             padding: isMobile ? "10px 16px" : "8px 16px",
             border: "none",
@@ -112,47 +112,47 @@ export default function PortalDashboard() {
         }}
       >
         <div className="card" style={{ padding: isMobile ? "12px 14px" : "16px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "6px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "var(--text-muted)", marginBottom: "6px" }}>
             <span style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, textTransform: "uppercase" }}>Active Requests</span>
             <Clock size={15} color="#0284c7" />
           </div>
-          <div style={{ fontSize: isMobile ? "22px" : "26px", fontWeight: 700, color: "#0f172a" }}>{processingCount}</div>
-          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>In flight / queued</div>
+          <div style={{ fontSize: isMobile ? "22px" : "26px", fontWeight: 700, color: "var(--text-main)" }}>{processingCount}</div>
+          <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>In flight / queued</div>
         </div>
 
         <div className="card" style={{ padding: isMobile ? "12px 14px" : "16px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "6px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "var(--text-muted)", marginBottom: "6px" }}>
             <span style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, textTransform: "uppercase" }}>Approvals</span>
             <ShieldCheck size={15} color="#d97706" />
           </div>
           <div style={{ fontSize: isMobile ? "22px" : "26px", fontWeight: 700, color: "#d97706" }}>{pendingApprovals.length}</div>
-          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Awaiting review</div>
+          <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Awaiting review</div>
         </div>
 
         <div className="card" style={{ padding: isMobile ? "12px 14px" : "16px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "6px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "var(--text-muted)", marginBottom: "6px" }}>
             <span style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, textTransform: "uppercase" }}>Completed</span>
             <CheckCircle2 size={15} color="#059669" />
           </div>
           <div style={{ fontSize: isMobile ? "22px" : "26px", fontWeight: 700, color: "#059669" }}>{completedCount}</div>
-          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Resolved</div>
+          <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Resolved</div>
         </div>
 
         <div className="card" style={{ padding: isMobile ? "12px 14px" : "16px 20px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b", marginBottom: "6px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "var(--text-muted)", marginBottom: "6px" }}>
             <span style={{ fontSize: isMobile ? "10px" : "11px", fontWeight: 600, textTransform: "uppercase" }}>Avg SLA Time</span>
             <Sparkles size={15} color="#0d9488" />
           </div>
-          <div style={{ fontSize: isMobile ? "22px" : "26px", fontWeight: 700, color: "#0f172a" }}>18.4s</div>
-          <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>Autonomous turnaround</div>
+          <div style={{ fontSize: isMobile ? "22px" : "26px", fontWeight: 700, color: "var(--text-main)" }}>18.4s</div>
+          <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Autonomous turnaround</div>
         </div>
       </div>
 
       {/* Available Automated Services Catalog */}
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-          <div style={{ fontSize: isMobile ? "15px" : "16px", fontWeight: 700, color: "#0f172a" }}>Available Automated Services</div>
-          <Link to="/portal/new" style={{ fontSize: "12px", color: "#0d9488", textDecoration: "none", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
+          <div style={{ fontSize: isMobile ? "15px" : "16px", fontWeight: 700, color: "var(--text-main)" }}>Available Automated Services</div>
+          <Link to="/portal/new" style={{ fontSize: "12px", color: "var(--accent-primary)", textDecoration: "none", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
             <span>View All</span>
             <ArrowRight size={13} />
           </Link>
@@ -184,8 +184,8 @@ export default function PortalDashboard() {
                         width: "36px",
                         height: "36px",
                         borderRadius: "8px",
-                        background: isRefund ? "#fffbeb" : "#f0fdfa",
-                        border: `1px solid ${isRefund ? "#fde68a" : "#99f6e4"}`,
+                        background: isRefund ? "var(--status-warning-bg)" : "var(--accent-primary-bg)",
+                        border: `1px solid ${isRefund ? "var(--status-warning-border)" : "var(--accent-primary-border)"}`,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -196,17 +196,17 @@ export default function PortalDashboard() {
                     <span className="badge badge-published">v{wf.latest_version} Published</span>
                   </div>
 
-                  <div style={{ fontSize: isMobile ? "14px" : "15px", fontWeight: 700, color: "#0f172a", marginBottom: "6px" }}>
+                  <div style={{ fontSize: isMobile ? "14px" : "15px", fontWeight: 700, color: "var(--text-main)", marginBottom: "6px" }}>
                     {wf.name}
                   </div>
-                  <div style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.4, marginBottom: "16px" }}>
+                  <div style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: 1.4, marginBottom: "16px" }}>
                     {wf.description}
                   </div>
                 </div>
 
                 <div
                   style={{
-                    borderTop: "1px solid #f1f5f9",
+                    borderTop: "1px solid var(--border-light)",
                     paddingTop: "12px",
                     display: "flex",
                     flexDirection: isMobile ? "column" : "row",
@@ -215,7 +215,7 @@ export default function PortalDashboard() {
                     gap: "8px",
                   }}
                 >
-                  <span style={{ fontSize: "11px", color: "#64748b" }}>
+                  <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                     {fieldCount} input field{fieldCount !== 1 ? "s" : ""} • AI Enabled
                   </span>
                   <Link
@@ -237,8 +237,8 @@ export default function PortalDashboard() {
       {pendingApprovals.length > 0 && (
         <div
           style={{
-            background: "#fffbeb",
-            border: "1px solid #fde68a",
+            background: "var(--status-warning-bg)",
+            border: "1px solid var(--status-warning-border)",
             borderRadius: "6px",
             padding: isMobile ? "12px 14px" : "14px 18px",
             display: "flex",
@@ -251,10 +251,10 @@ export default function PortalDashboard() {
           <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
             <AlertCircle size={18} color="#d97706" style={{ flexShrink: 0, marginTop: "2px" }} />
             <div>
-              <div style={{ fontSize: "13px", fontWeight: 600, color: "#92400e" }}>
+              <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--status-warning-text)" }}>
                 You have {pendingApprovals.length} pending approval request{pendingApprovals.length !== 1 ? "s" : ""} awaiting decision
               </div>
-              <div style={{ fontSize: "11px", color: "#b45309", marginTop: "2px" }}>
+              <div style={{ fontSize: "11px", color: "var(--status-warning-text)", marginTop: "2px" }}>
                 Review AI-generated evidence, verify refund thresholds, and authorize payouts.
               </div>
             </div>
@@ -280,8 +280,8 @@ export default function PortalDashboard() {
       {/* Recent Client Requests */}
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-          <div style={{ fontSize: isMobile ? "15px" : "16px", fontWeight: 700, color: "#0f172a" }}>Recent Inquiries & Requests</div>
-          <Link to="/portal/requests" style={{ fontSize: "12px", color: "#0d9488", textDecoration: "none", fontWeight: 600 }}>
+          <div style={{ fontSize: isMobile ? "15px" : "16px", fontWeight: 700, color: "var(--text-main)" }}>Recent Inquiries & Requests</div>
+          <Link to="/portal/requests" style={{ fontSize: "12px", color: "var(--accent-primary)", textDecoration: "none", fontWeight: 600 }}>
             View Full History →
           </Link>
         </div>
@@ -301,7 +301,7 @@ export default function PortalDashboard() {
             <tbody>
               {requests.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "#94a3b8" }}>
+                  <td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
                     No requests submitted yet. Click "New Request" to start your first automated workflow.
                   </td>
                 </tr>
@@ -313,11 +313,11 @@ export default function PortalDashboard() {
 
                   return (
                     <tr key={r.id}>
-                      <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#0d9488", fontWeight: 600 }}>
+                      <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--accent-primary)", fontWeight: 600 }}>
                         {r.id.slice(0, 8)}...
                       </td>
-                      <td style={{ fontWeight: 600, color: "#0f172a", whiteSpace: "nowrap" }}>{r.workflow_name}</td>
-                      <td style={{ color: "#64748b", maxWidth: isMobile ? "180px" : "340px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <td style={{ fontWeight: 600, color: "var(--text-main)", whiteSpace: "nowrap" }}>{r.workflow_name}</td>
+                      <td style={{ color: "var(--text-muted)", maxWidth: isMobile ? "180px" : "340px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {r.summary_preview || "Processing request..."}
                       </td>
                       <td>
@@ -328,7 +328,7 @@ export default function PortalDashboard() {
                           <span className="badge badge-primary">⟳ Processing</span>
                         )}
                       </td>
-                      <td style={{ color: "#64748b", fontSize: "12px", whiteSpace: "nowrap" }}>
+                      <td style={{ color: "var(--text-muted)", fontSize: "12px", whiteSpace: "nowrap" }}>
                         {new Date(r.submitted_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </td>
                       <td>

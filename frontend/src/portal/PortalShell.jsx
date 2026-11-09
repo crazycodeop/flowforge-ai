@@ -85,13 +85,13 @@ export default function PortalShell() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#f8fafc" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--main-bg)" }}>
       {/* Top Navigation Bar */}
       <header
         style={{
           height: isMobile ? "52px" : "56px",
-          background: "#ffffff",
-          borderBottom: "1px solid #e2e8f0",
+          background: "var(--topbar-bg)",
+          borderBottom: "1px solid var(--border-light)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -112,7 +112,7 @@ export default function PortalShell() {
               style={{
                 background: "transparent",
                 border: "none",
-                color: "#334155",
+                color: "var(--text-main)",
                 padding: "4px",
                 display: "flex",
                 alignItems: "center",
@@ -151,7 +151,7 @@ export default function PortalShell() {
                 style={{
                   fontWeight: 700,
                   fontSize: isMobile ? "13px" : "14px",
-                  color: "#0f172a",
+                  color: "var(--text-main)",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
                 }}
@@ -175,7 +175,7 @@ export default function PortalShell() {
               </span>
             </div>
             {!isMobile && (
-              <div style={{ fontSize: "11px", color: "#64748b" }}>
+              <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                 Self-Service AI Workflows & Approvals
               </div>
             )}
@@ -201,9 +201,9 @@ export default function PortalShell() {
                     fontWeight: 500,
                     padding: "0 12px",
                     borderRadius: "6px",
-                    color: isActive ? "#0d9488" : "#475569",
-                    background: isActive ? "#f0fdfa" : "transparent",
-                    border: isActive ? "1px solid #99f6e4" : "1px solid transparent",
+                    color: isActive ? "var(--accent-primary)" : "var(--text-secondary)",
+                    background: isActive ? "var(--accent-primary-bg)" : "transparent",
+                    border: isActive ? "1px solid var(--accent-primary-border)" : "1px solid transparent",
                     display: "flex",
                     alignItems: "center",
                     gap: "6px",
@@ -228,7 +228,7 @@ export default function PortalShell() {
                 fontSize: "12px",
                 gap: "6px",
                 borderColor: "#cbd5e1",
-                color: "#334155",
+                color: "var(--text-main)",
               }}
               title="Switch to FlowForge Studio (Developer Workflow Builder)"
             >
@@ -243,7 +243,7 @@ export default function PortalShell() {
               alignItems: "center",
               gap: "8px",
               paddingLeft: isMobile ? "0" : "8px",
-              borderLeft: isMobile ? "none" : "1px solid #e2e8f0",
+              borderLeft: isMobile ? "none" : "1px solid var(--border-light)",
             }}
           >
             <div
@@ -251,8 +251,8 @@ export default function PortalShell() {
                 width: isMobile ? "28px" : "30px",
                 height: isMobile ? "28px" : "30px",
                 borderRadius: "50%",
-                background: user?.role === "manager" ? "#f0fdfa" : "#f1f5f9",
-                border: `1px solid ${user?.role === "manager" ? "#99f6e4" : "#cbd5e1"}`,
+                background: user?.role === "manager" ? "var(--accent-primary-bg)" : "var(--surface-subtle)",
+                border: `1px solid ${user?.role === "manager" ? "var(--accent-primary-border)" : "var(--border-light)"}`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -268,7 +268,7 @@ export default function PortalShell() {
 
             {!isMobile && (
               <div style={{ fontSize: "12px" }}>
-                <div style={{ fontWeight: 600, color: "#0f172a", lineHeight: 1.2 }}>
+                <div style={{ fontWeight: 600, color: "var(--text-main)", lineHeight: 1.2 }}>
                   {user?.full_name ? user.full_name.split("(")[0].trim() : (user?.email || "Client User")}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "1px" }}>
@@ -285,7 +285,7 @@ export default function PortalShell() {
                   >
                     {user?.role || "client"}
                   </span>
-                  <span style={{ fontSize: "10px", color: "#64748b" }}>
+                  <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
                     {user?.organization_name || "Acme Corporation"}
                   </span>
                 </div>
@@ -396,7 +396,7 @@ export default function PortalShell() {
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "#64748b",
+                  color: "var(--text-muted)",
                   cursor: "pointer",
                   padding: "4px",
                 }}
@@ -423,8 +423,8 @@ export default function PortalShell() {
                   width: "32px",
                   height: "32px",
                   borderRadius: "50%",
-                  background: user?.role === "manager" ? "#f0fdfa" : "#ffffff",
-                  border: `1px solid ${user?.role === "manager" ? "#99f6e4" : "#cbd5e1"}`,
+                  background: user?.role === "manager" ? "var(--accent-primary-bg)" : "var(--surface-card)",
+                  border: `1px solid ${user?.role === "manager" ? "var(--accent-primary-border)" : "var(--border-light)"}`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -466,7 +466,7 @@ export default function PortalShell() {
                   <span
                     style={{
                       fontSize: "10px",
-                      color: "#64748b",
+                      color: "var(--text-muted)",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -486,7 +486,7 @@ export default function PortalShell() {
                   fontWeight: 700,
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
-                  color: "#94a3b8",
+                  color: "var(--text-muted)",
                   padding: "4px 8px",
                 }}
               >
@@ -541,9 +541,9 @@ export default function PortalShell() {
                     padding: "8px 10px",
                     borderRadius: "6px",
                     fontSize: "12px",
-                    color: "#0f766e",
-                    background: "#f0fdfa",
-                    border: "1px solid #99f6e4",
+                    color: "var(--accent-primary)",
+                    background: "var(--accent-primary-bg)",
+                    border: "1px solid var(--accent-primary-border)",
                     textDecoration: "none",
                     fontWeight: 600,
                   }}
@@ -594,11 +594,11 @@ export default function PortalShell() {
       {/* Footer */}
       <footer
         style={{
-          borderTop: "1px solid #e2e8f0",
+          borderTop: "1px solid var(--border-light)",
           background: "#ffffff",
           padding: isMobile ? "14px 16px" : "16px 32px",
           fontSize: "12px",
-          color: "#64748b",
+          color: "var(--text-muted)",
           display: "flex",
           flexDirection: isMobile ? "column" : "row",
           justifyContent: "space-between",

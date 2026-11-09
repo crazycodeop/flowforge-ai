@@ -1,43 +1,109 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 const ThemeContext = createContext({
   theme: "light",
+  themeMode: "system",
   toggleTheme: () => {},
+  setThemeMode: () => {},
   setTheme: () => {},
 });
 
+/**
+ * Resolves whether the system currently prefers dark mode.
+ * @returns {"light" | "dark"}
+ */
+function getSystemPreference() {
+  if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    return "dark";
+  }
+  return "light";
+}
+
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
+  // themeMode can be "light", "dark", or "system"
+  const [themeMode, setThemeModeState] = useState(() => {
     try {
-      const saved = localStorage.getItem("ff_theme");
-      if (saved === "dark" || saved === "light") {
+      const saved = localStorage.getItem("ff_theme_mode") || localStorage.getItem("ff_theme");
+      if (saved === "dark" || saved === "light" || saved === "system") {
         return saved;
-      }
-      if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        return "dark";
       }
     } catch {
       // fallback
     }
-    return "light";
+    return "system";
   });
 
+  // Computed theme: "light" | "dark"
+  const [theme, setTheme] = useState(() => {
+    if (themeMode === "system") {
+      return getSystemPreference();
+    }
+    return themeMode;
+  });
+
+  // Apply theme to DOM and persist
+  const applyTheme = useCallback((resolvedTheme) => {
+    setTheme(resolvedTheme);
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", resolvedTheme);
+      document.body.setAttribute("data-theme", resolvedTheme);
+      // Ensure color-scheme CSS property matches for native scrollbars and controls
+      document.documentElement.style.colorScheme = resolvedTheme;
+    }
+  }, []);
+
+  // Update when themeMode changes
   useEffect(() => {
     try {
-      document.documentElement.setAttribute("data-theme", theme);
-      document.body.setAttribute("data-theme", theme);
-      localStorage.setItem("ff_theme", theme);
+      localStorage.setItem("ff_theme_mode", themeMode);
+      localStorage.setItem("ff_theme", themeMode === "system" ? getSystemPreference() : themeMode);
     } catch {
-      // ignore
+      // ignore storage errors
     }
-  }, [theme]);
+
+    if (themeMode === "system") {
+      applyTheme(getSystemPreference());
+    } else {
+      applyTheme(themeMode);
+    }
+  }, [themeMode, applyTheme]);
+
+  // Listen for OS system theme changes
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e) => {
+      if (themeMode === "system") {
+        applyTheme(e.matches ? "dark" : "light");
+      }
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleChange);
+      return () => mediaQuery.removeListener(handleChange);
+    }
+  }, [themeMode, applyTheme]);
+
+  const setThemeMode = (mode) => {
+    if (mode === "light" || mode === "dark" || mode === "system") {
+      setThemeModeState(mode);
+    }
+  };
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    setThemeModeState((prev) => {
+      if (prev === "light") return "dark";
+      if (prev === "dark") return "system";
+      return "light";
+    });
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, themeMode, toggleTheme, setThemeMode, setTheme: setThemeMode }}>
       {children}
     </ThemeContext.Provider>
   );

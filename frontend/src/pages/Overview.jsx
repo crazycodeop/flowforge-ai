@@ -88,13 +88,13 @@ export default function Overview() {
               gap: "6px",
               background: "transparent",
               border: "none",
-              color: "#64748b",
+              color: "var(--text-muted)",
               fontSize: "12px",
               cursor: "pointer",
               transition: "color 0.15s ease",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#0f172a")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-main)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
           >
             <UserPlus size={14} />
             <span>Invite your team</span>
@@ -106,8 +106,8 @@ export default function Overview() {
       {showBanner && (
         <div
           style={{
-            background: "#ffffff",
-            border: "1px solid #e2e8f0",
+            background: "var(--surface-card)",
+            border: "1px solid var(--border-light)",
             borderRadius: "8px",
             padding: "clamp(16px, 3vw, 24px) clamp(16px, 3.5vw, 28px)",
             display: "flex",
@@ -126,22 +126,22 @@ export default function Overview() {
                   width: "26px",
                   height: "26px",
                   borderRadius: "6px",
-                  background: "#f0fdfa",
-                  border: "1px solid #99f6e4",
+                  background: "var(--accent-primary-bg)",
+                  border: "1px solid var(--accent-primary-border)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#0d9488",
+                  color: "var(--accent-primary)",
                   flexShrink: 0,
                 }}
               >
                 <Workflow size={15} />
               </div>
-              <h2 style={{ fontSize: "16px", fontWeight: 600, color: "#0f172a", margin: 0 }}>
+              <h2 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-main)", margin: 0 }}>
                 Get organized with Workflows
               </h2>
             </div>
-            <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 16px 0", lineHeight: 1.5 }}>
+            <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "0 0 16px 0", lineHeight: 1.5 }}>
               Orchestrate multi-step AI pipelines with deterministic code execution, vector knowledge grounding, human-in-the-loop review gates, and automated benchmark evaluations.
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
@@ -158,7 +158,7 @@ export default function Overview() {
                 to="/use-cases"
                 style={{
                   fontSize: "12px",
-                  color: "#0d9488",
+                  color: "var(--accent-primary)",
                   textDecoration: "none",
                   fontWeight: 600,
                   display: "inline-flex",
@@ -176,8 +176,8 @@ export default function Overview() {
           <div
             style={{
               display: "none",
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
+              background: "var(--surface-subtle)",
+              border: "1px solid var(--border-light)",
               borderRadius: "6px",
               padding: "16px 20px",
               minWidth: "280px",
@@ -186,15 +186,15 @@ export default function Overview() {
             }}
             className="overview-preview-box"
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #e2e8f0", paddingBottom: "6px" }}>
-              <span style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>Pipeline Engine</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border-light)", paddingBottom: "6px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase" }}>Pipeline Engine</span>
               <span className="status-dot status-dot-active" />
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#0f172a", fontWeight: 500 }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#0d9488" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--text-main)", fontWeight: 500 }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-primary)" }} />
               <span>Customer Support Triage</span>
             </div>
-            <div style={{ display: "flex", gap: "6px", fontSize: "10px", color: "#64748b" }}>
+            <div style={{ display: "flex", gap: "6px", fontSize: "10px", color: "var(--text-muted)" }}>
               <span>Gemini AI</span> &bull; <span>PostgreSQL</span> &bull; <span>Celery</span>
             </div>
           </div>
@@ -239,7 +239,7 @@ export default function Overview() {
             <div style={{ position: "relative", minWidth: "min(260px, 100%)", flex: "1 1 200px" }}>
               <Search
                 size={14}
-                color="#94a3b8"
+                color="var(--text-muted)"
                 style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
               />
               <input
@@ -258,7 +258,7 @@ export default function Overview() {
         <div
           className="table-container"
           style={{
-            background: "#ffffff",
+            background: "var(--surface-card)",
             border: "1px solid var(--border-light)",
             borderRadius: "6px",
           }}
@@ -313,19 +313,19 @@ export default function Overview() {
                               width: "24px",
                               height: "24px",
                               borderRadius: "5px",
-                              background: "#f0fdfa",
-                              border: "1px solid #ccfbf1",
+                              background: "var(--accent-primary-bg)",
+                              border: "1px solid var(--accent-primary-border)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              color: "#0d9488",
+                              color: "var(--accent-primary)",
                               flexShrink: 0,
                             }}
                           >
                             <Globe size={13} />
                           </div>
                           <div>
-                            <span style={{ fontWeight: 600, color: "#0f172a", textDecoration: "none" }}>
+                            <span style={{ fontWeight: 600, color: "var(--text-main)", textDecoration: "none" }}>
                               {wf.name}
                             </span>
                             {wf.description && (
@@ -369,11 +369,11 @@ export default function Overview() {
                         <span
                           style={{
                             padding: "2px 8px",
-                            background: "#f1f5f9",
-                            border: "1px solid #e2e8f0",
+                            background: "var(--surface-subtle)",
+                            border: "1px solid var(--border-light)",
                             borderRadius: "4px",
                             fontSize: "11px",
-                            color: "#475569",
+                            color: "var(--text-secondary)",
                             fontFamily: "var(--font-mono)",
                             fontWeight: 500,
                           }}

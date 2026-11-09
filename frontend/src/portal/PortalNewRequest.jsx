@@ -192,7 +192,7 @@ export default function PortalNewRequest() {
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              color: "#64748b",
+              color: "var(--text-muted)",
               fontSize: "12px",
               textDecoration: "none",
               marginBottom: "6px",
@@ -201,8 +201,8 @@ export default function PortalNewRequest() {
             <ArrowLeft size={13} />
             <span>Back to Dashboard</span>
           </Link>
-          <div style={{ fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>Submit a Business Request</div>
-          <div style={{ fontSize: "13px", color: "#64748b" }}>
+          <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-main)" }}>Submit a Business Request</div>
+          <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
             Select an automated workflow service and provide your details via form or natural language.
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function PortalNewRequest() {
 
       {/* Service Selector Cards */}
       <div>
-        <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155", display: "block", marginBottom: "8px" }}>
+        <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)", display: "block", marginBottom: "8px" }}>
           Select Automated Service:
         </label>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "12px" }}>
@@ -227,8 +227,8 @@ export default function PortalNewRequest() {
                   textAlign: "left",
                   padding: "14px 16px",
                   borderRadius: "6px",
-                  border: isSelected ? "2px solid #0d9488" : "1px solid #cbd5e1",
-                  background: isSelected ? "#f0fdfa" : "#ffffff",
+                  border: isSelected ? "2px solid var(--accent-primary)" : "1px solid var(--border-light)",
+                  background: isSelected ? "var(--accent-primary-bg)" : "var(--surface-card)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
                   boxShadow: isSelected ? "0 0 0 2px rgba(13, 148, 136, 0.15)" : "none",
@@ -237,13 +237,13 @@ export default function PortalNewRequest() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <Icon size={16} color={isSelected ? "#0d9488" : "#64748b"} />
-                    <span style={{ fontSize: "13px", fontWeight: 600, color: isSelected ? "#0f766e" : "#0f172a" }}>
+                    <span style={{ fontSize: "13px", fontWeight: 600, color: isSelected ? "var(--accent-primary)" : "var(--text-main)" }}>
                       {wf.name}
                     </span>
                   </div>
                   {isSelected && <CheckCircle2 size={15} color="#0d9488" />}
                 </div>
-                <div style={{ fontSize: "11px", color: "#64748b", lineHeight: 1.3 }}>
+                <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.3 }}>
                   {wf.description?.slice(0, 85)}...
                 </div>
               </button>
@@ -255,11 +255,11 @@ export default function PortalNewRequest() {
       {/* Main Request Submission Panel */}
       <div className="card" style={{ padding: isMobile ? "16px" : "24px" }}>
         {/* Service Header Info */}
-        <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "16px", marginBottom: "20px" }}>
+        <div style={{ borderBottom: "1px solid var(--border-light)", paddingBottom: "16px", marginBottom: "20px" }}>
           <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", gap: "10px" }}>
             <div>
-              <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>{formDef?.workflow_name}</div>
-              <div style={{ fontSize: "12px", color: "#64748b", marginTop: "2px" }}>{formDef?.description}</div>
+              <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>{formDef?.workflow_name}</div>
+              <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>{formDef?.description}</div>
             </div>
             <span className="badge badge-published">v{formDef?.version_number} Active Contract</span>
           </div>
@@ -277,9 +277,9 @@ export default function PortalNewRequest() {
                 borderRadius: "5px",
                 fontSize: "12px",
                 fontWeight: 600,
-                border: activeTab === "form" ? "1px solid #0d9488" : "1px solid #cbd5e1",
-                background: activeTab === "form" ? "#f0fdfa" : "#ffffff",
-                color: activeTab === "form" ? "#0f766e" : "#475569",
+                border: activeTab === "form" ? "1px solid var(--accent-primary)" : "1px solid var(--border-light)",
+                background: activeTab === "form" ? "var(--accent-primary-bg)" : "var(--surface-card)",
+                color: activeTab === "form" ? "var(--accent-primary)" : "var(--text-secondary)",
                 cursor: "pointer",
               }}
             >
@@ -298,9 +298,9 @@ export default function PortalNewRequest() {
                 borderRadius: "5px",
                 fontSize: "12px",
                 fontWeight: 600,
-                border: activeTab === "ai_assistant" ? "1px solid #0d9488" : "1px solid #cbd5e1",
-                background: activeTab === "ai_assistant" ? "#f0fdfa" : "#ffffff",
-                color: activeTab === "ai_assistant" ? "#0f766e" : "#475569",
+                border: activeTab === "ai_assistant" ? "1px solid var(--accent-primary)" : "1px solid var(--border-light)",
+                background: activeTab === "ai_assistant" ? "var(--accent-primary-bg)" : "var(--surface-card)",
+                color: activeTab === "ai_assistant" ? "var(--accent-primary)" : "var(--text-secondary)",
                 cursor: "pointer",
               }}
             >
@@ -312,11 +312,11 @@ export default function PortalNewRequest() {
 
         {/* Tab 1: AI Natural Language Assistant */}
         {activeTab === "ai_assistant" && (
-          <div style={{ marginBottom: "24px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "18px" }}>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", marginBottom: "4px" }}>
+          <div style={{ marginBottom: "24px", background: "var(--surface-subtle)", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "18px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)", marginBottom: "4px" }}>
               Describe your request in plain English
             </div>
-            <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "12px" }}>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "12px" }}>
               Our AI engine will parse your statement, extract order IDs, amounts, and customer context, and populate the required contract fields.
             </div>
 
@@ -339,7 +339,7 @@ export default function PortalNewRequest() {
                     )
                   }
                   className="btn btn-sm btn-ghost"
-                  style={{ fontSize: "11px", color: "#0d9488" }}
+                  style={{ fontSize: "11px", color: "var(--accent-primary)" }}
                 >
                   + Insert Sample Refund ($150)
                 </button>
@@ -351,7 +351,7 @@ export default function PortalNewRequest() {
                     )
                   }
                   className="btn btn-sm btn-ghost"
-                  style={{ fontSize: "11px", color: "#0d9488" }}
+                  style={{ fontSize: "11px", color: "var(--accent-primary)" }}
                 >
                   + Insert Support Ticket
                 </button>
@@ -371,8 +371,8 @@ export default function PortalNewRequest() {
 
             {/* Extracted preview tags */}
             {nlResult && (
-              <div style={{ marginTop: "16px", padding: "12px", background: "#ffffff", border: "1px solid #cbd5e1", borderRadius: "5px" }}>
-                <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", marginBottom: "8px" }}>
+              <div style={{ marginTop: "16px", padding: "12px", background: "var(--surface-card)", border: "1px solid var(--border-light)", borderRadius: "5px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)", marginBottom: "8px" }}>
                   AI Extraction Preview:
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -383,9 +383,9 @@ export default function PortalNewRequest() {
                         fontSize: "11px",
                         padding: "3px 8px",
                         borderRadius: "4px",
-                        background: "#ecfdf5",
-                        color: "#047857",
-                        border: "1px solid #a7f3d0",
+                        background: "var(--status-success-bg)",
+                        color: "var(--status-success-text)",
+                        border: "1px solid var(--status-success-border)",
                         display: "inline-flex",
                         alignItems: "center",
                         gap: "4px",
@@ -449,7 +449,7 @@ export default function PortalNewRequest() {
                   <span>{field.label}</span>
                   {field.required && <span style={{ color: "#dc2626" }}>*</span>}
                   {field.description && (
-                    <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 400 }}>
+                    <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 400 }}>
                       ({field.description})
                     </span>
                   )}

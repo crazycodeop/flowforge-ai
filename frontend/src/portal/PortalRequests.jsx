@@ -62,8 +62,8 @@ export default function PortalRequests() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", gap: "12px" }}>
         <div>
-          <div style={{ fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>My Inquiries & Requests</div>
-          <div style={{ fontSize: "13px", color: "#64748b" }}>
+          <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-main)" }}>My Inquiries & Requests</div>
+          <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
             Track real-time progress, review AI triage stages, and inspect verified resolution receipts.
           </div>
         </div>
@@ -148,7 +148,7 @@ export default function PortalRequests() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ textAlign: "center", padding: "36px", color: "#94a3b8" }}>
+                <td colSpan={7} style={{ textAlign: "center", padding: "36px", color: "var(--text-muted)" }}>
                   {loading ? "Loading requests..." : "No matching requests found."}
                 </td>
               </tr>
@@ -160,11 +160,11 @@ export default function PortalRequests() {
 
                 return (
                   <tr key={r.id}>
-                    <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "#0d9488", fontWeight: 600 }}>
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--accent-primary)", fontWeight: 600 }}>
                       {r.id.slice(0, 8)}...
                     </td>
-                    <td style={{ fontWeight: 600, color: "#0f172a" }}>{r.workflow_name}</td>
-                    <td style={{ color: "#64748b", maxWidth: "340px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <td style={{ fontWeight: 600, color: "var(--text-main)" }}>{r.workflow_name}</td>
+                    <td style={{ color: "var(--text-muted)", maxWidth: "340px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {r.summary_preview || "Executing automated pipeline..."}
                     </td>
                     <td>
@@ -175,10 +175,10 @@ export default function PortalRequests() {
                         <span className="badge badge-primary">⟳ In Flight</span>
                       )}
                     </td>
-                    <td style={{ color: "#64748b", fontSize: "12px" }}>
+                    <td style={{ color: "var(--text-muted)", fontSize: "12px" }}>
                       {new Date(r.submitted_at).toLocaleDateString()} {new Date(r.submitted_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </td>
-                    <td style={{ color: "#64748b", fontSize: "12px" }}>
+                    <td style={{ color: "var(--text-muted)", fontSize: "12px" }}>
                       {r.completed_at
                         ? new Date(r.completed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                         : "—"}

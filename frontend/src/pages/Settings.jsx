@@ -30,7 +30,7 @@ import { useTheme } from "../context/ThemeContext";
  */
 export default function Settings() {
   const modal = useModal();
-  const { setTheme: setAppTheme } = useTheme();
+  const { theme: currentTheme, themeMode, setThemeMode, setTheme: setAppTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("profile");
 
   // Profile State
@@ -325,8 +325,13 @@ export default function Settings() {
     setGridStyle(newGrid);
     setSnapToGrid(newSnap);
     setShowMiniMap(newMini);
-    localStorage.setItem("ff_theme", newTheme);
-    try { setAppTheme(newTheme); } catch(e) {}
+    try {
+      if (setThemeMode) {
+        setThemeMode(newTheme);
+      } else {
+        setAppTheme(newTheme);
+      }
+    } catch(e) {}
     localStorage.setItem("ff_grid_style", newGrid);
     localStorage.setItem("ff_snap_grid", String(newSnap));
     localStorage.setItem("ff_minimap", String(newMini));
@@ -956,10 +961,11 @@ export default function Settings() {
                 Theme
               </label>
               <select
-                value={theme}
+                value={themeMode || theme}
                 onChange={(e) => handleSaveAppearance(e.target.value, gridStyle, snapToGrid, showMiniMap)}
                 className="input"
               >
+                <option value="system">System Preference (Auto)</option>
                 <option value="light">Studio Light</option>
                 <option value="dark">Render Dark</option>
               </select>

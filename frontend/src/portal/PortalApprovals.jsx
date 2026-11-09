@@ -83,8 +83,8 @@ export default function PortalApprovals() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", gap: "12px" }}>
         <div>
-          <div style={{ fontSize: "20px", fontWeight: 700, color: "#0f172a" }}>Pending Human Approvals</div>
-          <div style={{ fontSize: "13px", color: "#64748b" }}>
+          <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-main)" }}>Pending Human Approvals</div>
+          <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
             Authorized compliance gate: inspect AI-generated recommendations, evaluate threshold policies, and authorize execution resumption.
           </div>
         </div>
@@ -104,8 +104,8 @@ export default function PortalApprovals() {
           style={{
             padding: "12px 16px",
             borderRadius: "6px",
-            background: actionMessage.type === "success" ? "#ecfdf5" : "#fef2f2",
-            border: `1px solid ${actionMessage.type === "success" ? "#a7f3d0" : "#fecaca"}`,
+            background: actionMessage.type === "success" ? "var(--status-success-bg)" : "var(--status-danger-bg)",
+            border: `1px solid ${actionMessage.type === "success" ? "var(--status-success-border)" : "var(--status-danger-border)"}`,
             color: actionMessage.type === "success" ? "#047857" : "#b91c1c",
             fontSize: "13px",
             display: "flex",
@@ -122,10 +122,10 @@ export default function PortalApprovals() {
       {approvals.length === 0 ? (
         <div className="card" style={{ padding: "48px 24px", textAlign: "center" }}>
           <ShieldCheck size={36} color="#059669" style={{ margin: "0 auto 12px auto" }} />
-          <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>
+          <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-main)", marginBottom: "4px" }}>
             All Caught Up!
           </div>
-          <div style={{ fontSize: "13px", color: "#64748b", maxWidth: "420px", margin: "0 auto 16px auto" }}>
+          <div style={{ fontSize: "13px", color: "var(--text-muted)", maxWidth: "420px", margin: "0 auto 16px auto" }}>
             There are no pending workflow requests awaiting human sign-off. All active automated tasks are running smoothly.
           </div>
           <Link to="/portal/new" className="btn btn-primary btn-sm">
@@ -152,16 +152,16 @@ export default function PortalApprovals() {
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <span className="badge badge-warning">Required Role: {app.required_role.toUpperCase()}</span>
-                      <span style={{ fontSize: "12px", color: "#64748b" }}>
+                      <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                         Waiting since {new Date(app.created_at).toLocaleTimeString()}
                       </span>
                     </div>
-                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginTop: "4px" }}>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-main)", marginTop: "4px" }}>
                       {app.title}
                     </div>
-                    <div style={{ fontSize: "12px", color: "#475569", marginTop: "2px" }}>
+                    <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
                       Service: <strong>{app.workflow_name}</strong> • Request ID:{" "}
-                      <span style={{ fontFamily: "var(--font-mono)", color: "#0d9488" }}>{app.workflow_run_id.slice(0, 8)}...</span>
+                      <span style={{ fontFamily: "var(--font-mono)", color: "var(--accent-primary)" }}>{app.workflow_run_id.slice(0, 8)}...</span>
                     </div>
                   </div>
 
@@ -178,8 +178,8 @@ export default function PortalApprovals() {
                 {/* Evidence & Context Grid */}
                 <div
                   style={{
-                    background: "#f8fafc",
-                    border: "1px solid #e2e8f0",
+                    background: "var(--surface-subtle)",
+                    border: "1px solid var(--border-light)",
                     borderRadius: "6px",
                     padding: "14px 16px",
                     marginBottom: "16px",
@@ -191,28 +191,28 @@ export default function PortalApprovals() {
                 >
                   {inputs.customer_name && (
                     <div>
-                      <span style={{ color: "#64748b" }}>Customer:</span>{" "}
+                      <span style={{ color: "var(--text-muted)" }}>Customer:</span>{" "}
                       <strong>{inputs.customer_name}</strong> ({inputs.customer_email})
                     </div>
                   )}
                   {inputs.order_id && (
                     <div>
-                      <span style={{ color: "#64748b" }}>Order ID:</span>{" "}
-                      <code style={{ background: "#ffffff", padding: "1px 5px", borderRadius: "3px" }}>
+                      <span style={{ color: "var(--text-muted)" }}>Order ID:</span>{" "}
+                      <code style={{ background: "var(--surface-card)", padding: "1px 5px", borderRadius: "3px" }}>
                         {inputs.order_id}
                       </code>
                     </div>
                   )}
                   {amount !== null && (
                     <div>
-                      <span style={{ color: "#64748b" }}>Claimed Payout:</span>{" "}
+                      <span style={{ color: "var(--text-muted)" }}>Claimed Payout:</span>{" "}
                       <strong style={{ color: "#d97706", fontSize: "13px" }}>${Number(amount).toFixed(2)} USD</strong>
                     </div>
                   )}
                   {inputs.refund_reason && (
                     <div style={{ gridColumn: "1 / -1" }}>
-                      <span style={{ color: "#64748b" }}>Reason:</span>{" "}
-                      <span style={{ color: "#0f172a" }}>{inputs.refund_reason}</span>
+                      <span style={{ color: "var(--text-muted)" }}>Reason:</span>{" "}
+                      <span style={{ color: "var(--text-main)" }}>{inputs.refund_reason}</span>
                     </div>
                   )}
                 </div>
@@ -220,13 +220,13 @@ export default function PortalApprovals() {
                 {/* Policy Basis & Recommendation */}
                 <div
                   style={{
-                    background: "#f0fdfa",
-                    border: "1px solid #99f6e4",
+                    background: "var(--accent-primary-bg)",
+                    border: "1px solid var(--accent-primary-border)",
                     borderRadius: "6px",
                     padding: "12px 16px",
                     marginBottom: "16px",
                     fontSize: "12px",
-                    color: "#0f766e",
+                    color: "var(--accent-primary)",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 600, marginBottom: "2px" }}>
@@ -248,10 +248,10 @@ export default function PortalApprovals() {
                   const canDecide = userRole === reqRole;
 
                   return (
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", borderTop: "1px solid #f1f5f9", paddingTop: "14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", borderTop: "1px solid var(--border-light)", paddingTop: "14px" }}>
                       {canDecide ? (
                         <>
-                          <div style={{ fontSize: "12px", color: "#047857", background: "#ecfdf5", border: "1px solid #a7f3d0", padding: "6px 12px", borderRadius: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <div style={{ fontSize: "12px", color: "#047857", background: "var(--status-success-bg)", border: "1px solid var(--status-success-border)", padding: "6px 12px", borderRadius: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
                             <CheckCircle2 size={14} color="#059669" />
                             <span>Authorized as <strong>{currentUser?.full_name?.split("(")[0]?.trim() || "Operations Manager"} (MANAGER)</strong>: You have approval authority for this gate.</span>
                           </div>
@@ -262,9 +262,9 @@ export default function PortalApprovals() {
                               onClick={() => setDecisionModal({ approval: app, decision: "REJECTED", comment: "" })}
                               className="btn btn-sm"
                               style={{
-                                background: "#ffffff",
+                                background: "var(--surface-card)",
                                 color: "#dc2626",
-                                borderColor: "#fecaca",
+                                borderColor: "var(--status-danger-border)",
                                 gap: "6px",
                                 cursor: "pointer",
                                 justifyContent: "center",
@@ -286,14 +286,14 @@ export default function PortalApprovals() {
                           </div>
                         </>
                       ) : (
-                        <div style={{ width: "100%", background: "#f8fafc", border: "1px solid #e2e8f0", padding: "10px 14px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#475569" }}>
+                        <div style={{ width: "100%", background: "var(--surface-subtle)", border: "1px solid var(--border-light)", padding: "10px 14px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--text-secondary)" }}>
                             <ShieldCheck size={16} color="#64748b" />
                             <span>
                               <strong>Action Restricted:</strong> This gate requires <strong>{reqRole.toUpperCase()}</strong> sign-off. You are currently viewing as <strong>{currentUser?.full_name?.split("(")[0]?.trim() || currentUser?.email} ({userRole.toUpperCase()})</strong>.
                             </span>
                           </div>
-                          <span style={{ fontSize: "11px", color: "#0d9488", fontWeight: 600 }}>
+                          <span style={{ fontSize: "11px", color: "var(--accent-primary)", fontWeight: 600 }}>
                             Sign in as manager@flowforge.ai to authorize
                           </span>
                         </div>
@@ -323,16 +323,16 @@ export default function PortalApprovals() {
           }}
         >
           <div className="card" style={{ width: "100%", maxWidth: "480px", padding: "24px", boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)" }}>
-            <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>
+            <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-main)", marginBottom: "4px" }}>
               Confirm {decisionModal.decision === "APPROVED" ? "Approval & Disbursement" : "Rejection"}
             </div>
-            <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "16px" }}>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "16px" }}>
               {decisionModal.decision === "APPROVED"
                 ? "This will resume the workflow, execute transaction authorization, and disburse funds to the customer."
                 : "This will halt the workflow, mark the execution as rejected, and notify the customer."}
             </div>
 
-            <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155", display: "block", marginBottom: "4px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)", display: "block", marginBottom: "4px" }}>
               Reviewer Notes / Justification:
             </label>
             <textarea

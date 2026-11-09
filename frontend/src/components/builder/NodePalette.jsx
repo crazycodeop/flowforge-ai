@@ -94,7 +94,7 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
             fontSize: "11px",
             fontWeight: 600,
             textTransform: "uppercase",
-            color: "#888888",
+            color: "var(--text-muted)",
             letterSpacing: "0.06em",
           }}
         >
@@ -128,7 +128,7 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
               style={{
                 fontSize: "10px",
                 fontWeight: 600,
-                color: "#666666",
+                color: "var(--text-muted)",
                 textTransform: "uppercase",
                 letterSpacing: "0.04em",
                 marginBottom: "6px",
@@ -160,7 +160,7 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
                       transition: "border-color 0.1s ease, background 0.1s ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#383838";
+                      e.currentTarget.style.borderColor = "var(--accent-primary)";
                       e.currentTarget.style.background = "var(--accent-primary-bg)";
                     }}
                     onMouseLeave={(e) => {
@@ -168,7 +168,7 @@ export default function NodePalette({ onAddNode, onClose, isOverlay = false }) {
                       e.currentTarget.style.background = "var(--surface-card)";
                     }}
                   >
-                    <div style={{ marginTop: "2px", color: "#0d9488", flexShrink: 0 }}>
+                    <div style={{ marginTop: "2px", color: "var(--accent-primary)", flexShrink: 0 }}>
                       <Icon size={14} />
                     </div>
                     <div style={{ minWidth: 0 }}>

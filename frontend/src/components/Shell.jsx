@@ -273,7 +273,7 @@ export default function Shell({ children }) {
             style={{
               fontSize: "11px",
               textTransform: "uppercase",
-              color: "#666666",
+              color: "var(--text-muted)",
               fontWeight: 500,
               letterSpacing: "0.05em",
               padding: "6px 10px 4px 10px",
@@ -304,7 +304,7 @@ export default function Shell({ children }) {
             style={{
               fontSize: "11px",
               textTransform: "uppercase",
-              color: "#666666",
+              color: "var(--text-muted)",
               fontWeight: 500,
               letterSpacing: "0.05em",
               padding: "16px 10px 4px 10px",
@@ -335,7 +335,7 @@ export default function Shell({ children }) {
             style={{
               fontSize: "11px",
               textTransform: "uppercase",
-              color: "#666666",
+              color: "var(--text-muted)",
               fontWeight: 500,
               letterSpacing: "0.05em",
               padding: "16px 10px 4px 10px",
@@ -380,20 +380,20 @@ export default function Shell({ children }) {
               <button
                 type="button"
                 onClick={() => setShowPromoBox(false)}
-                style={{ background: "transparent", border: "none", color: "#666666", cursor: "pointer", padding: "2px" }}
+                style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "2px" }}
                 aria-label="Dismiss info"
               >
                 <X size={12} />
               </button>
             </div>
-            <p style={{ fontSize: "11px", color: "#858585", lineHeight: 1.4, margin: "0 0 8px 0" }}>
+            <p style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.4, margin: "0 0 8px 0" }}>
               Design multi-step pipelines with code execution, semantic grounding, and review gates.
             </p>
             <Link
               to="/use-cases"
               style={{
                 fontSize: "11px",
-                color: "#0d9488",
+                color: "var(--accent-primary)",
                 textDecoration: "none",
                 fontWeight: 500,
                 display: "inline-flex",
@@ -439,7 +439,7 @@ export default function Shell({ children }) {
             style={{
               background: "transparent",
               border: "none",
-              color: "#a3a3a3",
+              color: "var(--text-muted)",
               padding: "6px",
               cursor: "pointer",
               display: isMobile ? "flex" : "none",
@@ -457,8 +457,8 @@ export default function Shell({ children }) {
               width: "24px",
               height: "24px",
               borderRadius: "4px",
-              background: "#f8fafc",
-              border: "1px solid #cbd5e1",
+              background: "var(--surface-subtle)",
+              border: "1px solid var(--border-light)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -467,7 +467,7 @@ export default function Shell({ children }) {
             }}
             title="FlowForge AI"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
@@ -520,7 +520,7 @@ export default function Shell({ children }) {
               >
                 {activeOrg.name}
               </span>
-              <ChevronsUpDown size={13} color="#737373" style={{ flexShrink: 0 }} />
+              <ChevronsUpDown size={13} color="var(--text-muted)" style={{ flexShrink: 0 }} />
             </button>
 
             {/* Workspace Dropdown Menu */}
@@ -570,7 +570,7 @@ export default function Shell({ children }) {
                           {org.name}
                         </span>
                       </div>
-                      {isCurrent && <Check size={13} color="#0d9488" />}
+                      {isCurrent && <Check size={13} color="var(--accent-primary)" />}
                     </button>
                   );
                 })}
@@ -592,7 +592,7 @@ export default function Shell({ children }) {
                     background: "transparent",
                     border: "none",
                     borderRadius: "4px",
-                    color: "#0d9488",
+                    color: "var(--accent-primary)",
                     fontSize: "12px",
                     fontWeight: 500,
                     cursor: "pointer",
@@ -612,8 +612,8 @@ export default function Shell({ children }) {
           />
 
           {/* FlowForge Breadcrumbs */}
-          <div className="desktop-only" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#858585" }}>
-            <span style={{ color: "#a3a3a3" }}>FlowForge AI</span>
+          <div className="desktop-only" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--text-muted)" }}>
+            <span style={{ color: "var(--text-muted)" }}>FlowForge AI</span>
             <span>&gt;</span>
             <span style={{ color: "var(--text-main)", fontWeight: 500 }}>{getBreadcrumbTitle()}</span>
           </div>
@@ -717,12 +717,12 @@ export default function Shell({ children }) {
             className="desktop-only"
             style={{
               fontSize: "12px",
-              color: "#858585",
+              color: "var(--text-muted)",
               textDecoration: "none",
               padding: "4px 6px",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#858585")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-main)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
           >
             Blueprints
           </Link>
@@ -736,7 +736,7 @@ export default function Shell({ children }) {
               style={{
                 background: "transparent",
                 border: "none",
-                color: "#858585",
+                color: "var(--text-muted)",
                 cursor: "pointer",
                 padding: "4px",
                 display: "flex",
@@ -946,7 +946,7 @@ export default function Shell({ children }) {
           {/* Refined Sidebar Footer: Perfectly aligned navigation link & operational bar */}
           <div
             style={{
-              borderTop: "1px solid #e2e8f0",
+              borderTop: "1px solid var(--border-light)",
               paddingTop: "6px",
               marginTop: "auto",
               display: "flex",
@@ -985,7 +985,7 @@ export default function Shell({ children }) {
                   gap: "8px",
                   marginTop: "4px",
                   paddingTop: "6px",
-                  borderTop: "1px solid #e2e8f0",
+                  borderTop: "1px solid var(--border-light)",
                 }}
               >
                 <div
@@ -1005,20 +1005,20 @@ export default function Shell({ children }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "#f8fafc",
-                    border: "1px solid #262626",
+                    background: "var(--surface-subtle)",
+                    border: "1px solid var(--border-light)",
                     borderRadius: "4px",
-                    color: "#858585",
+                    color: "var(--text-muted)",
                     cursor: "pointer",
                     transition: "all 0.15s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "#ffffff";
-                    e.currentTarget.style.backgroundColor = "#262626";
+                    e.currentTarget.style.color = "var(--text-main)";
+                    e.currentTarget.style.backgroundColor = "var(--surface-hover)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "#858585";
-                    e.currentTarget.style.backgroundColor = "#f1f5f9";
+                    e.currentTarget.style.color = "var(--text-muted)";
+                    e.currentTarget.style.backgroundColor = "var(--surface-subtle)";
                   }}
                 >
                   <ChevronRight size={13} />
@@ -1032,7 +1032,7 @@ export default function Shell({ children }) {
                   justifyContent: "space-between",
                   padding: "6px 10px",
                   marginTop: "4px",
-                  borderTop: "1px solid #e2e8f0",
+                  borderTop: "1px solid var(--border-light)",
                 }}
               >
                 <div
@@ -1041,7 +1041,7 @@ export default function Shell({ children }) {
                     alignItems: "center",
                     gap: "8px",
                     fontSize: "12px",
-                    color: "#737373",
+                    color: "var(--text-muted)",
                   }}
                   title="All workflow engine services operational"
                 >
@@ -1060,22 +1060,22 @@ export default function Shell({ children }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "#f8fafc",
-                    border: "1px solid #262626",
+                    background: "var(--surface-subtle)",
+                    border: "1px solid var(--border-light)",
                     borderRadius: "4px",
-                    color: "#858585",
+                    color: "var(--text-muted)",
                     cursor: "pointer",
                     transition: "all 0.15s ease",
                     flexShrink: 0,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "#ffffff";
-                    e.currentTarget.style.backgroundColor = "#262626";
+                    e.currentTarget.style.color = "var(--text-main)";
+                    e.currentTarget.style.backgroundColor = "var(--surface-hover)";
                     e.currentTarget.style.borderColor = "#383838";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "#858585";
-                    e.currentTarget.style.backgroundColor = "#f1f5f9";
+                    e.currentTarget.style.color = "var(--text-muted)";
+                    e.currentTarget.style.backgroundColor = "var(--surface-subtle)";
                     e.currentTarget.style.borderColor = "#262626";
                   }}
                 >
@@ -1356,7 +1356,7 @@ export default function Shell({ children }) {
                         e.currentTarget.style.backgroundColor = "transparent";
                       }}
                     >
-                      <Icon size={14} color="#0d9488" />
+                      <Icon size={14} color="var(--accent-primary)" />
                       <span>{item.title}</span>
                     </button>
                   );

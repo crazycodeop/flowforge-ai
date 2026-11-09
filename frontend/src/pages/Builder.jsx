@@ -327,7 +327,7 @@ function BuilderCanvas() {
           target: e.target_node_id,
           sourceHandle: resolvedHandle,
           animated: true,
-          style: { stroke: "#0d9488", strokeWidth: 1.5 },
+          style: { stroke: "var(--accent-primary)", strokeWidth: 1.5 },
         };
       });
 
@@ -369,7 +369,7 @@ function BuilderCanvas() {
             sourceHandle: resolvedHandle,
             id: `edge_${Date.now()}`,
             animated: true,
-            style: { stroke: "#0d9488", strokeWidth: 1.5 },
+            style: { stroke: "var(--accent-primary)", strokeWidth: 1.5 },
           },
           eds
         )
@@ -424,7 +424,7 @@ function BuilderCanvas() {
           target: newId,
           sourceHandle: isSrcCondition ? "true" : undefined,
           animated: true,
-          style: { stroke: "#0d9488", strokeWidth: 1.5 },
+          style: { stroke: "var(--accent-primary)", strokeWidth: 1.5 },
         },
       ]);
     }
@@ -728,7 +728,7 @@ function BuilderCanvas() {
             </span>
           )}
           {autoSaveStatus === "saving" && (
-            <span style={{ fontSize: "10px", color: "#0d9488", display: "inline-flex", alignItems: "center", gap: "3px", padding: "1px 6px", borderRadius: "10px", background: "#f0fdfa", border: "1px solid #99f6e4" }}>
+            <span style={{ fontSize: "10px", color: "#0d9488", display: "inline-flex", alignItems: "center", gap: "3px", padding: "1px 6px", borderRadius: "10px", background: "var(--accent-primary-bg)", border: "1px solid var(--accent-primary-border)" }}>
               <RefreshCw size={10} className="spin" /> Saving...
             </span>
           )}
@@ -747,7 +747,7 @@ function BuilderCanvas() {
               style={{ padding: "4px 8px", fontSize: "11px" }}
               title="Add Node to Canvas"
             >
-              <Plus size={13} color="#0d9488" />
+              <Plus size={13} color="var(--accent-primary)" />
               <span className="desktop-only">Nodes</span>
             </button>
           )}
@@ -761,7 +761,7 @@ function BuilderCanvas() {
               style={{ padding: "4px 8px", fontSize: "11px" }}
               title="Configure Selected Node"
             >
-              <Sliders size={13} color="#0d9488" />
+              <Sliders size={13} color="var(--accent-primary)" />
               <span className="desktop-only">Config</span>
             </button>
           )}
@@ -796,7 +796,7 @@ function BuilderCanvas() {
             }}
             title="Validate Workflow Graph"
           >
-            <CheckCircle size={14} color="#0d9488" />
+            <CheckCircle size={14} color="var(--accent-primary)" />
             <span className="desktop-only">Validate</span>
           </button>
           <button
@@ -900,12 +900,12 @@ function BuilderCanvas() {
             {/* Show MiniMap only on screens >= 768px to prevent blocking touch canvas on mobile */}
             {!isMobile && (
               <MiniMap
-                nodeColor="#0d9488"
+                nodeColor="var(--accent-primary)"
                 maskColor="rgba(241, 245, 249, 0.7)"
                 style={{
                   borderRadius: "6px",
-                  border: "1px solid #e2e8f0",
-                  backgroundColor: "#ffffff",
+                  border: "1px solid var(--border-light)",
+                  backgroundColor: "var(--surface-card)",
                 }}
               />
             )}
@@ -949,14 +949,14 @@ function BuilderCanvas() {
                     className="btn btn-secondary btn-sm"
                     style={{ borderRadius: "20px", padding: "6px 12px", fontSize: "12px", gap: "5px" }}
                   >
-                    <Sliders size={13} color="#0d9488" />
+                    <Sliders size={13} color="var(--accent-primary)" />
                     <span>Config</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDeleteNode(selectedNode.id)}
                     className="btn btn-secondary btn-sm"
-                    style={{ borderRadius: "20px", padding: "6px 10px", color: "#dc2626" }}
+                    style={{ borderRadius: "20px", padding: "6px 10px", color: "var(--status-danger-text)" }}
                     title="Delete step"
                   >
                     <Trash2 size={13} />
@@ -1086,8 +1086,8 @@ function BuilderCanvas() {
             bottom: 0,
             left: isDesktop ? "210px" : 0,
             right: isDesktop && selectedNode ? "290px" : 0,
-            background: "#ffffff",
-            borderTop: "1px solid #e2e8f0",
+            background: "var(--surface-card)",
+            borderTop: "1px solid var(--border-light)",
             boxShadow: "0 -4px 15px rgba(0, 0, 0, 0.5)",
             padding: "14px 18px",
             maxHeight: "180px",
@@ -1102,7 +1102,7 @@ function BuilderCanvas() {
               ) : (
                 <AlertTriangle size={15} color="#ef4444" />
               )}
-              <span style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)" }}>
                 {validationResult.is_valid
                   ? "Graph Validation Passed (Ready to Publish)"
                   : `Graph Validation Failed (${validationResult.errors.length} errors)`}
@@ -1111,7 +1111,7 @@ function BuilderCanvas() {
             <button
               onClick={() => setIsValidationOpen(false)}
               aria-label="Close validation output"
-              style={{ background: "transparent", border: "none", color: "#737373", cursor: "pointer", padding: "4px" }}
+              style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px" }}
             >
               <X size={14} />
             </button>
@@ -1191,7 +1191,7 @@ function BuilderCanvas() {
                       )
                     }
                     className="btn btn-ghost btn-sm"
-                    style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid #e2e8f0", color: "#0d9488" }}
+                    style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid var(--border-light)", color: "#0d9488" }}
                   >
                     + Refund Demo ($89.99)
                   </button>
@@ -1212,7 +1212,7 @@ function BuilderCanvas() {
                       )
                     }
                     className="btn btn-ghost btn-sm"
-                    style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid #333", color: "#60a5fa" }}
+                    style={{ fontSize: "10px", padding: "2px 6px", border: "1px solid var(--border-light)", color: "var(--accent-primary-light)" }}
                   >
                     + Tech Issue Demo
                   </button>
@@ -1241,7 +1241,7 @@ function BuilderCanvas() {
                 onClick={handleTriggerRun}
                 disabled={running}
                 className="btn btn-primary btn-sm"
-                style={{ background: "#10b981", borderColor: "#10b981", color: "#fff" }}
+                style={{ background: "var(--status-success)", borderColor: "var(--status-success)", color: "#fff" }}
               >
                 <Play size={14} />
                 <span>{running ? "Starting Run..." : "Execute Run"}</span>

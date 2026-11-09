@@ -53,7 +53,7 @@ export default function PortalRequestDetail() {
 
   if (loading && !detail) {
     return (
-      <div style={{ textAlign: "center", padding: "48px", color: "#64748b" }}>
+      <div style={{ textAlign: "center", padding: "48px", color: "var(--text-muted)" }}>
         Loading request status...
       </div>
     );
@@ -62,7 +62,7 @@ export default function PortalRequestDetail() {
   if (error || !detail) {
     return (
       <div style={{ padding: "24px" }}>
-        <div style={{ color: "#dc2626", marginBottom: "12px" }}>{error || "Request not found."}</div>
+        <div style={{ color: "var(--status-danger-text)", marginBottom: "12px" }}>{error || "Request not found."}</div>
         <Link to="/portal/requests" className="btn btn-secondary">
           Return to Requests
         </Link>
@@ -84,7 +84,7 @@ export default function PortalRequestDetail() {
             display: "inline-flex",
             alignItems: "center",
             gap: "6px",
-            color: "#64748b",
+            color: "var(--text-muted)",
             fontSize: "12px",
             textDecoration: "none",
             marginBottom: "8px",
@@ -97,7 +97,7 @@ export default function PortalRequestDetail() {
         <div style={{ display: "flex", alignItems: isMobile ? "flex-start" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", gap: "12px" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
-              <div style={{ fontSize: "22px", fontWeight: 700, color: "#0f172a" }}>{detail.workflow_name}</div>
+              <div style={{ fontSize: "22px", fontWeight: 700, color: "var(--text-main)" }}>{detail.workflow_name}</div>
               {isCompleted && <span className="badge badge-success">✓ Completed</span>}
               {isPaused && <span className="badge badge-warning">⏸ Awaiting Approval</span>}
               {isFailed && <span className="badge badge-danger">✕ Rejected</span>}
@@ -105,8 +105,8 @@ export default function PortalRequestDetail() {
                 <span className="badge badge-primary">⟳ Processing</span>
               )}
             </div>
-            <div style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>
-              Tracking ID: <span style={{ fontFamily: "var(--font-mono)", color: "#0d9488" }}>{detail.id}</span> •
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+              Tracking ID: <span style={{ fontFamily: "var(--font-mono)", color: "var(--accent-primary)" }}>{detail.id}</span> •
               Submitted {new Date(detail.submitted_at).toLocaleString()}
             </div>
           </div>
@@ -124,8 +124,8 @@ export default function PortalRequestDetail() {
       </div>
 
       {/* Simplified Business Execution Timeline */}
-      <div className="card" style={{ padding: isMobile ? "16px" : "24px", background: "#ffffff", border: "1px solid #e2e8f0" }}>
-        <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", marginBottom: "16px" }}>
+      <div className="card" style={{ padding: isMobile ? "16px" : "24px", background: "var(--surface-card)", border: "1px solid var(--border-light)" }}>
+        <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--text-main)", marginBottom: "16px" }}>
           Execution Progress & Stage Timeline
         </div>
 
@@ -146,29 +146,29 @@ export default function PortalRequestDetail() {
                       height: "28px",
                       borderRadius: "50%",
                       background: isStageComplete
-                        ? "#ecfdf5"
+                        ? "var(--status-success-bg)"
                         : isStageInProgress
-                        ? "#fffbeb"
+                        ? "var(--status-warning-bg)"
                         : isStageFailed
-                        ? "#fef2f2"
-                        : "#f8fafc",
+                        ? "var(--status-danger-bg)"
+                        : "var(--surface-subtle)",
                       border: isStageComplete
-                        ? "2px solid #059669"
+                        ? "2px solid var(--status-success)"
                         : isStageInProgress
-                        ? "2px solid #d97706"
+                        ? "2px solid var(--status-warning)"
                         : isStageFailed
-                        ? "2px solid #dc2626"
-                        : "2px solid #cbd5e1",
+                        ? "2px solid var(--status-danger)"
+                        : "2px solid var(--border-light)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       color: isStageComplete
-                        ? "#059669"
+                        ? "var(--status-success-text)"
                         : isStageInProgress
-                        ? "#d97706"
+                        ? "var(--status-warning-text)"
                         : isStageFailed
-                        ? "#dc2626"
-                        : "#94a3b8",
+                        ? "var(--status-danger-text)"
+                        : "var(--text-muted)",
                       fontSize: "12px",
                       fontWeight: 700,
                       zIndex: 2,
@@ -187,7 +187,7 @@ export default function PortalRequestDetail() {
                       style={{
                         width: "2px",
                         flex: 1,
-                        background: isStageComplete ? "#a7f3d0" : "#e2e8f0",
+                        background: isStageComplete ? "var(--status-success)" : "var(--border-light)",
                         margin: "4px 0",
                         minHeight: "24px",
                       }}
@@ -198,15 +198,15 @@ export default function PortalRequestDetail() {
                 {/* Stage Description */}
                 <div style={{ flex: 1, paddingBottom: isLast ? "0" : "12px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div style={{ fontSize: "14px", fontWeight: 600, color: "#0f172a" }}>{stage.name}</div>
+                    <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-main)" }}>{stage.name}</div>
                     {stage.timestamp && (
-                      <span style={{ fontSize: "11px", color: "#64748b" }}>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                         {new Date(stage.timestamp).toLocaleTimeString()}
                       </span>
                     )}
                   </div>
                   {stage.detail && (
-                    <div style={{ fontSize: "12px", color: "#475569", marginTop: "2px" }}>
+                    <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
                       {stage.detail}
                     </div>
                   )}
@@ -235,8 +235,8 @@ export default function PortalRequestDetail() {
       {isCompleted && (
         <div
           style={{
-            background: "#ffffff",
-            border: "1px solid #99f6e4",
+            background: "var(--surface-card)",
+            border: "1px solid var(--accent-primary-border)",
             borderRadius: "8px",
             padding: "24px",
             boxShadow: "0 2px 8px rgba(13, 148, 136, 0.08)",
@@ -259,10 +259,10 @@ export default function PortalRequestDetail() {
               <CheckCircle2 size={18} />
             </div>
             <div>
-              <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f766e" }}>
+              <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--accent-primary)" }}>
                 Resolution & Audit Receipt
               </div>
-              <div style={{ fontSize: "12px", color: "#64748b" }}>
+              <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                 Verified outcome generated by the deterministic workflow engine
               </div>
             </div>
@@ -313,13 +313,13 @@ export default function PortalRequestDetail() {
                 {/* Primary Action Resolution Banner */}
                 <div
                   style={{
-                    background: "#f0fdfa",
-                    border: "1px solid #99f6e4",
+                    background: "var(--accent-primary-bg)",
+                    border: "1px solid var(--accent-primary-border)",
                     borderRadius: "6px",
                     padding: "14px 16px",
                     marginBottom: "16px",
                     fontSize: "14px",
-                    color: "#0f172a",
+                    color: "var(--text-main)",
                     lineHeight: 1.5,
                   }}
                 >
@@ -329,7 +329,7 @@ export default function PortalRequestDetail() {
                       fontWeight: 700,
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
-                      color: "#0d9488",
+                      color: "var(--accent-primary)",
                       marginBottom: "4px",
                     }}
                   >
@@ -341,8 +341,8 @@ export default function PortalRequestDetail() {
                 {/* Metrics & Compliance Grid */}
                 <div
                   style={{
-                    background: "#f8fafc",
-                    border: "1px solid #e2e8f0",
+                    background: "var(--surface-subtle)",
+                    border: "1px solid var(--border-light)",
                     borderRadius: "6px",
                     padding: "16px",
                     display: "grid",
@@ -354,34 +354,34 @@ export default function PortalRequestDetail() {
                 >
                   {orderId && (
                     <div>
-                      <span style={{ color: "#64748b" }}>Order Reference:</span>{" "}
-                      <strong style={{ color: "#0f172a" }}>{orderId}</strong>
+                      <span style={{ color: "var(--text-muted)" }}>Order Reference:</span>{" "}
+                      <strong style={{ color: "var(--text-main)" }}>{orderId}</strong>
                     </div>
                   )}
                   {customerEmail && (
                     <div>
-                      <span style={{ color: "#64748b" }}>Customer:</span>{" "}
-                      <strong style={{ color: "#0f172a" }}>{customerEmail}</strong>
+                      <span style={{ color: "var(--text-muted)" }}>Customer:</span>{" "}
+                      <strong style={{ color: "var(--text-main)" }}>{customerEmail}</strong>
                     </div>
                   )}
                   {amount !== null && (
                     <div>
-                      <span style={{ color: "#64748b" }}>Disbursed Amount:</span>{" "}
-                      <strong style={{ color: "#059669", fontSize: "13px" }}>
+                      <span style={{ color: "var(--text-muted)" }}>Disbursed Amount:</span>{" "}
+                      <strong style={{ color: "var(--status-success-text)", fontSize: "13px" }}>
                         ${Number(amount).toFixed(2)} USD
                       </strong>
                     </div>
                   )}
                   <div>
-                    <span style={{ color: "#64748b" }}>Audit Receipt Code:</span>{" "}
+                    <span style={{ color: "var(--text-muted)" }}>Audit Receipt Code:</span>{" "}
                     <code
                       style={{
-                        background: "#ffffff",
+                        background: "var(--surface-card)",
                         padding: "2px 6px",
                         borderRadius: "3px",
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--border-light)",
                         fontWeight: 600,
-                        color: "#0d9488",
+                        color: "var(--accent-primary)",
                         wordBreak: "break-all",
                       }}
                     >
@@ -389,34 +389,34 @@ export default function PortalRequestDetail() {
                     </code>
                   </div>
                   <div>
-                    <span style={{ color: "#64748b" }}>Triage Category:</span>{" "}
-                    <strong style={{ textTransform: "capitalize", color: "#0f172a" }}>{category}</strong>
+                    <span style={{ color: "var(--text-muted)" }}>Triage Category:</span>{" "}
+                    <strong style={{ textTransform: "capitalize", color: "var(--text-main)" }}>{category}</strong>
                   </div>
                   <div>
-                    <span style={{ color: "#64748b" }}>Urgency SLA:</span>{" "}
-                    <strong style={{ textTransform: "capitalize", color: "#0f172a" }}>{urgency}</strong>
+                    <span style={{ color: "var(--text-muted)" }}>Urgency SLA:</span>{" "}
+                    <strong style={{ textTransform: "capitalize", color: "var(--text-main)" }}>{urgency}</strong>
                   </div>
                   <div style={{ gridColumn: "1 / -1" }}>
-                    <span style={{ color: "#64748b" }}>Policy Basis:</span>{" "}
-                    <span style={{ color: "#334155" }}>{policies}</span>
+                    <span style={{ color: "var(--text-muted)" }}>Policy Basis:</span>{" "}
+                    <span style={{ color: "var(--text-main)" }}>{policies}</span>
                   </div>
                 </div>
 
                 {/* Collapsible Raw Payload for Technical Audit */}
-                <details style={{ fontSize: "12px", color: "#64748b" }}>
-                  <summary style={{ cursor: "pointer", fontWeight: 500, color: "#0d9488" }}>
+                <details style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                  <summary style={{ cursor: "pointer", fontWeight: 500, color: "var(--accent-primary)" }}>
                     Inspect Machine-Readable Audit Payload
                   </summary>
                   <pre
                     style={{
                       marginTop: "8px",
                       padding: "12px",
-                      background: "#f8fafc",
-                      border: "1px solid #e2e8f0",
+                      background: "var(--surface-subtle)",
+                      border: "1px solid var(--border-light)",
                       borderRadius: "6px",
                       fontSize: "11px",
                       fontFamily: "var(--font-mono)",
-                      color: "#0f172a",
+                      color: "var(--text-main)",
                       overflowX: "auto",
                       whiteSpace: "pre-wrap",
                     }}
@@ -431,17 +431,17 @@ export default function PortalRequestDetail() {
       )}
 
       {/* Submitted Request Information Card */}
-      <div className="card" style={{ padding: isMobile ? "16px" : "20px 24px", background: "#ffffff", border: "1px solid #e2e8f0" }}>
-        <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", marginBottom: "12px" }}>
+      <div className="card" style={{ padding: isMobile ? "16px" : "20px 24px", background: "var(--surface-card)", border: "1px solid var(--border-light)" }}>
+        <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-main)", marginBottom: "12px" }}>
           Customer Submission Parameters
         </div>
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
           {Object.entries(detail.inputs || {}).map(([key, val]) => (
             <div key={key} style={{ fontSize: "12px" }}>
-              <div style={{ color: "#64748b", textTransform: "capitalize", fontWeight: 500 }}>
+              <div style={{ color: "var(--text-muted)", textTransform: "capitalize", fontWeight: 500 }}>
                 {key.replace(/_/g, " ")}:
               </div>
-              <div style={{ color: "#0f172a", fontWeight: 600, marginTop: "2px", wordBreak: "break-word" }}>
+              <div style={{ color: "var(--text-main)", fontWeight: 600, marginTop: "2px", wordBreak: "break-word" }}>
                 {String(val)}
               </div>
             </div>

@@ -197,7 +197,7 @@ export default function PortalLogin() {
               gap: "5px",
               fontSize: "11px",
               fontWeight: 600,
-              color: "#64748b",
+              color: "var(--text-muted)",
               textTransform: "uppercase",
               letterSpacing: "0.04em",
               marginBottom: "8px",
@@ -214,8 +214,8 @@ export default function PortalLogin() {
                 onClick={() => handleSelectPersona("manager@flowforge.ai", "password123", "manager")}
                 style={{
                   padding: "8px 10px",
-                  background: selectedPersona === "manager" ? "#f0fdfa" : "#f8fafc",
-                  border: selectedPersona === "manager" ? "1px solid #0d9488" : "1px solid #e2e8f0",
+                  background: selectedPersona === "manager" ? "var(--accent-primary-bg)" : "var(--surface-subtle)",
+                  border: selectedPersona === "manager" ? "1px solid var(--accent-primary)" : "1px solid var(--border-light)",
                   borderRadius: "6px",
                   textAlign: "left",
                   cursor: "pointer",
@@ -223,14 +223,14 @@ export default function PortalLogin() {
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 600, color: selectedPersona === "manager" ? "#0f766e" : "#0f172a" }}>
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: selectedPersona === "manager" ? "var(--accent-primary)" : "var(--text-main)" }}>
                     Acme Manager
                   </span>
                   <span style={{ fontSize: "9px", fontWeight: 700, color: "#059669", background: "#ecfdf5", padding: "1px 4px", borderRadius: "3px" }}>
                     Approver
                   </span>
                 </div>
-                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>manager@flowforge.ai</div>
+                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>manager@flowforge.ai</div>
               </button>
 
               <button
@@ -238,8 +238,8 @@ export default function PortalLogin() {
                 onClick={() => handleSelectPersona("client@flowforge.ai", "password123", "client")}
                 style={{
                   padding: "8px 10px",
-                  background: selectedPersona === "client" ? "#f0fdfa" : "#f8fafc",
-                  border: selectedPersona === "client" ? "1px solid #0d9488" : "1px solid #e2e8f0",
+                  background: selectedPersona === "client" ? "var(--accent-primary-bg)" : "var(--surface-subtle)",
+                  border: selectedPersona === "client" ? "1px solid var(--accent-primary)" : "1px solid var(--border-light)",
                   borderRadius: "6px",
                   textAlign: "left",
                   cursor: "pointer",
@@ -247,14 +247,14 @@ export default function PortalLogin() {
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: "11px", fontWeight: 600, color: selectedPersona === "client" ? "#0f766e" : "#0f172a" }}>
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: selectedPersona === "client" ? "var(--accent-primary)" : "var(--text-main)" }}>
                     Acme Requester
                   </span>
-                  <span style={{ fontSize: "9px", fontWeight: 600, color: "#64748b", background: "#f1f5f9", padding: "1px 4px", borderRadius: "3px" }}>
+                  <span style={{ fontSize: "9px", fontWeight: 600, color: "var(--text-muted)", background: "var(--surface-subtle)", padding: "1px 4px", borderRadius: "3px" }}>
                     Intake
                   </span>
                 </div>
-                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>client@flowforge.ai</div>
+                <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>client@flowforge.ai</div>
               </button>
             </div>
 
@@ -264,8 +264,8 @@ export default function PortalLogin() {
               onClick={() => handleSelectPersona("manager@globex.com", "password123", "globex")}
               style={{
                 padding: "6px 10px",
-                background: selectedPersona === "globex" ? "#f0fdfa" : "#fafafa",
-                border: selectedPersona === "globex" ? "1px solid #0d9488" : "1px solid #e5e7eb",
+                background: selectedPersona === "globex" ? "var(--accent-primary-bg)" : "var(--surface-subtle)",
+                border: selectedPersona === "globex" ? "1px solid var(--accent-primary)" : "1px solid var(--border-light)",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
@@ -276,12 +276,12 @@ export default function PortalLogin() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <Building2 size={12} color="#64748b" />
-                <span style={{ fontSize: "11px", fontWeight: 600, color: selectedPersona === "globex" ? "#0f766e" : "#334155" }}>
+                <span style={{ fontSize: "11px", fontWeight: 600, color: selectedPersona === "globex" ? "var(--accent-primary)" : "var(--text-main)" }}>
                   Globex VP Operations
                 </span>
-                <span style={{ fontSize: "10px", color: "#64748b" }}>manager@globex.com</span>
+                <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>manager@globex.com</span>
               </div>
-              <span style={{ fontSize: "9px", fontWeight: 600, color: "#475569", background: "#f1f5f9", padding: "1px 5px", borderRadius: "3px" }}>
+              <span style={{ fontSize: "9px", fontWeight: 600, color: "var(--text-secondary)", background: "var(--surface-subtle)", padding: "1px 5px", borderRadius: "3px" }}>
                 Isolated Tenant
               </span>
             </button>
@@ -345,7 +345,7 @@ export default function PortalLogin() {
                   paddingLeft: "36px",
                   fontSize: "13px",
                   borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid var(--border-light)",
                 }}
               />
             </div>
@@ -357,12 +357,12 @@ export default function PortalLogin() {
                 style={{
                   fontSize: "12px",
                   fontWeight: 600,
-                  color: "#334155",
+                  color: "var(--text-main)",
                 }}
               >
                 Password
               </label>
-              <span style={{ fontSize: "11px", color: "#0d9488", cursor: "pointer" }}>
+              <span style={{ fontSize: "11px", color: "var(--accent-primary)", cursor: "pointer" }}>
                 Forgot?
               </span>
             </div>
@@ -388,7 +388,7 @@ export default function PortalLogin() {
                   paddingLeft: "36px",
                   fontSize: "13px",
                   borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid var(--border-light)",
                 }}
               />
             </div>
@@ -418,14 +418,14 @@ export default function PortalLogin() {
           style={{
             marginTop: "22px",
             paddingTop: "16px",
-            borderTop: "1px solid #f1f5f9",
+            borderTop: "1px solid var(--border-light)",
             textAlign: "center",
             fontSize: "12px",
-            color: "#64748b",
+            color: "var(--text-muted)",
           }}
         >
           Need access? Contact your workspace administrator at{" "}
-          <span style={{ color: "#0d9488", fontWeight: 500 }}>support@flowforge.ai</span>
+          <span style={{ color: "var(--accent-primary)", fontWeight: 500 }}>support@flowforge.ai</span>
         </div>
       </div>
     </div>

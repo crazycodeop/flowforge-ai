@@ -175,7 +175,7 @@ export default function Workflows() {
         <div style={{ position: "relative", minWidth: "min(260px, 100%)", flex: "1 1 200px" }}>
           <Search
             size={14}
-            color="#94a3b8"
+            color="var(--text-muted)"
             style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
           />
           <input
@@ -193,7 +193,7 @@ export default function Workflows() {
       <div
         className="table-container"
         style={{
-          background: "#ffffff",
+          background: "var(--surface-card)",
           border: "1px solid var(--border-light)",
           borderRadius: "6px",
         }}
@@ -248,19 +248,19 @@ export default function Workflows() {
                             width: "24px",
                             height: "24px",
                             borderRadius: "5px",
-                            background: "#f0fdfa",
-                            border: "1px solid #ccfbf1",
+                            background: "var(--accent-primary-bg)",
+                            border: "1px solid var(--accent-primary-border)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            color: "#0d9488",
+                            color: "var(--accent-primary)",
                             flexShrink: 0,
                           }}
                         >
                           <Globe size={13} />
                         </div>
                         <div>
-                          <span style={{ fontWeight: 600, color: "#0f172a" }}>
+                          <span style={{ fontWeight: 600, color: "var(--text-main)" }}>
                             {wf.name}
                           </span>
                           {wf.description && (
@@ -316,7 +316,7 @@ export default function Workflows() {
                           type="button"
                           onClick={(e) => handleDelete(wf.id, wf.name, e)}
                           className="btn btn-ghost btn-sm"
-                          style={{ padding: "3px 6px", color: "#dc2626" }}
+                          style={{ padding: "3px 6px", color: "var(--status-danger-text)" }}
                           title="Delete workflow"
                         >
                           <Trash2 size={13} />
@@ -354,8 +354,8 @@ export default function Workflows() {
             style={{
               width: "100%",
               maxWidth: "460px",
-              background: "#ffffff",
-              border: "1px solid #e2e8f0",
+              background: "var(--surface-card)",
+              border: "1px solid var(--border-light)",
               borderRadius: "8px",
               padding: "clamp(16px, 4vw, 24px)",
               boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
@@ -363,13 +363,13 @@ export default function Workflows() {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "#0f172a" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "var(--text-main)" }}>
                 Create New Workflow
               </h3>
               <button
                 type="button"
                 onClick={() => setIsCreateOpen(false)}
-                style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer" }}
+                style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
               >
                 <X size={16} />
               </button>
@@ -397,7 +397,7 @@ export default function Workflows() {
 
             <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#475569", marginBottom: "6px" }}>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "6px" }}>
                   Workflow Name *
                 </label>
                 <input
@@ -412,7 +412,7 @@ export default function Workflows() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#475569", marginBottom: "6px" }}>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "6px" }}>
                   Description (Optional)
                 </label>
                 <textarea

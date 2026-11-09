@@ -83,7 +83,7 @@ function FieldLabel({ label, tooltip }) {
           title={tooltip}
           style={{
             cursor: "help",
-            color: "#666666",
+            color: "var(--text-muted)",
             display: "inline-flex",
             alignItems: "center",
           }}
@@ -164,11 +164,11 @@ function ModelSelector({ value, onChange }) {
         style={{
           fontSize: "12px",
           width: "100%",
-          borderColor: isUnkeyedCurrent ? "#ef4444" : undefined,
+          borderColor: isUnkeyedCurrent ? "var(--status-danger)" : undefined,
         }}
       >
         {isUnkeyedCurrent && (
-          <option value="unkeyed" style={{ color: "#f87171" }}>
+          <option value="unkeyed" style={{ color: "var(--status-danger-text)" }}>
             ⚠ {value} (Missing Key)
           </option>
         )}
@@ -321,13 +321,13 @@ export default function NodeInspector({
               justifyContent: "center",
             }}
           >
-            <Icon size={13} color="#0d9488" />
+            <Icon size={13} color="var(--accent-primary)" />
           </div>
           <div>
             <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)", lineHeight: 1.2 }}>
               Configure Node
             </div>
-            <div style={{ fontSize: "10px", color: "#0d9488", fontWeight: 500 }}>
+            <div style={{ fontSize: "10px", color: "var(--accent-primary)", fontWeight: 500 }}>
               {tag}
             </div>
           </div>
@@ -341,7 +341,7 @@ export default function NodeInspector({
             style={{
               background: "transparent",
               border: "none",
-              color: "#737373",
+              color: "var(--text-muted)",
               cursor: "pointer",
               padding: "4px",
               display: "flex",
@@ -368,7 +368,7 @@ export default function NodeInspector({
             style={{
               background: "transparent",
               border: "none",
-              color: "#737373",
+              color: "var(--text-muted)",
               cursor: "pointer",
               padding: "4px",
               display: "flex",
@@ -376,8 +376,8 @@ export default function NodeInspector({
               justifyContent: "center",
               borderRadius: "4px",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#f5f5f5")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#737373")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-main)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
           >
             <X size={14} />
           </button>
@@ -510,7 +510,7 @@ export default function NodeInspector({
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <FieldLabel label="Temperature" tooltip="0.0 = deterministic & consistent, 1.0 = creative" />
-                <span style={{ fontSize: "10px", color: "#475569", fontFamily: "var(--font-mono)" }}>
+                <span style={{ fontSize: "10px", color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>
                   {config.temperature ?? 0.0}
                 </span>
               </div>
@@ -521,7 +521,7 @@ export default function NodeInspector({
                 step="0.1"
                 value={config.temperature ?? 0.0}
                 onChange={(e) => handleConfigChange("temperature", parseFloat(e.target.value))}
-                style={{ width: "100%", accentColor: "#0d9488" }}
+                style={{ width: "100%", accentColor: "var(--accent-primary)" }}
               />
             </div>
           </>
@@ -570,7 +570,7 @@ export default function NodeInspector({
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <FieldLabel label="Temperature" />
-                <span style={{ fontSize: "10px", color: "#475569", fontFamily: "var(--font-mono)" }}>
+                <span style={{ fontSize: "10px", color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>
                   {config.temperature ?? 0.0}
                 </span>
               </div>
@@ -581,7 +581,7 @@ export default function NodeInspector({
                 step="0.1"
                 value={config.temperature ?? 0.0}
                 onChange={(e) => handleConfigChange("temperature", parseFloat(e.target.value))}
-                style={{ width: "100%", accentColor: "#0d9488" }}
+                style={{ width: "100%", accentColor: "var(--accent-primary)" }}
               />
             </div>
           </>
@@ -735,13 +735,13 @@ export default function NodeInspector({
               <div
                 style={{
                   padding: "8px 10px",
-                  background: "#f8fafc",
-                  border: "1px solid #e2e8f0",
+                  background: "var(--surface-subtle)",
+                  border: "1px solid var(--border-light)",
                   borderRadius: "5px",
                   fontSize: "11px",
                 }}
               >
-                <div style={{ color: "#d4d4d4", marginBottom: "4px" }}>
+                <div style={{ color: "var(--text-secondary)", marginBottom: "4px" }}>
                   Rule: <span style={{ color: "#fbbf24", fontFamily: "var(--font-mono)" }}>If {activeField || "field"} {opSymbol} {!hideValInput ? (activeVal || '""') : ""}</span>
                 </div>
                 <div style={{ display: "flex", gap: "10px", fontSize: "10px" }}>
@@ -853,7 +853,7 @@ export default function NodeInspector({
         )}
 
         {/* Danger Zone: Delete Node */}
-        <div style={{ marginTop: "auto", paddingTop: "12px", borderTop: "1px solid #222222" }}>
+        <div style={{ marginTop: "auto", paddingTop: "12px", borderTop: "1px solid var(--border-light)" }}>
           <button
             type="button"
             onClick={() => onDeleteNode(node.id)}
@@ -867,7 +867,7 @@ export default function NodeInspector({
               background: "rgba(239, 68, 68, 0.08)",
               border: "1px solid rgba(239, 68, 68, 0.2)",
               borderRadius: "5px",
-              color: "#f87171",
+              color: "var(--status-danger-text)",
               fontSize: "11px",
               fontWeight: 500,
               cursor: "pointer",

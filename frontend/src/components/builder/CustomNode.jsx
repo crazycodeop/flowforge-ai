@@ -55,7 +55,7 @@ export default function CustomNode({ id, data, selected }) {
     <div
       style={{
         background: "var(--surface-card)",
-        border: selected ? "2px solid #0d9488" : "1px solid var(--border-light)",
+        border: selected ? "2px solid var(--accent-primary)" : "1px solid var(--border-light)",
         borderRadius: "6px",
         boxShadow: selected
           ? "0 0 0 3px rgba(13, 148, 136, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08)"
@@ -72,8 +72,8 @@ export default function CustomNode({ id, data, selected }) {
           type="target"
           position={Position.Top}
           style={{
-            background: "#ffffff",
-            border: "2px solid #0d9488",
+            background: "var(--surface-card)",
+            border: "2px solid var(--accent-primary)",
             width: "12px",
             height: "12px",
             top: "-6px",
@@ -96,7 +96,7 @@ export default function CustomNode({ id, data, selected }) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Icon size={14} color="#0d9488" />
+          <Icon size={14} color="var(--accent-primary)" />
           <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)" }}>
             {data.label || data.name || "Node"}
           </span>
@@ -129,7 +129,7 @@ export default function CustomNode({ id, data, selected }) {
             style={{
               background: "transparent",
               border: "none",
-              color: "#94a3b8",
+              color: "var(--text-muted)",
               cursor: "pointer",
               padding: "2px",
               display: "flex",
@@ -139,8 +139,8 @@ export default function CustomNode({ id, data, selected }) {
               transition: "all 0.15s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#dc2626";
-              e.currentTarget.style.backgroundColor = "#fee2e2";
+              e.currentTarget.style.color = "var(--status-danger-text)";
+              e.currentTarget.style.backgroundColor = "var(--status-danger-bg)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = "#94a3b8";
@@ -155,34 +155,34 @@ export default function CustomNode({ id, data, selected }) {
       {/* Node Body Details */}
       <div style={{ padding: "8px 10px", background: "var(--surface-card)" }}>
         {data.description ? (
-          <div style={{ fontSize: "11px", color: "#64748b", lineHeight: 1.3, marginBottom: "4px" }}>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.3, marginBottom: "4px" }}>
             {data.description}
           </div>
         ) : null}
 
         {/* Dynamic configuration preview pill for all 9 node types */}
         {nodeType === "trigger" && (
-          <div style={{ fontSize: "10px", color: "#059669", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
+          <div style={{ fontSize: "10px", color: "var(--status-success-text)", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
             Trigger: {data.config?.trigger_type || "api"} webhook
           </div>
         )}
         {nodeType === "input_data" && (
-          <div style={{ fontSize: "10px", color: "#0284c7", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
+          <div style={{ fontSize: "10px", color: "var(--accent-primary-light)", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
             Input: External Payload
           </div>
         )}
         {nodeType === "ai_classify" && (
-          <div style={{ fontSize: "10px", color: "#0d9488", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
+          <div style={{ fontSize: "10px", color: "var(--accent-primary)", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
             [{(data.config?.categories || ["billing", "technical", "general"]).slice(0, 3).join(", ")}]
           </div>
         )}
         {nodeType === "structured_extract" && (
-          <div style={{ fontSize: "10px", color: "#0d9488", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
+          <div style={{ fontSize: "10px", color: "var(--accent-primary)", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
             Extracts: {Object.keys(data.config?.schema_definition?.properties || {}).slice(0, 3).join(", ") || "fields"}
           </div>
         )}
         {nodeType === "retrieval" && (
-          <div style={{ fontSize: "10px", color: "#0891b2", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
+          <div style={{ fontSize: "10px", color: "var(--accent-primary)", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
             Top K: {data.config?.top_k || 3} | {data.config?.collection_name || "policies"}
           </div>
         )}
@@ -197,23 +197,23 @@ export default function CustomNode({ id, data, selected }) {
             op === "contains" ? "contains" : "==";
 
           return (
-            <div style={{ fontSize: "10px", color: "#d97706", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
+            <div style={{ fontSize: "10px", color: "var(--status-warning-text)", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
               If {field} {opSym} {String(val)}
             </div>
           );
         })()}
         {nodeType === "transform" && (
-          <div style={{ fontSize: "10px", color: "#4f46e5", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
+          <div style={{ fontSize: "10px", color: "var(--accent-primary-hover)", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
             Map: {Object.keys(data.config?.mapping_rules || {}).length || 1} fields
           </div>
         )}
         {nodeType === "human_approval" && (
-          <div style={{ fontSize: "10px", color: "#dc2626", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
+          <div style={{ fontSize: "10px", color: "var(--status-danger-text)", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
             Gate: {data.config?.required_role || "reviewer"} ({data.config?.timeout_hours || 24}h SLA)
           </div>
         )}
         {nodeType === "output" && (
-          <div style={{ fontSize: "10px", color: "#16a34a", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
+          <div style={{ fontSize: "10px", color: "var(--status-success-text)", fontFamily: "var(--font-mono)", marginTop: "2px", fontWeight: 500 }}>
             Result Assembly
           </div>
         )}
@@ -228,24 +228,24 @@ export default function CustomNode({ id, data, selected }) {
             padding: "2px 14px 6px 14px",
             fontSize: "10px",
             fontWeight: 700,
-            color: "#64748b",
-            background: "#f8fafc",
-            borderTop: "1px solid #f1f5f9",
+            color: "var(--text-muted)",
+            background: "var(--surface-subtle)",
+            borderTop: "1px solid var(--border-light)",
             borderBottomLeftRadius: "5px",
             borderBottomRightRadius: "5px",
           }}
         >
           {/* TRUE Handle */}
           <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <span style={{ color: "#059669" }}>TRUE</span>
+            <span style={{ color: "var(--status-success-text)" }}>TRUE</span>
             <Handle
               type="source"
               position={Position.Bottom}
               id="true"
               style={{
                 left: "50%",
-                background: "#059669",
-                border: "2px solid #ffffff",
+                background: "var(--status-success)",
+                border: "2px solid var(--surface-card)",
                 width: "12px",
                 height: "12px",
                 bottom: "-6px",
@@ -257,15 +257,15 @@ export default function CustomNode({ id, data, selected }) {
 
           {/* FALSE Handle */}
           <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <span style={{ color: "#dc2626" }}>FALSE</span>
+            <span style={{ color: "var(--status-danger-text)" }}>FALSE</span>
             <Handle
               type="source"
               position={Position.Bottom}
               id="false"
               style={{
                 left: "50%",
-                background: "#dc2626",
-                border: "2px solid #ffffff",
+                background: "var(--status-danger)",
+                border: "2px solid var(--surface-card)",
                 width: "12px",
                 height: "12px",
                 bottom: "-6px",
@@ -280,8 +280,8 @@ export default function CustomNode({ id, data, selected }) {
           type="source"
           position={Position.Bottom}
           style={{
-            background: "#ffffff",
-            border: "2px solid #0d9488",
+            background: "var(--surface-card)",
+            border: "2px solid var(--accent-primary)",
             width: "12px",
             height: "12px",
             bottom: "-6px",

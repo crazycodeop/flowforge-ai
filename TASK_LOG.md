@@ -29,6 +29,38 @@
 - [x] **Milestone 24: AI Provider Multi-Env Credential Auto-Persistence & Cleaned Architecture**
 - [x] **Milestone 25: Auth Session Stability & Trailing-Slash Redirect Loop Resolution**
 - [x] **Milestone 26: Dual Workflow Seeding (Automated vs. Human-in-the-Loop) & Knowledge Base Data**
+- [x] **Milestone 33: Complete Responsive UI, Mobile UX & Universal Dark Mode Architecture Overhaul**
+  - **Identified Problems**:
+    1. Mobile UI had layout and component overflow on screens under 430px (tables with fixed min-widths, cramped headers, uncontained dialogs).
+    2. Dark mode had inconsistent inheritance: 700+ hardcoded hex colors across 34 files left white backgrounds (`#ffffff`) on modals, execution side-drawers, and validation panels, or inverted dark text (`#0f172a`) on dark surfaces.
+    3. Severe contrast bugs: `MarkdownView.jsx` rendered `#d4d4d8` (pale gray on white in light mode), `Knowledge.jsx` had `#ffffff` headings in light mode, and `ModalContext.jsx` had `#a3a3a3` text on white cards.
+    4. Theme switching lacked support for system OS preference (`prefers-color-scheme`).
+    5. Native checkboxes in Settings overflowed text descriptions and looked crude on mobile viewports.
+  - **Solutions & Implementations**:
+    1. **Centralized Semantic Token Architecture (`index.css` & `ThemeContext.jsx`)**:
+       - Defined standard semantic tokens (`--background`, `--foreground`, `--surface`, `--surface-elevated`, `--card`, `--card-foreground`, `--popover`, `--popover-foreground`, `--primary`, `--secondary`, `--muted`, `--border`, `--input`, `--ring`, `--success`, `--warning`, `--danger`) for both `:root` and `[data-theme="dark"]`.
+       - Upgraded `ThemeContext.jsx` to support `"light"`, `"dark"`, and `"system"` modes with live `window.matchMedia` listener and CSS `color-scheme` synchronization.
+       - Replaced hardcoded hex colors across all 34 source files with semantic design tokens.
+    2. **Mobile Navigation & Accessibility Overhaul (`Shell.jsx`, `PortalShell.jsx`, `ModalContext.jsx`)**:
+       - Standardized all topbar utility buttons to 32px x 32px (`.header-icon-btn`).
+       - Added topbar user avatar dropdown menu for instant 1-tap sign-out from any page on desktop and mobile.
+       - Overhauled mobile slide-over drawers with brand teal SVG logo, luminous title, operator profile identity card, and full-width sign-out button.
+       - Themed all alert, confirm, and prompt modals with `var(--surface-card)`, `var(--text-main)`, and responsive max-width (`min(460px, 94vw)`).
+    3. **Visual Workflow Builder Mobile & Dark Mode Polish (`Builder.jsx`, `CustomNode.jsx`, `NodePalette.jsx`, `NodeInspector.jsx`)**:
+       - Themed canvas dots, minimap, validation panel, and edge connector strokes.
+       - Single-line subheader on mobile, floating thumb action dock, slide-up bottom sheets for palette and inspector, and 1-tap node placement.
+       - Replaced hardcoded white handle dots with `var(--surface-card)`.
+    4. **Settings & Data Tables Responsiveness**:
+       - Replaced native HTML checkboxes with custom modern SaaS switch toggles (`40px x 22px`) that slide smoothly and turn brand teal.
+       - Wrapped all data tables in `.table-container` with smooth horizontal touch-scrolling, eliminating entire-page horizontal scrolling.
+       - Added "Active Session" sign-out card under Settings Security tab.
+    5. **Comprehensive Completion Report**:
+       - Created `docs/RESPONSIVE_AND_THEME_AUDIT.md` documenting issues discovered, components modified, token reference, and verification matrix.
+  - **Verification**:
+    - Vitest unit tests: 2/2 passed (`src/App.test.jsx`).
+    - Vite production build: built successfully in 4.54s with 0 errors.
+    - Pytest backend suite: 62/62 passed in 20.66s.
+
 - [x] **Milestone 32: Complete Dark Mode Theme System & Mobile Workflow Editor UX Overhaul**
   - **Identified Problems**:
     1. Navbar buttons had mismatched dimensions on mobile (Plus button was visibly larger than Search and other utility buttons).

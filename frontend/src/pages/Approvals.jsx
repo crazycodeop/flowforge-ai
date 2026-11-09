@@ -62,7 +62,7 @@ export default function Approvals() {
       {approvals.length === 0 ? (
         <div
           style={{
-            background: "#ffffff",
+            background: "var(--surface-card)",
             boxShadow: "var(--card-shadow)",
             border: "1px solid var(--border-light)",
             borderRadius: "6px",
@@ -75,18 +75,18 @@ export default function Approvals() {
               width: "40px",
               height: "40px",
               borderRadius: "50%",
-              background: "#f0fdfa",
-              border: "1px solid #e2e8f0",
+              background: "var(--accent-primary-bg)",
+              border: "1px solid var(--border-light)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               marginBottom: "12px",
-              color: "#10b981",
+              color: "var(--status-success-text)",
             }}
           >
             <ShieldCheck size={20} />
           </div>
-          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#0f172a" }}>Approval Queue Clear</h3>
+          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-main)" }}>Approval Queue Clear</h3>
           <p style={{ fontSize: "12px", color: "var(--text-muted)", maxWidth: "460px", margin: "6px auto 0" }}>
             No workflows are currently paused pending review. High-risk actions routed through Human Approval nodes will appear here.
           </p>
@@ -97,7 +97,7 @@ export default function Approvals() {
             <div
               key={req.id}
               style={{
-                background: "#ffffff",
+                background: "var(--surface-card)",
             boxShadow: "var(--card-shadow)",
                 border: "1px solid var(--border-light)",
                 borderRadius: "6px",
@@ -107,7 +107,7 @@ export default function Approvals() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#0f172a", margin: 0 }}>
+                    <h3 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-main)", margin: 0 }}>
                       {req.title}
                     </h3>
                     <span className="badge badge-warning" style={{ fontSize: "10px" }}>
@@ -129,10 +129,10 @@ export default function Approvals() {
                   style={{
                     fontSize: "12px",
                     padding: "10px 12px",
-                    background: "#f0fdfa",
-                    border: "1px solid #99f6e4",
+                    background: "var(--accent-primary-bg)",
+                    border: "1px solid var(--accent-primary-border)",
                     borderRadius: "4px",
-                    color: "#0f766e",
+                    color: "var(--accent-primary)",
                     marginBottom: "14px",
                   }}
                 >
@@ -155,7 +155,7 @@ export default function Approvals() {
                     onClick={() => handleDecision(req.id, "REJECTED")}
                     disabled={actionInProgress === req.id}
                     className="btn btn-secondary btn-sm"
-                    style={{ color: "#ef4444", minHeight: "36px" }}
+                    style={{ color: "var(--status-danger-text)", minHeight: "36px" }}
                   >
                     <XCircle size={13} />
                     <span>Reject</span>
@@ -165,7 +165,7 @@ export default function Approvals() {
                     onClick={() => handleDecision(req.id, "APPROVED")}
                     disabled={actionInProgress === req.id}
                     className="btn btn-primary btn-sm"
-                    style={{ background: "#10b981", borderColor: "#059669", minHeight: "36px" }}
+                    style={{ background: "var(--status-success)", borderColor: "var(--status-success-border)", minHeight: "36px" }}
                   >
                     <CheckCircle2 size={13} />
                     <span>{actionInProgress === req.id ? "Submitting..." : "Approve & Resume"}</span>

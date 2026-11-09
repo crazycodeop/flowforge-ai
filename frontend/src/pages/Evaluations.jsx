@@ -72,7 +72,7 @@ export default function Evaluations() {
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           <button onClick={handleSeedBenchmark} className="btn btn-secondary btn-sm">
-            <Sparkles size={13} color="#0d9488" />
+            <Sparkles size={13} color="var(--accent-primary)" />
             <span>Seed Standard Benchmark</span>
           </button>
           <button onClick={fetchData} className="btn btn-secondary btn-sm" disabled={loading}>
@@ -84,16 +84,16 @@ export default function Evaluations() {
 
       {/* Metrics Highlights */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(180px, 100%), 1fr))", gap: "12px" }}>
-        <div style={{ padding: "16px 20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
+        <div style={{ padding: "16px 20px", background: "var(--surface-card)", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.04em" }}>
             Benchmark Accuracy
           </div>
-          <div style={{ fontSize: "24px", fontWeight: 700, marginTop: "6px", color: "#059669", fontFamily: "var(--font-mono)" }}>
+          <div style={{ fontSize: "24px", fontWeight: 700, marginTop: "6px", color: "var(--status-success-text)", fontFamily: "var(--font-mono)" }}>
             {latestRun ? `${(latestRun.accuracy_score * 100).toFixed(1)}%` : "-"}
           </div>
         </div>
 
-        <div style={{ padding: "16px 20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
+        <div style={{ padding: "16px 20px", background: "var(--surface-card)", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.04em" }}>
             Avg Roundtrip Latency
           </div>
@@ -102,7 +102,7 @@ export default function Evaluations() {
           </div>
         </div>
 
-        <div style={{ padding: "16px 20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
+        <div style={{ padding: "16px 20px", background: "var(--surface-card)", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.04em" }}>
             Total Benchmark Cost
           </div>
@@ -111,7 +111,7 @@ export default function Evaluations() {
           </div>
         </div>
 
-        <div style={{ padding: "16px 20px", background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
+        <div style={{ padding: "16px 20px", background: "var(--surface-card)", border: "1px solid var(--border-light)", borderRadius: "6px", boxShadow: "var(--card-shadow)" }}>
           <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.04em" }}>
             Configured Suites
           </div>
@@ -126,7 +126,7 @@ export default function Evaluations() {
           style={{
             padding: "48px 24px",
             textAlign: "center",
-            background: "#ffffff",
+            background: "var(--surface-card)",
             border: "1px dashed var(--border-light)",
             borderRadius: "8px",
           }}
@@ -136,18 +136,18 @@ export default function Evaluations() {
               width: "40px",
               height: "40px",
               borderRadius: "8px",
-              background: "#f0fdfa",
-              border: "1px solid #ccfbf1",
+              background: "var(--accent-primary-bg)",
+              border: "1px solid var(--accent-primary-border)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               marginBottom: "12px",
-              color: "#0d9488",
+              color: "var(--accent-primary)",
             }}
           >
             <Gauge size={20} />
           </div>
-          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#0f172a" }}>No evaluation datasets configured</h3>
+          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-main)" }}>No evaluation datasets configured</h3>
           <p style={{ fontSize: "12px", color: "var(--text-muted)", maxWidth: "460px", margin: "6px auto 16px" }}>
             Click &quot;Seed Standard Benchmark&quot; to initialize the official customer-support triage test suite with 5 labelled evaluation scenarios.
           </p>
@@ -159,8 +159,8 @@ export default function Evaluations() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))", gap: "20px" }}>
           {/* Datasets & History */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <div style={{ background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px", boxShadow: "var(--card-shadow)" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", marginBottom: "12px" }}>
+            <div style={{ background: "var(--surface-card)", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px", boxShadow: "var(--card-shadow)" }}>
+              <h3 style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)", marginBottom: "12px" }}>
                 Benchmark Datasets
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -172,13 +172,13 @@ export default function Evaluations() {
                       justifyContent: "space-between",
                       alignItems: "center",
                       padding: "10px 12px",
-                      background: "#f8fafc",
-                      border: "1px solid #e2e8f0",
+                      background: "var(--surface-subtle)",
+                      border: "1px solid var(--border-light)",
                       borderRadius: "5px",
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>{d.name}</div>
+                      <div style={{ fontWeight: 600, fontSize: "13px", color: "var(--text-main)" }}>{d.name}</div>
                       <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{d.test_case_count} labelled test cases</div>
                     </div>
                     <button
@@ -195,8 +195,8 @@ export default function Evaluations() {
               </div>
             </div>
 
-            <div style={{ background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px", boxShadow: "var(--card-shadow)" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", marginBottom: "12px" }}>
+            <div style={{ background: "var(--surface-card)", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px", boxShadow: "var(--card-shadow)" }}>
+              <h3 style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)", marginBottom: "12px" }}>
                 Evaluation History
               </h3>
               {runs.length === 0 ? (
@@ -213,8 +213,8 @@ export default function Evaluations() {
                           padding: "8px 12px",
                           borderRadius: "5px",
                           cursor: "pointer",
-                          background: isSelected ? "#f0fdfa" : "transparent",
-                          border: isSelected ? "1px solid #99f6e4" : "1px solid #e2e8f0",
+                          background: isSelected ? "var(--accent-primary-bg)" : "transparent",
+                          border: isSelected ? "1px solid var(--accent-primary-border)" : "1px solid var(--border-light)",
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
@@ -222,7 +222,7 @@ export default function Evaluations() {
                         }}
                       >
                         <div>
-                          <div style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", fontFamily: "var(--font-mono)" }}>
+                          <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)", fontFamily: "var(--font-mono)" }}>
                             Run: {r.id.slice(0, 8)}...
                           </div>
                           <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
@@ -235,7 +235,7 @@ export default function Evaluations() {
                               fontSize: "13px",
                               fontWeight: 700,
                               fontFamily: "var(--font-mono)",
-                              color: (r.accuracy_score || 0) >= 0.8 ? "#059669" : "#dc2626",
+                              color: (r.accuracy_score || 0) >= 0.8 ? "var(--status-success-text)" : "var(--status-danger-text)",
                             }}
                           >
                             {((r.accuracy_score || 0) * 100).toFixed(1)}%
@@ -253,8 +253,8 @@ export default function Evaluations() {
           </div>
 
           {/* Selected Run Details Inspector */}
-          <div style={{ background: "#ffffff", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px", boxShadow: "var(--card-shadow)" }}>
-            <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a", marginBottom: "12px" }}>
+          <div style={{ background: "var(--surface-card)", border: "1px solid var(--border-light)", borderRadius: "6px", padding: "16px", boxShadow: "var(--card-shadow)" }}>
+            <h3 style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main)", marginBottom: "12px" }}>
               Test Case Assertions ({selectedRun?.results?.length || 0} Scenarios)
             </h3>
 
@@ -268,12 +268,12 @@ export default function Evaluations() {
                     style={{
                       padding: "10px 12px",
                       borderRadius: "5px",
-                      border: "1px solid #e2e8f0",
-                      background: "#f8fafc",
+                      border: "1px solid var(--border-light)",
+                      background: "var(--surface-subtle)",
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>Scenario #{i + 1}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-main)" }}>Scenario #{i + 1}</span>
                       {c.passed ? (
                         <span className="badge badge-published" style={{ fontSize: "10px" }}>
                           ✓ Passed
@@ -285,7 +285,7 @@ export default function Evaluations() {
                       )}
                     </div>
 
-                    <div style={{ fontSize: "12px", color: "#475569", marginBottom: "4px" }}>
+                    <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "4px" }}>
                       Input: &quot;{c.input?.ticket_text || JSON.stringify(c.input)}&quot;
                     </div>
 
@@ -294,7 +294,7 @@ export default function Evaluations() {
                     </div>
 
                     {c.failure_reasons && c.failure_reasons.length > 0 && (
-                      <div style={{ marginTop: "6px", fontSize: "11px", color: "#dc2626" }}>
+                      <div style={{ marginTop: "6px", fontSize: "11px", color: "var(--status-danger-text)" }}>
                         {c.failure_reasons.join(", ")}
                       </div>
                     )}

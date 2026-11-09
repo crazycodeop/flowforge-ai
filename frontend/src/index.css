@@ -1,4 +1,26 @@
 :root {
+  /* Standard Semantic Design Tokens (WCAG 2.2 AA Compliant) */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0d9488;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #1e293b;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0d9488;
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+
   /* Modern Professional Light Theme Color Palette */
   --main-bg: #f8fafc;
   --sidebar-bg: #ffffff;
@@ -69,6 +91,28 @@
 }
 
 [data-theme="dark"] {
+  /* Standard Semantic Design Tokens (Dark Theme) */
+  --background: #090d16;
+  --foreground: #f8fafc;
+  --surface: #0f172a;
+  --surface-elevated: #131b2e;
+  --card: #131b2e;
+  --card-foreground: #f8fafc;
+  --popover: #131b2e;
+  --popover-foreground: #f8fafc;
+  --primary: #14b8a6;
+  --primary-foreground: #090d16;
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #14b8a6;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
   /* High-Contrast Professional Dark Theme */
   --main-bg: #090d16;
   --sidebar-bg: #0f172a;
@@ -749,7 +793,7 @@ body {
 .markdown-body h2,
 .markdown-body h3,
 .markdown-body h4 {
-  color: #0f172a;
+  color: var(--text-main);
   font-weight: 600;
   margin-top: 1em;
   margin-bottom: 0.5em;
@@ -777,7 +821,7 @@ body {
 }
 
 .markdown-body strong {
-  color: #0f172a;
+  color: var(--text-main);
   font-weight: 600;
 }
 
@@ -794,15 +838,15 @@ body {
 .markdown-body code {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  background-color: #f1f5f9;
-  color: #0f766e;
+  background-color: var(--surface-subtle);
+  color: var(--accent-primary);
   padding: 0.15em 0.35em;
   border-radius: 3px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-light);
 }
 
 .markdown-body pre {
-  background-color: #f8fafc;
+  background-color: var(--surface-subtle);
   border: 1px solid var(--border-light);
   border-radius: 5px;
   padding: 10px 12px;
@@ -814,7 +858,7 @@ body {
   background-color: transparent;
   padding: 0;
   border: none;
-  color: #334155;
+  color: var(--text-main);
 }
 
 .markdown-body blockquote {
@@ -995,4 +1039,30 @@ body {
 [data-theme="dark"] .header-icon-btn:hover {
   background: var(--surface-hover) !important;
   color: var(--text-main) !important;
+}
+
+/* React Flow Controls in Dark Theme */
+[data-theme="dark"] .react-flow__controls {
+  background: var(--surface-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+[data-theme="dark"] .react-flow__controls-button {
+  background: var(--surface-card) !important;
+  border-bottom-color: var(--border-light) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .react-flow__controls-button:hover {
+  background: var(--surface-hover) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .react-flow__minimap {
+  background: var(--surface-card) !important;
+  border-color: var(--border-light) !important;
+}
+
+[data-theme="dark"] .react-flow__minimap-mask {
+  fill: rgba(9, 13, 22, 0.8) !important;
 }

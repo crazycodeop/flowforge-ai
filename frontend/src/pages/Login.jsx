@@ -197,7 +197,7 @@ export default function Login() {
               gap: "5px",
               fontSize: "11px",
               fontWeight: 600,
-              color: "#64748b",
+              color: "var(--text-muted)",
               textTransform: "uppercase",
               letterSpacing: "0.04em",
               marginBottom: "8px",
@@ -305,7 +305,7 @@ export default function Login() {
                   paddingLeft: "36px",
                   fontSize: "13px",
                   borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid var(--border-light)",
                 }}
               />
             </div>
@@ -317,12 +317,12 @@ export default function Login() {
                 style={{
                   fontSize: "12px",
                   fontWeight: 600,
-                  color: "#334155",
+                  color: "var(--text-secondary)",
                 }}
               >
                 Password
               </label>
-              <span style={{ fontSize: "11px", color: "#0d9488", cursor: "pointer" }}>
+              <span style={{ fontSize: "11px", color: "var(--accent-primary)", cursor: "pointer" }}>
                 Forgot?
               </span>
             </div>
@@ -348,7 +348,7 @@ export default function Login() {
                   paddingLeft: "36px",
                   fontSize: "13px",
                   borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid var(--border-light)",
                 }}
               />
             </div>
@@ -378,14 +378,14 @@ export default function Login() {
           style={{
             marginTop: "22px",
             paddingTop: "16px",
-            borderTop: "1px solid #f1f5f9",
+            borderTop: "1px solid var(--border-light)",
             textAlign: "center",
             fontSize: "12px",
-            color: "#64748b",
+            color: "var(--text-muted)",
           }}
         >
           Don't have an account?{" "}
-          <Link to="/register" style={{ color: "#0d9488", fontWeight: 600, textDecoration: "none" }}>
+          <Link to="/register" style={{ color: "var(--accent-primary)", fontWeight: 600, textDecoration: "none" }}>
             Create Workspace
           </Link>
         </div>

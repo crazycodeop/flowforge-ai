@@ -27,7 +27,7 @@ export default function MarkdownView({ content, style = {}, className = "" }) {
       className={`markdown-body ${className}`}
       style={{
         fontSize: "12px",
-        color: "#d4d4d8",
+        color: "var(--text-main)",
         lineHeight: 1.6,
         ...style,
       }}

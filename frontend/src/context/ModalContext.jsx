@@ -116,13 +116,13 @@ export function ModalProvider({ children }) {
           <div
             style={{
               width: "min(460px, 94vw)",
-              background: "#ffffff",
-              border: "1px solid #e2e8f0",
+              background: "var(--surface-card)",
+              border: "1px solid var(--border-light)",
               borderRadius: "8px",
               boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)",
               padding: "20px",
               position: "relative",
-              color: "#0f172a",
+              color: "var(--text-main)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -141,7 +141,7 @@ export function ModalProvider({ children }) {
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "#737373",
+                  color: "var(--text-muted)",
                   cursor: "pointer",
                   padding: "4px",
                   display: "flex",
@@ -160,7 +160,7 @@ export function ModalProvider({ children }) {
               <p
                 style={{
                   fontSize: "13px",
-                  color: "#a3a3a3",
+                  color: "var(--text-secondary)",
                   lineHeight: 1.5,
                   margin: "0 0 16px 0",
                   whiteSpace: "pre-wrap",
@@ -189,10 +189,10 @@ export function ModalProvider({ children }) {
                   style={{
                     width: "100%",
                     padding: "8px 12px",
-                    background: "#ffffff",
-                    border: "1px solid #e2e8f0",
+                    background: "var(--input-bg)",
+                    border: "1px solid var(--border-light)",
                     borderRadius: "6px",
-                    color: "#0f172a",
+                    color: "var(--text-main)",
                     fontSize: "13px",
                     outline: "none",
                   }}

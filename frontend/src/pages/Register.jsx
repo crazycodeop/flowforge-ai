@@ -196,7 +196,7 @@ export default function Register() {
                   paddingLeft: "36px",
                   fontSize: "13px",
                   borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid var(--border-light)",
                 }}
               />
             </div>
@@ -229,7 +229,7 @@ export default function Register() {
                   paddingLeft: "36px",
                   fontSize: "13px",
                   borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid var(--border-light)",
                 }}
               />
             </div>
@@ -261,7 +261,7 @@ export default function Register() {
                   paddingLeft: "36px",
                   fontSize: "13px",
                   borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid var(--border-light)",
                 }}
               />
             </div>
@@ -295,7 +295,7 @@ export default function Register() {
                   paddingLeft: "36px",
                   fontSize: "13px",
                   borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid var(--border-light)",
                 }}
               />
             </div>
@@ -324,14 +324,14 @@ export default function Register() {
           style={{
             marginTop: "22px",
             paddingTop: "16px",
-            borderTop: "1px solid #f1f5f9",
+            borderTop: "1px solid var(--border-light)",
             textAlign: "center",
             fontSize: "12px",
-            color: "#64748b",
+            color: "var(--text-muted)",
           }}
         >
           Already have an account?{" "}
-          <Link to="/login" style={{ color: "#0d9488", fontWeight: 600, textDecoration: "none" }}>
+          <Link to="/login" style={{ color: "var(--accent-primary)", fontWeight: 600, textDecoration: "none" }}>
             Sign In
           </Link>
         </div>
