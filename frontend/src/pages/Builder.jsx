@@ -184,6 +184,7 @@ const nodeTypes = {
 
 function BuilderCanvas() {
   const modal = useModal();
+  const { theme } = useTheme();
   const { id } = useParams();
   const navigate = useNavigate();
   const [workflow, setWorkflow] = useState(null);
@@ -205,6 +206,7 @@ function BuilderCanvas() {
 
   // Responsive Drawer states
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 1200
   );
@@ -900,8 +902,8 @@ function BuilderCanvas() {
             {/* Show MiniMap only on screens >= 768px to prevent blocking touch canvas on mobile */}
             {!isMobile && (
               <MiniMap
-                nodeColor="var(--accent-primary)"
-                maskColor="rgba(241, 245, 249, 0.7)"
+                nodeColor={theme === "dark" ? "#14b8a6" : "#0d9488"}
+                maskColor={theme === "dark" ? "rgba(15, 23, 42, 0.7)" : "rgba(241, 245, 249, 0.7)"}
                 style={{
                   borderRadius: "6px",
                   border: "1px solid var(--border-light)",

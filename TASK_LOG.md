@@ -58,6 +58,28 @@
        - Created `docs/RESPONSIVE_AND_THEME_AUDIT.md` documenting issues discovered, components modified, token reference, and verification matrix.
   - **Verification**:
     - Vitest unit tests: 2/2 passed (`src/App.test.jsx`).
+
+- [x] **Milestone 34: Fix Workflow Builder Fatal Render Crash & Enterprise Error Boundary**
+  - **Identified Problems**:
+    1. Navigating to `/workflows/:id` resulted in a completely blank dark screen (`#090d16`).
+    2. In `frontend/src/pages/Builder.jsx`, `useTheme` was imported but `const { theme } = useTheme();` was never called, causing a fatal `ReferenceError: theme is not defined` inside `colorMode={theme === "dark" ? "dark" : "light"}` and MiniMap props during initial render.
+    3. `isInspectorOpen` and `setIsInspectorOpen` state hook was missing from `BuilderCanvas`, causing reference errors when interacting with node config panels.
+    4. MiniMap in `@xyflow/react` received `nodeColor="var(--accent-primary)"`, which breaks in HTML5 Canvas 2D contexts that expect concrete hex/rgba color strings.
+    5. No `ErrorBoundary` wrapped the React root in `main.jsx`, meaning any unhandled child exception resulted in a complete unmount of the application DOM tree.
+  - **Solutions & Implementations**:
+    1. **Declared Missing Theme & Inspector State in `Builder.jsx`**:
+       - Added `const { theme } = useTheme();` and `const [isInspectorOpen, setIsInspectorOpen] = useState(false);` in `BuilderCanvas`.
+       - Updated `MiniMap` props: `nodeColor={theme === "dark" ? "#14b8a6" : "#0d9488"}` and `maskColor={theme === "dark" ? "rgba(15, 23, 42, 0.7)" : "rgba(241, 245, 249, 0.7)"}` for safe canvas rendering in both themes.
+    2. **Enterprise Error Boundary (`ErrorBoundary.jsx` & `main.jsx`)**:
+       - Created `ErrorBoundary.jsx` with full dark/light styling, alert icon, error message details, "Reload Page" button, and "Back to Dashboard" fallback.
+       - Wrapped `<App />` root in `main.jsx` with `<ErrorBoundary>` to eliminate blank-screen crashes application-wide.
+    3. **Automated Vitest Regression Test Suite**:
+       - Created `frontend/src/pages/Builder.test.jsx` verifying canvas rendering, nodes, subheader actions, and error handling.
+       - Created `frontend/src/components/ErrorBoundary.test.jsx` verifying error boundary containment and recovery UI.
+  - **Verification**:
+    - Vitest unit tests: 5/5 passed across 3 test files (`App.test.jsx`, `Builder.test.jsx`, `ErrorBoundary.test.jsx`).
+    - Vite production build: `dist/index.html` and assets built cleanly in 6.75s.
+    - Pytest backend suite: 62/62 passed in 21.86s.
     - Vite production build: built successfully in 4.54s with 0 errors.
     - Pytest backend suite: 62/62 passed in 20.66s.
 
